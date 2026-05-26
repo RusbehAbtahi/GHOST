@@ -40,7 +40,7 @@ Ghost2 follows a blackboard-style concept: private specialist contexts remain se
 
 A further Ghost2 direction is deterministic traceability across requirements, architecture, code, and tests. Stable IDs can connect related engineering artifacts, while a lightweight SQLite-based traceability index can act as a practical knowledge graph: showing which requirement is refined by which architecture decision, implemented by which code section, and verified by which test. This gives future agents a precise way to fetch and compare connected artifacts before using an LLM for contradiction checks, redesign impact analysis, or synchronization support.
 
-The he moderator.uman remains th The user decides which brain is addressed, which private output is shared, which memory is reused, and which context is sent back into a private AI environment.
+The human remains the moderator. The user decides which brain is addressed, which private output is shared, which memory is reused, and which context is sent back into a private AI environment.
 
 The intended result is stronger collective understanding across specialized AI contexts: each private brain keeps its own specialist continuity, while Ghost2 provides the shared memory, traceability, and orchestration layer that allows these separate contexts to support each other.
 
@@ -51,27 +51,60 @@ The intended result is stronger collective understanding across specialized AI c
 GHOST is organized as a modular orchestration system. The main workflow connects user input, project knowledge, memory, deterministic control logic, LLM-based agents, and optional external AI tooling into one inspectable engineering process.
 
 ```mermaid
-flowchart LR
-    U[Human Engineer] --> GUI[GHOST GUI]
-    GUI --> CTRL[Orchestration Controller]
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontSize": "20px"
+  },
+  "flowchart": {
+    "htmlLabels": true,
+    "curve": "basis",
+    "nodeSpacing": 45,
+    "rankSpacing": 55
+  }
+}}%%
+flowchart TB
 
-    CTRL --> DOC[Project Documents]
-    CTRL --> MEM[Engineering Memory]
-    CTRL --> RULES[Hard Rules & Metadata]
+  classDef ingest fill:#EAF7EA,stroke:#22A06B,stroke-width:1.5px,color:#123;
+  classDef app fill:#FFF4D6,stroke:#E0A100,stroke-width:1.5px,color:#321;
+  classDef agent fill:#EDE7FF,stroke:#7C3AED,stroke-width:1.5px,color:#213;
+  classDef gui fill:#FCE7F3,stroke:#EC4899,stroke-width:1.5px,color:#4A1D36;
+  classDef ctrl fill:#DCEEFF,stroke:#3B82F6,stroke-width:1.5px,color:#123;
+  classDef aws fill:#FFE9E7,stroke:#E76F51,stroke-width:1.5px,color:#611;
 
-    DOC --> RET[Document Retrieval]
-    MEM --> MRET[Memory Retrieval]
-    RULES --> PB[Engineered Prompt Builder]
+  subgraph LEFT["Knowledge / Memory"]
+    direction TB
+    DOC["Project Documents<br/>requirements, architecture, notes"]:::ingest
+    RET["Document Retrieval<br/>embeddings, sparse retrieval, reranking"]:::ingest
+    MEM["Engineering Memory<br/>records, tags, ActiveBriefs"]:::ingest
+    MRET["Memory Retrieval<br/>episodic and semantic memory"]:::ingest
 
-    RET --> PB
-    MRET --> PB
+    DOC --> RET
+    MEM --> MRET
+  end
 
-    PB --> AGENTS[Custom GHOST Agents]
-    AGENTS --> MODELS[LLMs / Public AI Tooling / Private Models]
+  subgraph MID["GHOST Application"]
+    direction TB
+    GUI["GHOST GUI"]:::gui
+    CTRL["Orchestration Controller"]:::ctrl
+    PIPE["Engineered Prompt Workflow<br/>context, memory, rules, model-ready prompt"]:::app
+    ASTACK["Custom Agent Layer<br/>JSON-defined specialist agents"]:::agent
 
-    MODELS --> OUT[Model Output]
-    OUT --> MEM
-    OUT --> GUI
+    GUI --> CTRL --> PIPE
+    ASTACK --> PIPE
+  end
+
+  subgraph RIGHT["Models / Deployment"]
+    direction TB
+    MODELS["LLMs and AI Tooling<br/>ChatGPT UI, Codex, Copilot, APIs"]:::aws
+    RUN["AWS Runtime<br/>ECR, EC2, Docker, nginx, HTTPS"]:::aws
+
+    MODELS --> RUN
+  end
+
+  RET --> PIPE
+  MRET --> PIPE
+  PIPE --> MODELS
 ```
 
 The architecture is built around a clear separation of responsibilities:
@@ -164,14 +197,30 @@ The current deployment architecture uses GitHub Actions, Amazon ECR, EC2, Docker
 
 ```mermaid
 flowchart LR
-    DEV[Developer] --> GH[GitHub Repository]
-    GH --> GA[GitHub Actions]
-    GA --> ECR[Amazon ECR]
-    ECR --> EC2[EC2 + Docker]
-    EC2 --> NGINX[nginx / HTTPS]
-    NGINX --> USER[Browser]
-    EC2 --> DATA[Persistent Runtime Data]
-    EC2 --> SSM[SSM Parameter Store]
+  classDef dev fill:#EAF3FF,stroke:#3B82F6,color:#123;
+  classDef build fill:#EEFBEF,stroke:#16A34A,color:#123;
+  classDef run fill:#FFF7E8,stroke:#F59E0B,color:#321;
+
+  DEV[Developer]:::dev --> GH[GitHub Repository]:::dev
+  GH --> GA[GitHub Actions]:::build
+  GA --> ECR[Amazon ECR]:::build
+  ECR --> EC2[EC2 Host]:::run
+```
+
+
+```mermaid
+flowchart LR
+  classDef edge fill:#EAF3FF,stroke:#3B82F6,color:#123;
+  classDef host fill:#EEFBEF,stroke:#16A34A,color:#123;
+  classDef data fill:#FFF7E8,stroke:#F59E0B,color:#321;
+  classDef sec fill:#FDEDEE,stroke:#E74C3C,color:#611;
+
+  USER[Browser]:::edge --> R53[Route 53]:::edge
+  R53 --> IP[EC2 Public IP]:::edge
+  IP --> NGINX[nginx 80 / 443]:::host
+  NGINX --> APP[Docker / Streamlit 8501]:::host
+  APP --> DATA[Persistent /app/data]:::data
+  EC2[EC2 Host]:::host --> SSM[SSM Parameter Store]:::sec
 ```
 
 This deployment path keeps application code, runtime data, secrets, and public access separated in a manageable way for a small engineering setup.
