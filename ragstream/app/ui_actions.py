@@ -8,6 +8,7 @@ Keep controller calls and session-state mutations here.
 from __future__ import annotations
 
 import copy
+import time
 
 from typing import Any
 
@@ -23,6 +24,156 @@ from ragstream.memory.memory_actions import capture_memory_pair
 from ragstream.memory.memory_manager import MemoryManager
 from ragstream.orchestration.super_prompt import SuperPrompt
 from ragstream.textforge.RagLog import LogALL as logger
+
+
+SIDEBAR_PIPELINE_TOTAL_STEPS = 8
+SIDEBAR_MIN_VISIBLE_SECONDS = 1.0
+
+SIDEBAR_STEP_USER_PROMPT = 0
+SIDEBAR_STEP_PROMPT_QUALIFICATION = 1
+SIDEBAR_STEP_PROMPT_SHAPING = 2
+SIDEBAR_STEP_MEMORY_CONTEXT = 3
+SIDEBAR_STEP_DOCUMENT_EVIDENCE = 4
+SIDEBAR_STEP_CONTEXT_SYNTHESIS = 5
+SIDEBAR_STEP_HARD_RULE_INTEGRATION = 6
+SIDEBAR_STEP_LLM_READY_CONTEXT = 7
+
+PROMPT_BUILDER_VISUAL_TAIL = [
+    ("Hard Rule Integration", SIDEBAR_STEP_HARD_RULE_INTEGRATION, 0.0),
+    ("LLM-Ready Context", SIDEBAR_STEP_LLM_READY_CONTEXT, 0.0),
+]
+
+
+def _set_sidebar_pipeline_visual_step(
+    active_step: int,
+    completed_step: int | None = None,
+) -> None:
+    active_step = max(0, min(int(active_step), SIDEBAR_PIPELINE_TOTAL_STEPS - 1))
+
+    if completed_step is None:
+        completed_step = active_step - 1
+
+    completed_step = max(-1, min(int(completed_step), SIDEBAR_PIPELINE_TOTAL_STEPS - 1))
+
+    st.session_state["sidebar_pipeline_active_step"] = active_step
+    st.session_state["sidebar_pipeline_completed_step"] = completed_step
+    st.session_state["sidebar_pipeline_active_since"] = time.monotonic()
+
+
+def _hold_sidebar_active_step_minimum() -> None:
+    started_at = st.session_state.get("sidebar_pipeline_active_since")
+
+    if started_at is None:
+        st.session_state["sidebar_pipeline_active_since"] = time.monotonic()
+        return
+
+    elapsed = time.monotonic() - float(started_at)
+    remaining = SIDEBAR_MIN_VISIBLE_SECONDS - elapsed
+
+    if remaining > 0:
+        time.sleep(float(remaining))
+
+
+def _sidebar_visual_step_for_stage(
+    stage_name: str,
+    step_index: int,
+) -> int:
+    name = str(stage_name or "").lower()
+
+    if "pre" in name:
+        return SIDEBAR_STEP_PROMPT_QUALIFICATION
+
+    if "a2" in name or "promptshaper" in name or "prompt shaper" in name:
+        return SIDEBAR_STEP_PROMPT_SHAPING
+
+    if "retrieval" in name or "retriever" in name:
+        return SIDEBAR_STEP_MEMORY_CONTEXT
+
+    if "rerank" in name:
+        return SIDEBAR_STEP_MEMORY_CONTEXT
+
+    if "a3" in name or "nli" in name:
+        return SIDEBAR_STEP_DOCUMENT_EVIDENCE
+
+    if "a4" in name or "condenser" in name or "condense" in name:
+        return SIDEBAR_STEP_CONTEXT_SYNTHESIS
+
+    fallback_map = {
+        0: SIDEBAR_STEP_PROMPT_QUALIFICATION,
+        1: SIDEBAR_STEP_PROMPT_SHAPING,
+        2: SIDEBAR_STEP_MEMORY_CONTEXT,
+        3: SIDEBAR_STEP_MEMORY_CONTEXT,
+        4: SIDEBAR_STEP_DOCUMENT_EVIDENCE,
+        5: SIDEBAR_STEP_CONTEXT_SYNTHESIS,
+    }
+
+    return fallback_map.get(int(step_index), SIDEBAR_STEP_LLM_READY_CONTEXT)
+
+
+def _run_prompt_builder_visual_tail() -> None:
+    tail_index = int(st.session_state.get("pipeline_visual_tail_index", 0) or 0)
+
+    if tail_index >= len(PROMPT_BUILDER_VISUAL_TAIL):
+        st.session_state["pipeline_running"] = False
+        st.session_state["pipeline_stage_armed"] = False
+        st.session_state["pipeline_visual_tail_index"] = 0
+
+        _set_sidebar_pipeline_visual_step(
+            SIDEBAR_STEP_LLM_READY_CONTEXT,
+            SIDEBAR_STEP_HARD_RULE_INTEGRATION,
+        )
+
+        _set_pipeline_status(
+            stage_name="Done",
+            step_index=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            message="Prompt Builder pipeline completed.",
+        )
+        return
+
+    stage_name, visual_step, wait_seconds = PROMPT_BUILDER_VISUAL_TAIL[tail_index]
+
+    if not bool(st.session_state.get("pipeline_stage_armed", False)):
+        _set_sidebar_pipeline_visual_step(visual_step)
+
+        _set_pipeline_status(
+            stage_name=stage_name,
+            step_index=visual_step + 1,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            message=f"Running {stage_name}.",
+        )
+
+        st.session_state["pipeline_stage_armed"] = True
+        st.rerun()
+
+    if wait_seconds > 0:
+        time.sleep(float(wait_seconds))
+
+    st.session_state["pipeline_visual_tail_index"] = tail_index + 1
+    st.session_state["pipeline_stage_armed"] = False
+
+    if tail_index + 1 >= len(PROMPT_BUILDER_VISUAL_TAIL):
+        st.session_state["pipeline_running"] = False
+
+        _set_sidebar_pipeline_visual_step(
+            SIDEBAR_STEP_LLM_READY_CONTEXT,
+            SIDEBAR_STEP_HARD_RULE_INTEGRATION,
+        )
+
+        _set_pipeline_status(
+            stage_name="Done",
+            step_index=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            message="Prompt Builder pipeline completed.",
+        )
+
+        logger(
+            "Prompt Builder finished.",
+            "INFO",
+            "PUBLIC",
+        )
+
+    st.rerun()
 
 
 def _pipeline_is_running() -> bool:
@@ -66,6 +217,23 @@ def _set_pipeline_status(
         "progress": progress,
     }
 
+def do_user_prompt_changed() -> None:
+    st.session_state["pipeline_running"] = False
+    st.session_state["pipeline_stage_armed"] = False
+    st.session_state["pipeline_stage_index"] = 0
+    st.session_state["pipeline_visual_tail_index"] = 0
+
+    _set_sidebar_pipeline_visual_step(
+        SIDEBAR_STEP_USER_PROMPT,
+        -1,
+    )
+
+    _set_pipeline_status(
+        stage_name="User Prompt",
+        step_index=1,
+        total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+        message="User prompt changed.",
+    )
 
 def request_prompt_builder_run() -> None:
     """
@@ -105,9 +273,15 @@ def request_prompt_builder_run() -> None:
         st.session_state.sp_a4 = SuperPrompt()
         st.session_state["super_prompt_text"] = ""
 
+        _set_sidebar_pipeline_visual_step(
+            SIDEBAR_STEP_USER_PROMPT,
+            -1,
+        )
+
         st.session_state["pipeline_running"] = True
         st.session_state["pipeline_stage_index"] = 0
         st.session_state["pipeline_stage_armed"] = False
+        st.session_state["pipeline_visual_tail_index"] = 0
         st.session_state["pipeline_config"] = {
             "user_text": user_text,
             "project_name": project_name,
@@ -120,7 +294,7 @@ def request_prompt_builder_run() -> None:
         _set_pipeline_status(
             stage_name="Queued",
             step_index=0,
-            total_steps=PIPELINE_TOTAL_STEPS,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
             message="Prompt Builder pipeline queued.",
         )
 
@@ -160,26 +334,28 @@ def run_next_prompt_builder_step() -> None:
     if not _pipeline_is_running():
         return
 
+    _hold_sidebar_active_step_minimum()
+
     step_index = int(st.session_state.get("pipeline_stage_index", 0) or 0)
 
     if step_index >= PIPELINE_TOTAL_STEPS:
-        st.session_state["pipeline_running"] = False
-        st.session_state["pipeline_stage_armed"] = False
-        _set_pipeline_status(
-            stage_name="Done",
-            step_index=PIPELINE_TOTAL_STEPS,
-            total_steps=PIPELINE_TOTAL_STEPS,
-            message="Prompt Builder pipeline completed.",
-        )
+        _run_prompt_builder_visual_tail()
         return
 
     stage_name = pipeline_stage_name(step_index)
 
     if not bool(st.session_state.get("pipeline_stage_armed", False)):
+        visual_step = _sidebar_visual_step_for_stage(
+            stage_name=stage_name,
+            step_index=step_index,
+        )
+
+        _set_sidebar_pipeline_visual_step(visual_step)
+
         _set_pipeline_status(
             stage_name=stage_name,
-            step_index=step_index + 1,
-            total_steps=PIPELINE_TOTAL_STEPS,
+            step_index=visual_step + 1,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
             message=f"Running {stage_name}.",
         )
         st.session_state["pipeline_stage_armed"] = True
@@ -234,17 +410,12 @@ def run_next_prompt_builder_step() -> None:
         st.session_state["pipeline_stage_armed"] = False
 
         if next_step_index >= PIPELINE_TOTAL_STEPS:
-            st.session_state["pipeline_running"] = False
+            st.session_state["pipeline_visual_tail_index"] = 0
             _set_pipeline_status(
-                stage_name="Done",
-                step_index=PIPELINE_TOTAL_STEPS,
-                total_steps=PIPELINE_TOTAL_STEPS,
-                message="Prompt Builder pipeline completed.",
-            )
-            logger(
-                "Prompt Builder finished.",
-                "INFO",
-                "PUBLIC",
+                stage_name="Pipeline Tail",
+                step_index=SIDEBAR_STEP_HARD_RULE_INTEGRATION + 1,
+                total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+                message="Continuing final prompt assembly.",
             )
 
         st.rerun()
@@ -255,7 +426,7 @@ def run_next_prompt_builder_step() -> None:
         _set_pipeline_status(
             stage_name="Failed",
             step_index=step_index + 1,
-            total_steps=PIPELINE_TOTAL_STEPS,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
             message=str(e),
         )
         logger(str(e), "ERROR", "PUBLIC")
@@ -279,6 +450,8 @@ def do_preprocess() -> None:
     st.session_state.sp_a3 = SuperPrompt()
     st.session_state.sp_a4 = SuperPrompt()
 
+    _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_PROMPT_QUALIFICATION)
+
     sp: SuperPrompt = st.session_state.sp
     sp = ctrl.preprocess(
         user_text,
@@ -300,6 +473,8 @@ def do_a2_promptshaper() -> None:
     sp: SuperPrompt = st.session_state.sp
 
     use_llm = bool(st.session_state.get("use_a2_promptshaper_llm", True))
+
+    _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_PROMPT_SHAPING)
 
     sp = ctrl.run_a2_promptshaper(
         sp,
@@ -502,6 +677,8 @@ def do_retrieval() -> None:
         top_k = int(st.session_state.get("retrieval_top_k", 100))
         use_retrieval_splade = bool(st.session_state.get("use_retrieval_splade", False))
 
+        _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_MEMORY_CONTEXT)
+
         sp = ctrl.run_retrieval(
             sp,
             project_name,
@@ -541,6 +718,8 @@ def do_reranker() -> None:
 
         use_reranking_colbert = bool(st.session_state.get("use_reranking_colbert", False))
 
+        _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_MEMORY_CONTEXT)
+
         sp = ctrl.run_reranker(
             sp,
             use_reranking_colbert=use_reranking_colbert,
@@ -565,6 +744,8 @@ def do_a3_nli_gate() -> None:
         ctrl: AppController = st.session_state.controller
         sp: SuperPrompt = st.session_state.sp
 
+        _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_DOCUMENT_EVIDENCE)
+
         sp = ctrl.run_a3(sp)
 
         st.session_state.sp = sp
@@ -583,6 +764,8 @@ def do_a4_condenser() -> None:
     try:
         ctrl: AppController = st.session_state.controller
         sp: SuperPrompt = st.session_state.sp
+
+        _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_CONTEXT_SYNTHESIS)
 
         sp = ctrl.run_a4(sp)
         sp.compose_prompt_ready()

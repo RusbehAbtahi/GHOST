@@ -9,6 +9,7 @@ from ragstream.app.ui_actions_files import (
     do_files_confirm_delete_history,
     do_files_create_history,
     do_files_delete_request,
+    do_files_import_chatgpt_conversation,
     do_files_load_history,
     do_files_rename_history,
 )
@@ -16,20 +17,87 @@ from ragstream.app.ui_actions_files import (
 
 TABLE_STRIPE_COLOR = "#E2FBD8"
 
-# Same visual width as: [New memory name] [New]
-# The remaining right side stays empty.
-CONTENT_COLS = [3.0, 4.5]
+# Main FILES layout:
+# left   = memory management panel
+# spacer = visual distance between left and right areas
+# right  = ChatGPT shared-link import controls
+# tail   = unused right-side balancing space
+CONTENT_COLS = [3.0, 0.4, 3.0, 1.1]
+
+ACTION_ROW_COLS = [0.8, 2.2]
+IMPORT_BUTTON_ROW_COLS = [0.8, 2.2]
+IMPORT_SUMMARY_HEIGHT = 110
 
 
 def render_files_tab() -> None:
     """Server-side FILES tab for memory history management."""
+    _inject_files_css()
+
     st.markdown("## Files")
 
     memory_manager = st.session_state.memory_manager
     histories = memory_manager.list_histories()
 
     _repair_selected_file_id(histories)
-    _render_new_memory_area()
+
+    left_col, _spacer_col, right_col, _tail_col = st.columns(CONTENT_COLS, gap="small")
+
+    with left_col:
+        _render_left_files_area(histories)
+
+    with right_col:
+        _render_chatgpt_import_area()
+
+
+def _inject_files_css() -> None:
+    """Inject FILES-tab-only visual typography helpers."""
+    st.markdown(
+        """
+        <style>
+        .files-panel-title {
+            font-size: 1.32rem;
+            font-weight: 700;
+            line-height: 1.25;
+            margin: 0.15rem 0 0.85rem 0;
+            color: #262730;
+        }
+
+        .files-section-title {
+            font-size: 1.02rem;
+            font-weight: 700;
+            line-height: 1.25;
+            margin: 1.05rem 0 0.50rem 0;
+            color: #262730;
+        }
+
+        .files-widget-label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            line-height: 1.25;
+            margin: 0.62rem 0 0.28rem 0;
+            color: #262730;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _panel_title(text: str) -> None:
+    st.markdown(f'<div class="files-panel-title">{text}</div>', unsafe_allow_html=True)
+
+
+def _section_title(text: str) -> None:
+    st.markdown(f'<div class="files-section-title">{text}</div>', unsafe_allow_html=True)
+
+
+def _widget_label(text: str) -> None:
+    st.markdown(f'<div class="files-widget-label">{text}</div>', unsafe_allow_html=True)
+
+
+def _render_left_files_area(histories: list[dict]) -> None:
+    """Render the normal FILES management area on the left side."""
+    _panel_title("Manage Memory")
 
     if not histories:
         st.info("No memory histories found.")
@@ -41,7 +109,7 @@ def render_files_tab() -> None:
     selected_file_id = str(st.session_state.get("files_selected_file_id", "") or "").strip()
     selected = _history_by_file_id(histories, selected_file_id)
 
-    st.markdown("### Selected Memory History")
+    _section_title("Selected Memory History")
 
     if not selected:
         st.info("Select one memory history from the table above.")
@@ -53,26 +121,44 @@ def render_files_tab() -> None:
     _render_status()
 
 
-def _render_new_memory_area() -> None:
-    """Render compact New Memory action."""
-    st.markdown("### New Memory")
+def _render_chatgpt_import_area() -> None:
+    """Render ChatGPT shared-link import controls."""
+    _panel_title("Import from ChatGPT UI")
 
-    name_col, btn_col, gap_col = st.columns([2.2, 0.8, 4.5], gap="small")
+    _widget_label("ChatGPT shared link")
+    st.text_input(
+        "ChatGPT shared link",
+        key="files_chatgpt_import_url",
+        placeholder="https://chatgpt.com/share/...",
+        label_visibility="collapsed",
+    )
 
-    with name_col:
-        st.text_input(
-            "New memory name",
-            key="files_new_memory_title",
-            placeholder="New memory name",
-            label_visibility="collapsed",
-        )
+    _widget_label("Import title")
+    st.text_input(
+        "Import title",
+        key="files_chatgpt_import_title",
+        placeholder="Memory history title",
+        label_visibility="collapsed",
+    )
 
-    with btn_col:
-        if st.button("New", key="btn_files_new", use_container_width=True):
-            do_files_create_history()
+    _widget_label("Summary / MemoryBrief (optional)")
+    st.text_area(
+        "Summary / MemoryBrief (optional)",
+        key="files_chatgpt_import_summary",
+        height=IMPORT_SUMMARY_HEIGHT,
+        placeholder="Optional shared MemoryBrief assigned to all imported records.",
+        label_visibility="collapsed",
+    )
 
-    with gap_col:
-        st.empty()
+    import_btn_col, _import_empty_col = st.columns(IMPORT_BUTTON_ROW_COLS, gap="small")
+
+    with import_btn_col:
+        if st.button(
+            "Import Conversation",
+            key="btn_files_import_chatgpt_conversation",
+            use_container_width=True,
+        ):
+            do_files_import_chatgpt_conversation()
 
 
 def _render_history_table(histories: list[dict]) -> None:
@@ -81,7 +167,7 @@ def _render_history_table(histories: list[dict]) -> None:
 
     User selects one row in the table, then uses the action buttons below.
     """
-    st.markdown("### Memory Histories")
+    _section_title("Memory Histories")
 
     rows: list[dict[str, str]] = []
 
@@ -105,39 +191,33 @@ def _render_history_table(histories: list[dict]) -> None:
     visible_df = df[["Filename", "Created", "Updated", "Records"]].copy()
     styled_df = visible_df.style.apply(_stripe_table_rows, axis=1)
 
-    table_col, spacer_col = st.columns(CONTENT_COLS, gap="small")
-
-    with table_col:
-        event = st.dataframe(
-            styled_df,
-            key="files_history_table",
-            use_container_width=True,
-            hide_index=True,
-            height=320,
-            on_select="rerun",
-            selection_mode="single-row",
-            column_config={
-                "Filename": st.column_config.TextColumn(
-                    "Filename",
-                    width="medium",
-                ),
-                "Created": st.column_config.TextColumn(
-                    "Created",
-                    width="small",
-                ),
-                "Updated": st.column_config.TextColumn(
-                    "Updated",
-                    width="small",
-                ),
-                "Records": st.column_config.TextColumn(
-                    "Records",
-                    width="small",
-                ),
-            },
-        )
-
-    with spacer_col:
-        st.empty()
+    event = st.dataframe(
+        styled_df,
+        key="files_history_table",
+        use_container_width=True,
+        hide_index=True,
+        height=320,
+        on_select="rerun",
+        selection_mode="single-row",
+        column_config={
+            "Filename": st.column_config.TextColumn(
+                "Filename",
+                width="medium",
+            ),
+            "Created": st.column_config.TextColumn(
+                "Created",
+                width="small",
+            ),
+            "Updated": st.column_config.TextColumn(
+                "Updated",
+                width="small",
+            ),
+            "Records": st.column_config.TextColumn(
+                "Records",
+                width="small",
+            ),
+        },
+    )
 
     selected_rows = _get_selected_rows(event)
     if selected_rows:
@@ -154,29 +234,23 @@ def _render_selected_card(selected: dict) -> None:
     updated = str(selected.get("updated_at_utc", "") or "")
     records = int(selected.get("record_count", 0) or 0)
 
-    card_col, gap_col = st.columns(CONTENT_COLS, gap="small")
-
-    with card_col:
-        st.markdown(
-            f"""
-            <div style="
-                border:1px solid #d8d8d8;
-                border-radius:0.55rem;
-                padding:0.65rem 0.85rem;
-                background-color:#fafafa;
-            ">
-                <div style="font-weight:700; font-size:1.02rem;">{filename}</div>
-                <div style="font-size:0.84rem; color:#555;">file_id: {file_id}</div>
-                <div style="font-size:0.84rem; color:#555;">created: {created}</div>
-                <div style="font-size:0.84rem; color:#555;">updated: {updated}</div>
-                <div style="font-size:0.84rem; color:#555;">records: {records}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with gap_col:
-        st.empty()
+    st.markdown(
+        f"""
+        <div style="
+            border:1px solid #d8d8d8;
+            border-radius:0.55rem;
+            padding:0.65rem 0.85rem;
+            background-color:#fafafa;
+        ">
+            <div style="font-weight:700; font-size:1.02rem;">{filename}</div>
+            <div style="font-size:0.84rem; color:#555;">file_id: {file_id}</div>
+            <div style="font-size:0.84rem; color:#555;">created: {created}</div>
+            <div style="font-size:0.84rem; color:#555;">updated: {updated}</div>
+            <div style="font-size:0.84rem; color:#555;">records: {records}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _render_action_area(selected: dict) -> None:
@@ -187,51 +261,61 @@ def _render_action_area(selected: dict) -> None:
     delete_pending_key = f"files_delete_pending_{file_id}"
     delete_confirm_key = f"files_delete_confirm_text_{file_id}"
 
-    st.markdown("### Actions")
+    _section_title("Actions")
 
-    action_col, gap_col = st.columns(CONTENT_COLS, gap="small")
-
-    with action_col:
+    load_btn_col, _load_empty_col = st.columns(ACTION_ROW_COLS, gap="small")
+    with load_btn_col:
         if st.button("Load", key=f"btn_files_load_{file_id}", use_container_width=True):
             do_files_load_history()
 
-        rename_text_col, rename_btn_col = st.columns([2.1, 1.0], gap="small")
-        with rename_text_col:
-            st.text_input(
-                "Rename field",
-                key=rename_key,
-                placeholder="New name",
-                label_visibility="collapsed",
-            )
-        with rename_btn_col:
-            if st.button("Rename", key=f"btn_files_rename_{file_id}", use_container_width=True):
-                do_files_rename_history()
+    new_btn_col, new_text_col = st.columns(ACTION_ROW_COLS, gap="small")
+    with new_btn_col:
+        if st.button("New", key="btn_files_new", use_container_width=True):
+            do_files_create_history()
+    with new_text_col:
+        st.text_input(
+            "New memory name",
+            key="files_new_memory_title",
+            placeholder="New memory name",
+            label_visibility="collapsed",
+        )
 
-        if not st.session_state.get(delete_pending_key, False):
+    rename_btn_col, rename_text_col = st.columns(ACTION_ROW_COLS, gap="small")
+    with rename_btn_col:
+        if st.button("Rename", key=f"btn_files_rename_{file_id}", use_container_width=True):
+            do_files_rename_history()
+    with rename_text_col:
+        st.text_input(
+            "Rename field",
+            key=rename_key,
+            placeholder="New name",
+            label_visibility="collapsed",
+        )
+
+    if not st.session_state.get(delete_pending_key, False):
+        delete_btn_col, _delete_empty_col = st.columns(ACTION_ROW_COLS, gap="small")
+        with delete_btn_col:
             if st.button("Delete", key=f"btn_files_delete_request_{file_id}", use_container_width=True):
                 do_files_delete_request()
-        else:
-            st.warning('Type "delete" to confirm deletion.')
-            confirm_text_col, confirm_btn_col = st.columns([2.1, 1.0], gap="small")
+    else:
+        st.warning('Type "delete" to confirm deletion.')
+        confirm_btn_col, confirm_text_col = st.columns(ACTION_ROW_COLS, gap="small")
 
-            with confirm_text_col:
-                st.text_input(
-                    "Delete confirmation",
-                    key=delete_confirm_key,
-                    placeholder='type "delete"',
-                    label_visibility="collapsed",
-                )
+        with confirm_btn_col:
+            if st.button(
+                "Confirm Delete",
+                key=f"btn_files_confirm_delete_{file_id}",
+                use_container_width=True,
+            ):
+                do_files_confirm_delete_history()
 
-            with confirm_btn_col:
-                if st.button(
-                    "Confirm Delete",
-                    key=f"btn_files_confirm_delete_{file_id}",
-                    use_container_width=True,
-                ):
-                    do_files_confirm_delete_history()
-
-    with gap_col:
-        st.empty()
+        with confirm_text_col:
+            st.text_input(
+                "Delete confirmation",
+                key=delete_confirm_key,
+                placeholder='type "delete"',
+                label_visibility="collapsed",
+            )
 
 
 def _render_status() -> None:
@@ -240,16 +324,10 @@ def _render_status() -> None:
     if not status:
         return
 
-    status_col, gap_col = st.columns(CONTENT_COLS, gap="small")
-
-    with status_col:
-        if status.get("type") == "success":
-            st.success(status.get("message", ""))
-        else:
-            st.error(status.get("message", ""))
-
-    with gap_col:
-        st.empty()
+    if status.get("type") == "success":
+        st.success(status.get("message", ""))
+    else:
+        st.error(status.get("message", ""))
 
 
 def _repair_selected_file_id(histories: list[dict]) -> None:

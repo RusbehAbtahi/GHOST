@@ -7,6 +7,7 @@ Run on a free port, e.g.:
 
 from __future__ import annotations
 
+import html
 import json
 import threading
 
@@ -14,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from ragstream.app.controller import AppController
 from ragstream.app.ui_layout import inject_base_css, render_page
@@ -30,6 +32,7 @@ from ragstream.textforge.RagLog import LogALL as logger
 from ragstream.textforge.RagLog import LogDeveloper as _logger_dev
 
 DEV_LOG_ENABLED = False
+
 
 def logger_dev(*args, **kwargs):
     if DEV_LOG_ENABLED:
@@ -197,54 +200,278 @@ def init_session_state() -> None:
     if "use_reranking_colbert" not in st.session_state:
         st.session_state["use_reranking_colbert"] = False
 
+    if "use_a2_promptshaper_llm_widget" not in st.session_state:
+        st.session_state["use_a2_promptshaper_llm_widget"] = bool(
+            st.session_state["use_a2_promptshaper_llm"]
+        )
+
+    if "use_retrieval_splade_widget" not in st.session_state:
+        st.session_state["use_retrieval_splade_widget"] = bool(
+            st.session_state["use_retrieval_splade"]
+        )
+
+    if "use_reranking_colbert_widget" not in st.session_state:
+        st.session_state["use_reranking_colbert_widget"] = bool(
+            st.session_state["use_reranking_colbert"]
+        )
+
     if "manual_memory_feed_text" not in st.session_state:
         st.session_state["manual_memory_feed_text"] = ""
 
-def render_tabs() -> None:
-    """
-    Top-level Streamlit tabs.
+    if "show_advanced_controls" not in st.session_state:
+        st.session_state["show_advanced_controls"] = False
 
-    MAIN keeps the existing RAGstream page.
-    Other tabs are separated into their own UI modules so ui_layout.py
-    does not become overloaded.
+    if "enable_file_ingestion_controls" not in st.session_state:
+        st.session_state["enable_file_ingestion_controls"] = False
+
+    if "active_sidebar_page" not in st.session_state:
+        st.session_state["active_sidebar_page"] = "Main"
+
+    if "sidebar_pipeline_active_step" not in st.session_state:
+        st.session_state["sidebar_pipeline_active_step"] = 0
+
+    if "sidebar_pipeline_completed_step" not in st.session_state:
+        st.session_state["sidebar_pipeline_completed_step"] = -1
+
+
+def _page_options() -> list[str]:
+    return [
+        "Main",
+        "Files",
+        "Hard Rules",
+        "Metrics",
+        "General Settings",
+    ]
+
+
+def _sidebar_pipeline_steps() -> list[str]:
+    return [
+        "User Prompt",
+        "Prompt Qualification",
+        "Prompt Shaping",
+        "Memory Context",
+        "Document Evidence",
+        "Context Synthesis",
+        "Hard Rule Integration",
+        "LLM-Ready Context",
+    ]
+
+
+def _init_page_state() -> None:
+    if "active_sidebar_page" not in st.session_state:
+        st.session_state["active_sidebar_page"] = "Main"
+
+    if st.session_state["active_sidebar_page"] not in _page_options():
+        st.session_state["active_sidebar_page"] = "Main"
+
+
+def _render_sidebar_flowchart() -> None:
+    steps = _sidebar_pipeline_steps()
+
+    try:
+        active_step = int(st.session_state.get("sidebar_pipeline_active_step", 0) or 0)
+    except Exception:
+        active_step = 0
+
+    if active_step < 0:
+        active_step = 0
+
+    if active_step >= len(steps):
+        active_step = len(steps) - 1
+
+    items: list[str] = []
+
+    for index, label in enumerate(steps):
+        state_class = " flow-box-active" if index == active_step else ""
+
+        items.append(
+            f"""
+            <div class="flow-box{state_class}">
+                {html.escape(label)}
+            </div>
+            """
+        )
+
+        if index < len(steps) - 1:
+            items.append('<div class="flow-arrow">↓</div>')
+
+    flow_html = f"""
+    <!doctype html>
+    <html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            html, body {{
+                margin: 0;
+                padding: 0;
+                background: transparent;
+                font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    Helvetica,
+                    Arial,
+                    sans-serif;
+            }}
+
+            .flow-shell {{
+                box-sizing: border-box;
+                width: 61.8%;
+                margin: 18px auto 0 auto;
+                padding: 0;
+            }}
+
+            .flow-box {{
+                box-sizing: border-box;
+                width: 100%;
+                min-height: 32px;
+                border: 1.3px solid #111111;
+                border-radius: 2px;
+                background: transparent;
+                color: #111111;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 3px 5px;
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 1.12;
+            }}
+
+            .flow-box-active {{
+                background: #FFF176;
+            }}
+
+            .flow-arrow {{
+                text-align: center;
+                font-size: 18px;
+                line-height: 1.05;
+                color: #111111;
+                margin: 2px 0;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="flow-shell">
+            {"".join(items)}
+        </div>
+    </body>
+    </html>
     """
-    tab_main, tab_files, tab_hard_rules, tab_metrics, tab_settings = st.tabs(
-        [
-            "MAIN",
-            "FILES",
-            "HARD RULES",
-            "METRICS",
-            "GENERAL SETTINGS",
-        ]
+
+    components.html(
+        flow_html,
+        height=500,
+        scrolling=False,
     )
 
-    with tab_main:
+
+def render_sidebar_navigation() -> str:
+    _init_page_state()
+
+    options = _page_options()
+    active_page = st.session_state["active_sidebar_page"]
+
+    with st.sidebar:
+        st.markdown(
+            """
+            <div style="
+                padding:0.45rem 0.25rem 0.90rem 0.25rem;
+            ">
+                <div style="
+                    font-size:1.55rem;
+                    font-weight:800;
+                    letter-spacing:0.045em;
+                    color:#111827;
+                    line-height:1.05;
+                ">
+                    GHOST
+                </div>
+                <div style="
+                    margin-top:0.32rem;
+                    font-size:0.88rem;
+                    color:#4B5563;
+                    line-height:1.32;
+                ">
+                    GenAI Hybrid Orchestrator<br>
+                    for Software Tooling
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        selected_page = st.radio(
+            "Navigation",
+            options=options,
+            index=options.index(active_page),
+            key="sidebar_navigation_radio",
+            label_visibility="collapsed",
+        )
+
+        st.session_state["active_sidebar_page"] = selected_page
+
+        st.markdown("---")
+
+        if selected_page == "Main":
+            st.caption("Main workflow")
+            st.caption("Memory · Prompt · Builder · LLM")
+
+            st.checkbox(
+                "Enable file ingestion controls",
+                key="enable_file_ingestion_controls",
+            )
+
+            st.checkbox(
+                "Show advanced controls",
+                key="show_advanced_controls",
+            )
+
+            _render_sidebar_flowchart()
+
+        elif selected_page == "Files":
+            st.caption("Memory files and imports")
+        elif selected_page == "Hard Rules":
+            st.caption("Rule governance")
+        elif selected_page == "Metrics":
+            st.caption("Metrics and visual pipeline demos")
+        elif selected_page == "General Settings":
+            st.caption("Runtime configuration")
+
+    return selected_page
+
+
+def render_active_page(page_name: str) -> None:
+    if page_name == "Main":
         render_page()
-
-    with tab_files:
+    elif page_name == "Files":
         render_files_tab()
-
-    with tab_hard_rules:
+    elif page_name == "Hard Rules":
         st.markdown("## Hard Rules")
         st.info("Hard Rules tab placeholder.")
-
-    with tab_metrics:
+    elif page_name == "Metrics":
         render_metrics_tab()
-
-    with tab_settings:
+    elif page_name == "General Settings":
         render_settings_tab()
+    else:
+        render_page()
 
 
 def main() -> None:
-    st.set_page_config(page_title="RAGstream", layout="wide")
+    st.set_page_config(
+        page_title="GHOST",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
 
     inject_base_css()
 
-    st.title("RAGstream")
-
     init_session_state()
 
-    render_tabs()
+    selected_page = render_sidebar_navigation()
+    render_active_page(selected_page)
 
 
 if __name__ == "__main__":

@@ -1,541 +1,238 @@
-# RAGstream
+# GHOST — GenAI Hybrid Orchestrator for Software Tooling
 
-RAGstream is an agentic, memory-aware AI system for software engineering. It combines deterministic NLP, retrieval, reranking, tag-governed memory, and JSON-defined LLM agents inside a neutral Agent Stack to build controllable multi-stage knowledge and orchestration pipelines. The system is designed to keep requirements, architecture, code, and tests aligned through structured context analysis and version-aware synchronization, and it is deployed on AWS through a CI/CD DevOps pipeline, with governance-oriented support for testing, observability, benchmarking, and system evaluation
+GHOST is a human-controlled AI orchestration platform for software engineering. It combines deterministic and heuristic context-engineering methods with LLM-based agents, project retrieval, reusable memory, and external AI tooling in one controlled workflow.
 
+The goal of GHOST is to make AI-assisted engineering work more reliable, inspectable, and reusable. It reduces context drift, makes AI-assisted work traceable, preserves reusable engineering memory, supports long-running requirements/architecture/code work, and keeps the human engineer in control of what context is selected, shared, sent, stored, or excluded.
 
+## Motivation
 
-```mermaid
-%%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "fontSize": "20px"
-  },
-  "flowchart": {
-    "htmlLabels": true,
-    "curve": "basis",
-    "nodeSpacing": 35,
-    "rankSpacing": 40
-  }
-}}%%
-flowchart TB
+Modern AI platforms such as ChatGPT UI, Codex, Copilot, Claude, and similar systems provide increasingly powerful tooling capabilities. They can support coding, repository interaction, deep research, online search, reasoning, document analysis, and other advanced model-side workflows. These capabilities are valuable and should be used where they are strong.
 
-  classDef ingest fill:#EAF7EA,stroke:#22A06B,stroke-width:1.5px,color:#123;
-  classDef app fill:#FFF4D6,stroke:#E0A100,stroke-width:1.5px,color:#321;
-  classDef agent fill:#EDE7FF,stroke:#7C3AED,stroke-width:1.5px,color:#213;
-  classDef gui fill:#FCE7F3,stroke:#EC4899,stroke-width:1.5px,color:#4A1D36;
-  classDef ctrl fill:#DCEEFF,stroke:#3B82F6,stroke-width:1.5px,color:#123;
-  classDef aws fill:#FFE9E7,stroke:#E76F51,stroke-width:1.5px,color:#611;
+At the same time, long-running software-engineering work needs a level of control that public AI interfaces do not always expose. Memory can become unstable, large project context can become confusing, retrieval is often hidden, and the user has limited deterministic control over what is selected, remembered, ignored, synchronized, or sent to a model.
 
-  subgraph LEFT["**Ingestion / Memory**"]
-    direction TB
-    DOC["**Project Documents**"]:::ingest
-    ING["**Ingestion Pipeline**<br/>Chunking + Embeddings + Vector Store"]:::ingest
-    MEM["**Memory / Tags**"]:::ingest
-    DOC --> ING
-    MEM --> ING
-  end
+GHOST was created to address this gap. It is not designed to replace public AI platforms, but to act as a controllable engineering layer around them. Public platforms can provide advanced tooling capabilities; GHOST complements them with project-specific orchestration, structured memory, controlled retrieval, hard rules, metadata, auditability, and customizable specialist agents.
 
-  subgraph MID["**Application**"]
-    direction TB
-    GUI["**Streamlit GUI**"]:::gui
-    CTRL["**AppController**"]:::ctrl
-    PIPE["**Agentic RAG Pipeline**<br/>PreProcessing + Retrieval + ReRanker + Prompt Building"]:::app
-    ASTACK["**Neutral Agent Stack**<br/>JSON-defined Agents"]:::agent
-    GUI --> CTRL --> PIPE
-    ASTACK --> PIPE
-  end
+This allows GHOST to support capabilities that are difficult to control inside a closed interface: security and governance checks, continuous memory-brief generation, requirement–architecture–code synchronization, hard-rule enforcement, source-aware context selection, and project-specific prompt construction.
 
-  subgraph RIGHT["**AWS / DevOps**"]
-    direction TB
-    CICD["**GitHub + CI/CD**"]:::aws
-    RUN["**AWS Runtime**<br/>ECR + EC2 + Docker + nginx"]:::aws
-    CICD --> RUN
-  end
+GHOST is designed for engineering work where context quality, continuity, and control matter. It allows the user to benefit from powerful external AI systems while keeping the surrounding workflow, memory, rules, retrieval logic, and synchronization under explicit engineering control.
 
-  ING --> PIPE
-  PIPE --> RUN
-  
-```
+## Visual Overview
 
-At the system level, RAGstream treats ingestion, retrieval, prompt orchestration, and LLM behavior as explicit architectural components within a structured agentic software system. Project documents are ingested into persistent vector stores, while the memory layer extends the same architecture toward durable conversation history, tag-governed context management, and history-aware retrieval. The pipeline builds an explicit SuperPrompt as its shared working state, and LLM-facing stages run through a neutral Agent Stack built around AgentFactory, AgentPrompt, and llm_client, so agent behavior is versioned as configuration instead of being scattered across ad hoc prompts. This makes the flow inspectable from raw documents and chunked storage up to retrieval, reranking, context construction, and final prompt delivery to either external UIs or direct API calls.
+<p align="center">
+  <img src="doc/04-GUI/GHOST_MAIN.png" alt="GHOST main GUI">
+  <br/>
+  <em>GHOST main workflow: prompt orchestration, memory handling, engineered prompt generation, model selection, and runtime logging.</em>
+</p>
 
-In its current implementation state, A0_PreProcessing, A2_PromptShaper, project-scoped ingestion, and Retrieval are implemented and wired, while ReRanker is implemented in code and is being redesigned in the stronger agreed direction after practical evaluation. The deployed system already runs through GitHub Actions -> ECR -> EC2/Docker -> nginx -> HTTPS, with Route 53 for DNS, SSM Parameter Store for secrets, and EBS-backed runtime data outside the image so project documents and vector stores persist independently of container replacement. Memory and tag-aware history management are under active development as the next major subsystem on top of this foundation.
+## What GHOST Enables
 
----
+GHOST enables AI-assisted software work to become a governed engineering workflow rather than a sequence of disconnected model interactions. Requirements, architecture notes, code-related context, engineering memory, project documents, and model outputs can be connected through one controlled orchestration layer.
 
-## Deployment & DevOps
+The system combines two complementary strengths. Deterministic software components handle the parts that should remain controlled and repeatable. LLM-based agents support interpretation, classification, condensation, reasoning, and language generation. Public AI platforms can still be used for their advanced tooling capabilities, while GHOST provides the surrounding control layer and customizable project-specific agents.
 
-RAGstream already has a working Phase-1 deployment path. Public traffic goes through HTTPS to nginx on EC2, and the application runs inside Docker behind the reverse proxy. Runtime project data is stored outside the image so that ingested files and Chroma databases survive container replacement. Detailed operational steps live in `RAGstream_AWS_Deployment_Guide_v02.md` and `RAGstream_HTTP_Proxy_Arch.md`.
+## Future Vision: Ghost2
 
-```mermaid
-flowchart LR
-  classDef dev fill:#EAF3FF,stroke:#3B82F6,color:#123;
-  classDef build fill:#EEFBEF,stroke:#16A34A,color:#123;
-  classDef run fill:#FFF7E8,stroke:#F59E0B,color:#321;
+Ghost2 extends GHOST into a human-mediated multi-brain orchestration environment.
 
-  DEV[Developer]:::dev --> GH[GitHub Repository]:::dev
-  GH --> GA[GitHub Actions]:::build
-  GA --> ECR[Amazon ECR]:::build
-  ECR --> EC2[EC2 Host]:::run
-```
+The core idea is to connect several private specialist AI contexts through one shared GHOST board and shared memory layer. Each specialist brain can keep its own private chat history, documents, instructions, tools, and character. The user can work with these brains separately, then bring selected knowledge back into the Ghost2 shared board.
 
-```mermaid
-flowchart LR
-  classDef edge fill:#EAF3FF,stroke:#3B82F6,color:#123;
-  classDef host fill:#EEFBEF,stroke:#16A34A,color:#123;
-  classDef data fill:#FFF7E8,stroke:#F59E0B,color:#321;
-  classDef sec fill:#FDEDEE,stroke:#E74C3C,color:#611;
+Ghost2 follows a blackboard-style concept: private specialist contexts remain separate, while selected knowledge can be synchronized into a shared working memory. Other brains can then use that shared context when a new engineered prompt is prepared for them.
 
-  USER[Browser]:::edge --> R53[Route 53]:::edge
-  R53 --> IP[EC2 Public IP]:::edge
-  IP --> NGINX[nginx :80 / :443]:::host
-  NGINX --> APP[Docker / Streamlit :8501]:::host
-  APP --> DATA[EBS-backed /app/data]:::data
-  EC2[EC2 Host]:::host --> SSM[SSM Parameter Store]:::sec
-```
+A further Ghost2 direction is deterministic traceability across requirements, architecture, code, and tests. Stable IDs can connect related engineering artifacts, while a lightweight SQLite-based traceability index can act as a practical knowledge graph: showing which requirement is refined by which architecture decision, implemented by which code section, and verified by which test. This gives future agents a precise way to fetch and compare connected artifacts before using an LLM for contradiction checks, redesign impact analysis, or synchronization support.
 
-Near-term deployment direction remains incremental rather than architectural replacement. The current path stays GitHub Actions -> ECR -> EC2 -> Docker -> nginx, while later authentication and user-facing control can be extended further, for example with Cognito-based flows that are already documented as future work in the deployment and GUI requirements.
+The he moderator.uman remains th The user decides which brain is addressed, which private output is shared, which memory is reused, and which context is sent back into a private AI environment.
+
+The intended result is stronger collective understanding across specialized AI contexts: each private brain keeps its own specialist continuity, while Ghost2 provides the shared memory, traceability, and orchestration layer that allows these separate contexts to support each other.
 
 ---
 
 ## Architecture
 
-At a high level, RAGstream keeps ingestion and retrieval separated from generation, runs a linear 8-step RAG pipeline inside a Controller, and uses a neutral Agent Stack (`AgentFactory` + `AgentPrompt` + `llm_client`) for all LLM-based stages.
+GHOST is organized as a modular orchestration system. The main workflow connects user input, project knowledge, memory, deterministic control logic, LLM-based agents, and optional external AI tooling into one inspectable engineering process.
 
 ```mermaid
-%%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "fontSize": "20px"
-  },
-  "flowchart": {
-    "htmlLabels": true,
-    "curve": "basis",
-    "nodeSpacing": 30,
-    "rankSpacing": 35
-  }
-}}%%
-flowchart TB
-
-  classDef gui fill:#FCE7F3,stroke:#EC4899,stroke-width:1.5px,color:#4A1D36;
-  classDef ctrl fill:#DCEEFF,stroke:#3B82F6,stroke-width:1.5px,color:#123;
-  classDef prep fill:#FFF4D6,stroke:#E0A100,stroke-width:1.5px,color:#321;
-  classDef retr fill:#E7F8EF,stroke:#19A974,stroke-width:1.5px,color:#114;
-  classDef gen fill:#FDE2E4,stroke:#D9485F,stroke-width:1.5px,color:#421;
-  classDef agent fill:#EDE7FF,stroke:#7C3AED,stroke-width:1.5px,color:#213;
-
-  subgraph APP["**Application**"]
-    direction TB
-
-    subgraph HEAD[" "]
-      direction LR
-      UI["**Streamlit GUI**"]:::gui --> CTRL["**AppController**"]:::ctrl
-    end
-
-    subgraph BODY[" "]
-      direction LR
-
-      subgraph PIPE["**8-Step RAG Pipeline**"]
-        direction LR
-
-        subgraph BOX1["**Prompt Shaping**"]
-          direction TB
-          A0["**A0**<br/>**PreProcessing**"]:::prep --> A2["**A2**<br/>**PromptShaper**"]:::prep
-        end
-
-        subgraph BOX2["**Retrieval / Selection**"]
-          direction TB
-          RET["**Retrieval**<br/>**Dense + SPLADE + RRF**"]:::retr --> RRK["**ReRanker**<br/>**Bounded ColBERT Path**"]:::retr
-          RRK --> A3["**A3**<br/>**NLI Gate**"]:::retr
-        end
-
-        subgraph BOX3["**Context / Final Prompt**"]
-          direction TB
-          A4["**A4**<br/>**Condenser**"]:::gen --> A5["**A5**<br/>**Format Enforcer**"]:::gen
-          A5 --> PB["**Prompt Builder**"]:::gen
-        end
-
-        BOX1 --> BOX2 --> BOX3
-      end
-
-      subgraph AG["**Agent Stack**"]
-        direction TB
-        AF["**AgentFactory**"]:::agent --> AP["**AgentPrompt**"]:::agent
-        AP --> LLM["**llm_client**"]:::agent
-      end
-    end
-
-    CTRL --> A0
-
-    A2 -.-> AF
-    A3 -.-> AF
-    A4 -.-> AF
-    A5 -.-> AF
-  end
-```
-```mermaid
-%%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "fontSize": "16px"
-  },
-  "flowchart": {
-    "htmlLabels": true,
-    "curve": "basis",
-    "nodeSpacing": 30,
-    "rankSpacing": 35
-  }
-}}%%
 flowchart LR
+    U[Human Engineer] --> GUI[GHOST GUI]
+    GUI --> CTRL[Orchestration Controller]
 
-  classDef core fill:#EAF7EA,stroke:#22A06B,stroke-width:1.5px,color:#123;
-  classDef io fill:#EAF3FF,stroke:#3B82F6,stroke-width:1.5px,color:#123;
-  classDef store fill:#FFE9E7,stroke:#E76F51,stroke-width:1.5px,color:#611;
-  classDef mem fill:#FDE2E4,stroke:#D9485F,stroke-width:1.5px,color:#421;
+    CTRL --> DOC[Project Documents]
+    CTRL --> MEM[Engineering Memory]
+    CTRL --> RULES[Hard Rules & Metadata]
 
-  subgraph ING["Ingestion / Memory"]
-    direction LR
+    DOC --> RET[Document Retrieval]
+    MEM --> MRET[Memory Retrieval]
+    RULES --> PB[Engineered Prompt Builder]
 
-    subgraph DOC["Document Ingestion"]
-      direction LR
-      IM[IngestionManager]:::core --> LDR[DocumentLoader]:::io
-      LDR --> CHK[Chunker]:::io
-      CHK --> EMB[Embedder]:::io
-      EMB --> VS[Chroma Vector Store]:::store
-      IM --> FM[FileManifest]:::store
-    end
+    RET --> PB
+    MRET --> PB
 
-    subgraph MEM["History / Memory"]
-      direction TB
-      LOG[Conversation Log]:::mem
-      TAG[Tags / Metadata]:::mem
-      HIST[History Store<br/>under development]:::mem
-      LOG --> HIST
-      TAG --> HIST
-    end
-  end
+    PB --> AGENTS[Custom GHOST Agents]
+    AGENTS --> MODELS[LLMs / Public AI Tooling / Private Models]
 
-  HIST --> VS
-  ```
-### Design principles
-
-- **Local-first, inspectable**  
-  Project data lives in a local directory tree (documents, Chroma DBs, logs, JSON configs). The same relative runtime structure is preserved on AWS through the EC2 bind mount.
-
-- **Explicit file and context control**  
-  Ingestion and retrieval keep track of which files, chunks, and later history items are eligible to influence a run.
-
-- **Agent Stack as neutral infrastructure**  
-  A2, A3, A4, A5, and future helper agents use a neutral, stateless Agent Stack. A0_PreProcessing remains primarily deterministic, with optional LLM help later.
-
-- **Separation of concerns**  
-  Ingestion, retrieval, agent logic, controller orchestration, and GUI remain separate packages. The Controller wires stages together without hiding them.
-
-- **LLM-neutral**  
-  `llm_client` talks to OpenAI models today and is designed so that future backends can be added without changing stage contracts.
-
-- **Transparent evolution path**  
-  The implementation is documented through requirements, UML, architecture, deployment notes, and implementation-status snapshots so that code and documentation can evolve in a controlled way.
-
----
-
-## Components
-
-### Ingestion & Memory
-
-Static documents are ingested through a deterministic pipeline.
-
-- **Loader (`ingestion/loader.py`)**  
-  Walks a raw document directory (`data/doc_raw/<project>/`) and reads the supported source files.
-
-- **Chunker (`ingestion/chunker.py`)**  
-  Splits each document into chunks with configurable size and overlap. The current implementation is deterministic and character-based.
-
-- **Embedder (`ingestion/embedder.py`)**  
-  Uses OpenAI `text-embedding-3-large` (configurable) to embed chunks into vectors.
-
-- **Vector stores**  
-  - **Document store**: ChromaDB collections under `data/chroma_db/<project>/`.  
-  - **History store**: a separate tagged history layer is planned and partially reflected in the architecture and GUI work, but is not yet complete as a durable production path.
-
-- **File manifest (`ingestion/file_manifest.py`)**  
-  A JSON manifest tracks each raw file (path, hash, mtime, size) so that ingestion can update only changed content and keep the persistent store traceable.
-
-Memory management is under active development. The current GUI already contains a development-side memory panel and tag semantics, while the durable history log, history embeddings, and tag-aware retrieval rules are still being built from the requirements and backlog.
-
-### Retrieval & Ranking
-
-Retrieval and reranking are separate deterministic stages.
-
-- **Retrieval (`retrieval/retriever.py`)**  
-  - Current implementation: project-aware dense retrieval using OpenAI embeddings, query splitting, and p-norm aggregation over query pieces.  
-  - Current agreed next direction: hybrid first-pass retrieval with dense retrieval + SPLADE + RRF.
-
-- **ReRanker (`retrieval/reranker.py`)**  
-  - Current implementation: CPU-based cross-encoder reranking with `cross-encoder/ms-marco-MiniLM-L-12-v2`, dynamic chunk cleaning, and direct reranked ordering.  
-  - Current agreed next direction: bounded ColBERT reranking on the Retrieval candidate band, with query splitting and fused ranking instead of full ranking replacement.
-
-The current practical conclusion is simple: Retrieval already works well enough to serve as the backbone; the current ReRanker exists in code but is being replaced as a long-term ranking strategy.
-
-### Agents inside the Controller
-
-LLM-based stages are orchestrated through the Agent Stack.
-
-- `AgentFactory` loads the JSON config for a given agent name/version and builds a configured `AgentPrompt`.
-- `AgentPrompt` holds the neutral prompt-composition and validation logic.
-- `llm_client` executes the actual model call.
-
-On top of this infrastructure, the pipeline uses concrete stages:
-
-- **A0_PreProcessing**  
-  Deterministic normalization and schema mapping from raw prompt text into the internal SuperPrompt structure.
-
-- **A2 PromptShaper**  
-  Chooser-style agent that classifies `system`, `audience`, `tone`, `depth`, and `confidence` from `task`, `purpose`, and `context`.
-
-- **A3 NLI Gate**  
-  Current agreed direction: Multi-Chooser-style chunk labeling and duplicate marking on the reranked candidate set.
-
-- **A4 Context Condenser**  
-  Writer-style agent that produces `S_CTX_MD` from the selected chunks.
-
-- **A5 Format Enforcer**  
-  Writer / Extractor-style agent that normalizes the final response contract.
-
-- **PromptBuilder**  
-  Deterministic assembly of the final prompt blocks from the SuperPrompt.
-
-### Prompt orchestration
-
-The final prompt is built from a small number of explicit regions.
-
-```text
-[RAG Context]
-
-1. Hard Rules
-   - Global system constraints
-   - Non-negotiable principles
-
-2. Project / Memory Context
-   - Project-level assumptions
-   - Later: tagged history according to explicit retrieval rules
-
-3. Optional explicitly loaded material
-   - Future deterministic fetcher-style loading of files, code blocks, or notes
-
-4. S_CTX_MD (from A4)
-   - Facts
-   - Constraints
-   - Open issues / questions
-
-5. Attachments (optional)
-   - Longer excerpts kept for traceability and citations
+    MODELS --> OUT[Model Output]
+    OUT --> MEM
+    OUT --> GUI
 ```
 
-Below this context block, the prompt carries the `SYSTEM`, `AUDIENCE`, `TASK`, `PURPOSE`, `TONE`, and `CONFIDENCE` fields from the SuperPrompt.
+The architecture is built around a clear separation of responsibilities:
 
-### Deterministic vs model-driven
-
-| Component          | Nature                               | Notes |
-|--------------------|--------------------------------------|-------|
-| A0_PreProcessing   | Deterministic → Hybrid (later)       | Normalisation + schema mapping; optional LLM help later. |
-| A2 PromptShaper    | Model-driven (Chooser)               | Fine-tuned A2 model maps `task/purpose/context` to five labels. |
-| Retrieval          | Deterministic function               | Current dense retrieval is implemented; hybrid Retrieval is the agreed next step. |
-| ReRanker           | Deterministic ranking stage          | Current cross-encoder reranker is implemented; bounded ColBERT reranking is the agreed next step. |
-| A3 NLI Gate        | Model-driven (Multi-Chooser direction) | Chunk labeling and duplicate marking are under construction. |
-| A4 Condenser       | Model-driven (Writer)                | Generates `S_CTX_MD` from selected chunks. |
-| A5 Format Enforcer | Model-driven (Writer/Extractor)      | Enforces response format / contracts. |
-| PromptBuilder      | Deterministic function               | Concatenates everything into a final prompt string. |
+- document ingestion and retrieval,
+- memory recording and retrieval,
+- prompt shaping and context construction,
+- customizable agents,
+- hard-rule handling,
+- logging and observability,
+- deployment and runtime persistence.
 
 ---
 
-## Current Status
+## Core System Capabilities
 
-Implemented / available:
+### Project Knowledge and Document Retrieval
 
-- Core documentation set:
-  - `Requirements_Main.md`
-  - `Requirements_AgentStack.md`
-  - `Requirements_RAG_Pipeline.md`
-  - `Requirements_Ingestion_Memory.md`
-  - `Requirements_GUI.md`
-  - `Requirements_Orchestration_Controller.md`
-  - `Requirements_Quality_Governance.md`
-  - `Architecture.md`
-  - UML files for the main subsystem views
-- Working document ingestion pipeline with Chroma-backed persistence.
-- Deterministic A0_PreProcessing.
-- JSON-based Agent Stack in code.
-- A2 PromptShaper wired and live.
-- Retrieval wired and live.
-- ReRanker wired and live in code.
-- Streamlit development GUI with:
-  - prompt input,
-  - SuperPrompt inspection,
-  - 8 pipeline buttons,
-  - project creation,
-  - file import,
-  - active DB selection,
-  - embedded-file display,
-  - Retrieval Top-K,
-  - Retrieval / ReRanker inspection.
-- AWS Phase-1 deployment with:
-  - GitHub Actions -> ECR,
-  - EC2 + Docker runtime,
-  - nginx reverse proxy,
-  - HTTPS,
-  - Route 53,
-  - SSM-backed secrets,
-  - persistent runtime data outside the image.
+GHOST can work with project documents such as requirements, architecture notes, technical documentation, design discussions, and code-related material.
 
-Implemented but under redesign or still under construction:
+The document retrieval layer supports project-based ingestion, embeddings, SPLADE-based sparse retrieval, reranking, relevance filtering, and context condensation. Its purpose is to make project knowledge available to the model in a controlled and inspectable way.
 
-- ReRanker exists, but the current cross-encoder direction is not accepted as the long-term solution.
-- A3, A4, A5, and final PromptBuilder stabilization are still under construction.
-- Memory / history ingestion and tagged retrieval are under construction.
-- Evaluation, benchmarking, and richer governance automation are still being built on top of the current foundation.
+Relevant areas:
 
----
+- `ragstream/ingestion/`
+- `ragstream/retrieval/`
+- `data/doc_raw/`
+- `data/chroma_db/`
+- `data/splade_db/`
 
-## Roadmap (near term)
+### Engineering Memory
 
-Near-term priorities:
+GHOST includes a structured memory layer for reusable engineering knowledge. Memory records can preserve important questions, answers, decisions, project context, tags, retrieval metadata, and later compressed memory briefs.
 
-1. **Upgrade Retrieval from dense-only to hybrid Retrieval**  
-   - Add SPLADE as the sparse branch.  
-   - Fuse dense Retrieval and sparse Retrieval with RRF.
+The memory direction includes episodic retrieval, semantic chunk retrieval, ActiveBrief generation, memory condensation, and controlled reuse of previous engineering context.
 
-2. **Replace the current ReRanker direction**  
-   - Keep ReRanker as a separate stage.  
-   - Move from the current cross-encoder path toward bounded ColBERT reranking with query splitting and fused ranking.
+Relevant areas:
 
-3. **Implement A3 as a real chunk-selection stage**  
-   - Label reranked chunks (`Must_Keep`, `Useful`, `BorderLine`, `Discarded`).  
-   - Mark duplicates against higher-ranked chunks.
+- `ragstream/memory/`
+- `data/memory/`
+- `.ragmem`
+- `.ragmeta.json`
+- `memory_index.sqlite3`
 
-4. **Continue the memory layer**  
-   - durable history logging,  
-   - tag-aware retrieval rules,  
-   - explicit include/exclude semantics,  
-   - cross-session import of selected history later.
+### Custom Agent Layer
 
-5. **Stabilize the late pipeline**  
-   - A4 Condenser, A5 Format Enforcer, PromptBuilder.
+GHOST uses configurable agents for tasks where interpretation, classification, checking, summarization, or synchronization are useful.
 
-6. **Extend development governance and synchronization**  
-   - keep requirements, architecture, UML, and implementation aligned as the system evolves.
+The public README describes agents by their role rather than internal stage names.
+
+| Agent / Capability | Purpose |
+|---|---|
+| Prompt Understanding Agent | Classifies whether a prompt is strong or weak, on-topic, related, or irrelevant to the current memory context. |
+| Prompt Shaping Agent | Structures the user request into useful fields such as task, purpose, tone, depth, audience, and confidence. |
+| Evidence Relevance Gate | Checks whether retrieved document or memory context is actually useful for the current question. |
+| Document Context Condenser | Summarizes selected document chunks into coherent context for the engineered prompt. |
+| Memory Context Condenser | Summarizes selected memory episodes and semantic memory chunks into compact reusable context. |
+| Continuous Memory Brief Agent | Maintains a compact running brief of the active engineering discussion. |
+| GitHub Synchronization Agent | Uses repository changes and LLM reasoning to compare requirements, architecture, code, and tests for possible inconsistencies. |
+| Security and Governance Guard | Supports controlled checking of sensitive context, prompt content, rules, and model-bound information. |
+| Tool and Model Routing Layer | Supports deciding whether work should go through direct model calls, public AI tooling, private models, or repository-aware tools. |
+
+Relevant areas:
+
+- `ragstream/agents/`
+- `ragstream/orchestration/`
+- `data/agents/`
+- `ragstream/preprocessing/`
+
+### Rules, Logging, Metrics, and Observability
+
+GHOST is designed so that important context and system behavior can be inspected rather than hidden inside model calls.
+
+The platform supports hard-rule packages, structured logging, developer diagnostics, runtime logs, and a metrics/observability direction for tracking model usage, retrieval behavior, memory behavior, latency, and system decisions.
+
+Relevant areas:
+
+- `ragstream/textforge/`
+- `ragstream/app/ui_metrics.py`
+- `ragstream/app/ui_settings.py`
+- `ragstream/config/`
 
 ---
 
-## Repository Layout
+## AWS Deployment and CI/CD
 
-The repository already contains a real working tree. A trimmed high-level view looks like this:
+GHOST can run locally during development and can also be deployed on AWS through a containerized CI/CD path.
+
+The current deployment architecture uses GitHub Actions, Amazon ECR, EC2, Docker, nginx, HTTPS, Route 53, SSM Parameter Store, and persistent runtime data outside the Docker image.
+
+```mermaid
+flowchart LR
+    DEV[Developer] --> GH[GitHub Repository]
+    GH --> GA[GitHub Actions]
+    GA --> ECR[Amazon ECR]
+    ECR --> EC2[EC2 + Docker]
+    EC2 --> NGINX[nginx / HTTPS]
+    NGINX --> USER[Browser]
+    EC2 --> DATA[Persistent Runtime Data]
+    EC2 --> SSM[SSM Parameter Store]
+```
+
+This deployment path keeps application code, runtime data, secrets, and public access separated in a manageable way for a small engineering setup.
+
+Relevant areas:
+
+- `.github/workflows/`
+- `Dockerfile`
+- `RAGstream_AWS_Deployment_Guide_v02.md`
+- `data/`
+
+---
+
+## Repository Structure
+
+A shortened view of the main implementation areas:
 
 ```text
 ragstream/
-  agents/                  # A2, A3, A4 agent modules
-  app/
-    controller.py          # Orchestrates pipeline stages
-    ui_streamlit.py        # Current Streamlit GUI
-  config/
-    prompt_schema.json
-    settings.py
-  ingestion/
-    loader.py
-    chunker.py
-    embedder.py
-    file_manifest.py
-    chroma_vector_store_base.py
-    vector_store_chroma.py
-    ingestion_manager.py
-  memory/
-    conversation_memory.py
-  orchestration/
-    super_prompt.py
-    prompt_builder.py
-    llm_client.py
-    agent_factory.py
-    agent_prompt.py
-  preprocessing/
-    preprocessing.py
-    prompt_schema.py
-    name_matcher.py
-  retrieval/
-    chunk.py
-    retriever.py
-    reranker.py
-    attention.py
-  utils/
-    logging.py
-    paths.py
+  agents/             # GHOST agent modules
+  app/                # Streamlit GUI, controller, UI actions
+  config/             # Runtime configuration and prompt schema
+  ingestion/          # Document loading, chunking, embeddings, vector stores
+  memory/             # Memory recording, ingestion, retrieval, compression
+  orchestration/      # SuperPrompt, AgentFactory, AgentPrompt, LLM client
+  preprocessing/      # Prompt preprocessing and relation classification
+  retrieval/          # Document and memory retrieval
+  textforge/          # Logging and sink infrastructure
 
 data/
-  agents/
-  doc_raw/
-  chroma_db/
-  A2_SLM_Training/
+  agents/             # JSON-based agent definitions
+  doc_raw/            # Project documents
+  chroma_db/          # Dense document vector stores
+  splade_db/          # Sparse document retrieval stores
+  memory/             # Memory files, metadata, SQLite, memory vectors
+
+doc/
+  01-Requirements/
+  02-Architucture/
+  03-Projekt_Status/
+  04-GUI/
 ```
+
+Some internal folder and document names still reflect the earlier project name RAGstream. The current project identity is GHOST.
 
 ---
 
-## GUI (Streamlit)
+## Documentation
 
-### Current development GUI
- 
-RAGstream includes a Streamlit-based development GUI for stepping through the pipeline manually and inspecting intermediate state.
+The repository contains supporting documentation for requirements, architecture, UML diagrams, memory design, AWS deployment, and implementation status.
 
-Current development view includes:
+Important documentation areas include:
 
-- raw prompt input,
-- SuperPrompt inspection,
-- manual 8-stage pipeline control,
-- Retrieval Top-K control,
-- project creation and file import,
-- active project / DB selection,
-- embedded-file visibility,
-- retrieval and reranking inspection,
-- an evolving memory section.
+- requirements documents,
+- architecture documents,
+- UML diagrams,
+- AWS deployment guide,
+- implementation status snapshots,
+- GUI screenshots and design material.
 
-The current GUI image below shows the active development view:
-
-<p align="center">
-  <img src="doc/04-GUI/Dev1.png" alt="Current development GUI">
-  <br/><em>Figure 1 – Current development GUI</em>
-</p>
-
-The memory section reflects the current direction of the memory architecture. It combines two complementary ideas:
-
-- a persistent always-fed layer for pinned rules and durable context,
-- and a retrieval-based semantic layer for normal memory selection.
-
-The tag semantics shown in the current development view already reflect that direction:
-
-- **Gold**: pinned persistent memory, comparable to always-included Layer-G context,
-- **Green**: normal semantic memory entry,
-- **Silver**: semantic memory entry with baseline weighting,
-- **Black**: excluded memory entry, used to remove irrelevant or unwanted prompt/history material from future context.
-
-The full memory workflow is still under construction, and its intended operational shape is the one illustrated in the development GUI shown in `Dev1.png`.
-
-### Planned GUI (next phases)
-
-The next GUI phases extend the current development view rather than replacing its logic.
-
-Planned directions already documented in the requirements and backlog include:
-
-- history view and tag editing,
-- manual answer capture from external UIs,
-- model selection and cost awareness,
-- richer per-stage inspection,
-- multi-history and multi-project controls,
-- dynamic attention controls,
-- deterministic loading of explicit text/material into context,
-- later V-model-oriented development tooling.
-
-<p align="center">
-  <img src="doc/04-GUI/Vision1.png" alt="Vision mock-up – complete GUI">
-  <br/><em>Figure 2 – Conceptual vision of the later GUI direction</em>
-</p>
+These documents provide the deeper technical detail behind the shorter public README.
 
 ---
 
@@ -543,5 +240,6 @@ Planned directions already documented in the requirements and backlog include:
 
 This is a personal research and engineering project by **Rusbeh Abtahi**.
 
-The codebase is MIT-licensed. The project is being developed as a transparent, inspectable RAG system whose requirements, architecture, UML, deployment, and implementation can evolve in a controlled way.
-  
+The codebase is MIT-licensed.
+
+GHOST is developed as a serious, inspectable AI engineering platform for controlled GenAI orchestration, software-development support, reusable engineering memory, and future multi-brain collaboration.

@@ -8,6 +8,7 @@
 ├── requirements-dev.txt
 ├── requirements.txt
 ├── ragstream
+│   ├── MD_Print.py
 │   ├── __init__.py
 │   ├── __pycache__
 │   ├── agents
@@ -28,6 +29,7 @@
 │   │   ├── agents.py
 │   │   ├── controller.py
 │   │   ├── controller_legacy.py
+│   │   ├── pipeline_runner.py
 │   │   ├── ui_actions.py
 │   │   ├── ui_actions_files.py
 │   │   ├── ui_files.py
@@ -63,6 +65,11 @@
 │   │   │   ├── memory_activebrief_relevance_gate.py
 │   │   │   ├── memory_compressor.py
 │   │   │   └── memory_sentence_reducer.py
+│   │   ├── importers
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   ├── chatgpt_shared_link_importer.py
+│   │   │   └── chatgpt_shared_link_importer_helpers.py
 │   │   ├── ingestion
 │   │   │   ├── __init__.py
 │   │   │   ├── __pycache__
@@ -211,7 +218,13 @@
     │   │   ├── 2026-05-08-18-52-memory-record.ragmeta.json
     │   │   ├── 2026-05-08-23-13-memory-record.ragmeta.json
     │   │   ├── 2026-05-13-12-02-memory-record.ragmeta.json
-    │   │   └── 2026-05-13-14-24-TEST.ragmeta.json
+    │   │   ├── 2026-05-13-14-24-TEST.ragmeta.json
+    │   │   ├── 2026-05-14-15-55-memory-record.ragmeta.json
+    │   │   ├── 2026-05-14-16-16-memory-record.ragmeta.json
+    │   │   ├── 2026-05-17-11-57-memory-record.ragmeta.json
+    │   │   ├── 2026-05-20-14-30-TinyLlama-EC2-GPU-SetUP.ragmeta.json
+    │   │   ├── 2026-05-20-14-31-TinyLlama-EC2-GPU-SetUP.ragmeta.json
+    │   │   └── 2026-05-20-15-51-EC2_PYthon.ragmeta.json
     │   └── vector_db
     │       ├── 1128b4bb-998c-47e7-81fc-244ccb598bf9
     ├── np_store

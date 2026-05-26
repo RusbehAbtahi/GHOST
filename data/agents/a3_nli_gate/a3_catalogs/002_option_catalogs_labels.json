@@ -4,17 +4,17 @@
       {
         "id": "useful",
         "label": "Useful",
-        "description": "Directly relevant and core for downstream synthesis. A useful chunk must add distinct value, not just topical similarity. If another chunk already expresses substantially the same meaning more clearly or more completely, the weaker one is usually not useful. If two chunks genuinely complement each other and each adds a new part of the same idea, both may still be useful."
+        "description": "Relevant and concretely helpful for downstream synthesis. A useful chunk does not need to answer the whole task alone; it is useful if it provides facts, definitions, distinctions, examples, user-style guidance, constraints, or conceptual material that can help build the final answer. Multiple chunks may be useful when they contribute different parts of the answer or different required angles of the user task."
       },
       {
         "id": "borderline",
         "label": "Borderline",
-        "description": "Relevant or partly relevant, but not core. Borderline includes chunks that are weaker, more indirect, more generic, more partial, or substantially overlapping with a stronger chunk."
+        "description": "Related or partially helpful, but weaker than useful. Borderline includes chunks that provide background, indirect support, incomplete fragments, weaker duplicates, or context that may be kept as backup if few useful chunks exist. A chunk should be borderline rather than discarded when it contains any concrete information connected to the task."
       },
       {
         "id": "discarded",
         "label": "Discarded",
-        "description": "Not relevant enough, too weak, too generic, too repetitive, or not useful for downstream synthesis."
+        "description": "Clearly unrelated, empty, corrupted, misleading, severely fragmentary, or unusable for the current task. Do not discard a chunk merely because it is incomplete, stylistic, background, or only partially relevant; use borderline for those cases."
       }
     ],
     "default": "borderline"

@@ -88,6 +88,7 @@ from ragstream.textforge.RagLog import LogDeveloper as _logger_dev
 
 DEV_LOG_ENABLED = False
 
+
 def logger_dev(*args, **kwargs):
     if DEV_LOG_ENABLED:
         return _logger_dev(*args, **kwargs)
@@ -248,6 +249,8 @@ class AppController:
             memory_manager=memory_manager,
             raw_user_text=text,
         )
+
+        sp.compose_prompt_ready()
 
         logger("PreProcessing completed.", "INFO", "PUBLIC")
         return sp
@@ -565,7 +568,7 @@ class AppController:
 
     def reload_runtime_config(self) -> dict[str, Any]:
         """
-        Reload runtime_config.json from disk.
+        Reload runtime_config.json.
 
         Useful during development when limits are changed without restarting
         the whole app process.
@@ -1179,6 +1182,195 @@ if __name__ == "__main__":
     main()
 ```
 
+### ~\ragstream\app\pipeline_runner.py
+```python
+# ragstream/app/pipeline_runner.py
+# -*- coding: utf-8 -*-
+"""
+Step-wise pipeline runner for the Prompt Builder button.
+
+Runs the current document-RAG pipeline automatically, one stage per Streamlit
+rerun cycle:
+
+PreProcessing
+→ A2 PromptShaper
+→ Retrieval
+→ ReRanker
+→ A3 NLI Gate
+→ A4 Condenser
+
+This file contains execution sequencing only.
+It does not render the GUI layout.
+It does not own Streamlit widgets.
+It does not implement stage logic.
+"""
+
+from __future__ import annotations
+
+import copy
+from typing import Any, Callable
+
+from ragstream.app.controller import AppController
+from ragstream.orchestration.super_prompt import SuperPrompt
+
+
+PIPELINE_STEPS: list[str] = [
+    "Pre-Processing",
+    "A2-PromptShaper",
+    "Retrieval",
+    "ReRanker",
+    "A3 NLI Gate",
+    "A4 Condenser",
+]
+
+PIPELINE_TOTAL_STEPS: int = len(PIPELINE_STEPS)
+
+
+def pipeline_stage_name(step_index: int) -> str:
+    """Return the display name for one Prompt Builder pipeline step."""
+    if 0 <= int(step_index) < PIPELINE_TOTAL_STEPS:
+        return PIPELINE_STEPS[int(step_index)]
+    return "Done"
+
+
+def run_prompt_builder_stage(
+    *,
+    step_index: int,
+    ctrl: AppController,
+    sp: SuperPrompt | None,
+    user_text: str,
+    project_name: str,
+    top_k: int,
+    use_a2_promptshaper_llm: bool,
+    use_retrieval_splade: bool,
+    use_reranking_colbert: bool,
+    memory_manager: Any | None = None,
+    ensure_memory_retrieval_configured: Callable[[AppController], None] | None = None,
+) -> dict[str, Any]:
+    """
+    Run exactly one Prompt Builder pipeline stage.
+
+    Return shape:
+        {
+            "sp": SuperPrompt,
+            "snapshots": {
+                "sp_pre": SuperPrompt,
+                ...
+            }
+        }
+    """
+    clean_user_text = str(user_text or "").strip()
+    if not clean_user_text:
+        raise ValueError("Prompt is empty. Prompt Builder cannot run.")
+
+    clean_project_name = str(project_name or "").strip()
+    if not clean_project_name or clean_project_name == "(no projects yet)":
+        raise ValueError("No active project is available for Prompt Builder.")
+
+    idx = int(step_index)
+    snapshots: dict[str, SuperPrompt] = {}
+
+    if idx == 0:
+        current_sp = SuperPrompt()
+
+        current_sp = ctrl.preprocess(
+            clean_user_text,
+            current_sp,
+            memory_manager=memory_manager,
+        )
+
+        snapshots["sp_pre"] = copy.deepcopy(current_sp)
+
+        return {
+            "sp": current_sp,
+            "snapshots": snapshots,
+        }
+
+    if sp is None:
+        raise ValueError("Prompt Builder internal state error: SuperPrompt is missing.")
+
+    current_sp = sp
+
+    if idx == 1:
+        current_sp = ctrl.run_a2_promptshaper(
+            current_sp,
+            use_llm=bool(use_a2_promptshaper_llm),
+        )
+
+        snapshots["sp_a2"] = copy.deepcopy(current_sp)
+
+        return {
+            "sp": current_sp,
+            "snapshots": snapshots,
+        }
+
+    if idx == 2:
+        if ensure_memory_retrieval_configured is not None:
+            ensure_memory_retrieval_configured(ctrl)
+
+        current_sp = ctrl.run_retrieval(
+            current_sp,
+            clean_project_name,
+            int(top_k),
+            use_retrieval_splade=bool(use_retrieval_splade),
+        )
+
+        current_sp.compose_prompt_ready()
+
+        snapshots["sp_rtv"] = copy.deepcopy(current_sp)
+
+        # Retrieval initializes an A3-ready passthrough reranked view.
+        # This snapshot remains valid until the real ReRanker overwrites it.
+        snapshots["sp_rrk"] = copy.deepcopy(current_sp)
+
+        return {
+            "sp": current_sp,
+            "snapshots": snapshots,
+        }
+
+    if idx == 3:
+        if bool(use_reranking_colbert):
+            current_sp = ctrl.run_reranker(
+                current_sp,
+                use_reranking_colbert=True,
+            )
+        else:
+            # ColBERT is disabled.
+            # Retrieval already created an A3-ready passthrough view under
+            # views_by_stage["reranked"], so ReRanker is intentionally skipped.
+            current_sp.compose_prompt_ready()
+
+        snapshots["sp_rrk"] = copy.deepcopy(current_sp)
+
+        return {
+            "sp": current_sp,
+            "snapshots": snapshots,
+        }
+
+    if idx == 4:
+        current_sp = ctrl.run_a3(current_sp)
+
+        snapshots["sp_a3"] = copy.deepcopy(current_sp)
+
+        return {
+            "sp": current_sp,
+            "snapshots": snapshots,
+        }
+
+    if idx == 5:
+        current_sp = ctrl.run_a4(current_sp)
+        current_sp.compose_prompt_ready()
+
+        snapshots["sp_a4"] = copy.deepcopy(current_sp)
+
+        return {
+            "sp": current_sp,
+            "snapshots": snapshots,
+        }
+
+    raise ValueError(f"Unknown Prompt Builder pipeline step_index: {step_index}")
+```
+
 ### ~\ragstream\app\ui_actions.py
 ```python
 # ragstream/app/ui_actions.py
@@ -1191,19 +1383,436 @@ Keep controller calls and session-state mutations here.
 from __future__ import annotations
 
 import copy
+import time
 
 from typing import Any
 
 import streamlit as st
 
 from ragstream.app.controller import AppController
+from ragstream.app.pipeline_runner import (
+    PIPELINE_TOTAL_STEPS,
+    pipeline_stage_name,
+    run_prompt_builder_stage,
+)
 from ragstream.memory.memory_actions import capture_memory_pair
 from ragstream.memory.memory_manager import MemoryManager
 from ragstream.orchestration.super_prompt import SuperPrompt
 from ragstream.textforge.RagLog import LogALL as logger
 
 
+SIDEBAR_PIPELINE_TOTAL_STEPS = 8
+SIDEBAR_MIN_VISIBLE_SECONDS = 1.0
+
+SIDEBAR_STEP_USER_PROMPT = 0
+SIDEBAR_STEP_PROMPT_QUALIFICATION = 1
+SIDEBAR_STEP_PROMPT_SHAPING = 2
+SIDEBAR_STEP_MEMORY_CONTEXT = 3
+SIDEBAR_STEP_DOCUMENT_EVIDENCE = 4
+SIDEBAR_STEP_CONTEXT_SYNTHESIS = 5
+SIDEBAR_STEP_HARD_RULE_INTEGRATION = 6
+SIDEBAR_STEP_LLM_READY_CONTEXT = 7
+
+PROMPT_BUILDER_VISUAL_TAIL = [
+    ("Hard Rule Integration", SIDEBAR_STEP_HARD_RULE_INTEGRATION, 0.0),
+    ("LLM-Ready Context", SIDEBAR_STEP_LLM_READY_CONTEXT, 0.0),
+]
+
+
+def _set_sidebar_pipeline_visual_step(
+    active_step: int,
+    completed_step: int | None = None,
+) -> None:
+    active_step = max(0, min(int(active_step), SIDEBAR_PIPELINE_TOTAL_STEPS - 1))
+
+    if completed_step is None:
+        completed_step = active_step - 1
+
+    completed_step = max(-1, min(int(completed_step), SIDEBAR_PIPELINE_TOTAL_STEPS - 1))
+
+    st.session_state["sidebar_pipeline_active_step"] = active_step
+    st.session_state["sidebar_pipeline_completed_step"] = completed_step
+    st.session_state["sidebar_pipeline_active_since"] = time.monotonic()
+
+
+def _hold_sidebar_active_step_minimum() -> None:
+    started_at = st.session_state.get("sidebar_pipeline_active_since")
+
+    if started_at is None:
+        st.session_state["sidebar_pipeline_active_since"] = time.monotonic()
+        return
+
+    elapsed = time.monotonic() - float(started_at)
+    remaining = SIDEBAR_MIN_VISIBLE_SECONDS - elapsed
+
+    if remaining > 0:
+        time.sleep(float(remaining))
+
+
+def _sidebar_visual_step_for_stage(
+    stage_name: str,
+    step_index: int,
+) -> int:
+    name = str(stage_name or "").lower()
+
+    if "pre" in name:
+        return SIDEBAR_STEP_PROMPT_QUALIFICATION
+
+    if "a2" in name or "promptshaper" in name or "prompt shaper" in name:
+        return SIDEBAR_STEP_PROMPT_SHAPING
+
+    if "retrieval" in name or "retriever" in name:
+        return SIDEBAR_STEP_MEMORY_CONTEXT
+
+    if "rerank" in name:
+        return SIDEBAR_STEP_MEMORY_CONTEXT
+
+    if "a3" in name or "nli" in name:
+        return SIDEBAR_STEP_DOCUMENT_EVIDENCE
+
+    if "a4" in name or "condenser" in name or "condense" in name:
+        return SIDEBAR_STEP_CONTEXT_SYNTHESIS
+
+    fallback_map = {
+        0: SIDEBAR_STEP_PROMPT_QUALIFICATION,
+        1: SIDEBAR_STEP_PROMPT_SHAPING,
+        2: SIDEBAR_STEP_MEMORY_CONTEXT,
+        3: SIDEBAR_STEP_MEMORY_CONTEXT,
+        4: SIDEBAR_STEP_DOCUMENT_EVIDENCE,
+        5: SIDEBAR_STEP_CONTEXT_SYNTHESIS,
+    }
+
+    return fallback_map.get(int(step_index), SIDEBAR_STEP_LLM_READY_CONTEXT)
+
+
+def _run_prompt_builder_visual_tail() -> None:
+    tail_index = int(st.session_state.get("pipeline_visual_tail_index", 0) or 0)
+
+    if tail_index >= len(PROMPT_BUILDER_VISUAL_TAIL):
+        st.session_state["pipeline_running"] = False
+        st.session_state["pipeline_stage_armed"] = False
+        st.session_state["pipeline_visual_tail_index"] = 0
+
+        _set_sidebar_pipeline_visual_step(
+            SIDEBAR_STEP_LLM_READY_CONTEXT,
+            SIDEBAR_STEP_HARD_RULE_INTEGRATION,
+        )
+
+        _set_pipeline_status(
+            stage_name="Done",
+            step_index=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            message="Prompt Builder pipeline completed.",
+        )
+        return
+
+    stage_name, visual_step, wait_seconds = PROMPT_BUILDER_VISUAL_TAIL[tail_index]
+
+    if not bool(st.session_state.get("pipeline_stage_armed", False)):
+        _set_sidebar_pipeline_visual_step(visual_step)
+
+        _set_pipeline_status(
+            stage_name=stage_name,
+            step_index=visual_step + 1,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            message=f"Running {stage_name}.",
+        )
+
+        st.session_state["pipeline_stage_armed"] = True
+        st.rerun()
+
+    if wait_seconds > 0:
+        time.sleep(float(wait_seconds))
+
+    st.session_state["pipeline_visual_tail_index"] = tail_index + 1
+    st.session_state["pipeline_stage_armed"] = False
+
+    if tail_index + 1 >= len(PROMPT_BUILDER_VISUAL_TAIL):
+        st.session_state["pipeline_running"] = False
+
+        _set_sidebar_pipeline_visual_step(
+            SIDEBAR_STEP_LLM_READY_CONTEXT,
+            SIDEBAR_STEP_HARD_RULE_INTEGRATION,
+        )
+
+        _set_pipeline_status(
+            stage_name="Done",
+            step_index=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            message="Prompt Builder pipeline completed.",
+        )
+
+        logger(
+            "Prompt Builder finished.",
+            "INFO",
+            "PUBLIC",
+        )
+
+    st.rerun()
+
+
+def _pipeline_is_running() -> bool:
+    return bool(st.session_state.get("pipeline_running", False))
+
+
+def _guard_pipeline_running(action_name: str) -> bool:
+    """
+    Logical execution lock only.
+
+    This does not disable or grey out widgets.
+    It only prevents another action from being executed while the full
+    Prompt Builder pipeline is already running.
+    """
+    if not _pipeline_is_running():
+        return False
+
+    logger(
+        f"{action_name} ignored: Prompt Builder pipeline is running.",
+        "WARN",
+        "PUBLIC",
+    )
+    return True
+
+
+def _set_pipeline_status(
+    stage_name: str,
+    step_index: int,
+    total_steps: int,
+    message: str,
+) -> None:
+    progress = 0.0
+    if total_steps > 0:
+        progress = max(0.0, min(1.0, float(step_index) / float(total_steps)))
+
+    st.session_state["pipeline_status"] = {
+        "stage_name": stage_name,
+        "step_index": int(step_index),
+        "total_steps": int(total_steps),
+        "message": message,
+        "progress": progress,
+    }
+
+def do_user_prompt_changed() -> None:
+    st.session_state["pipeline_running"] = False
+    st.session_state["pipeline_stage_armed"] = False
+    st.session_state["pipeline_stage_index"] = 0
+    st.session_state["pipeline_visual_tail_index"] = 0
+
+    _set_sidebar_pipeline_visual_step(
+        SIDEBAR_STEP_USER_PROMPT,
+        -1,
+    )
+
+    _set_pipeline_status(
+        stage_name="User Prompt",
+        step_index=1,
+        total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+        message="User prompt changed.",
+    )
+
+def request_prompt_builder_run() -> None:
+    """
+    Start the Prompt Builder state machine.
+
+    The pipeline is executed one stage per Streamlit rerun. This keeps the GUI
+    visually normal between stages and avoids one long blocking callback.
+    """
+    if _guard_pipeline_running("Prompt Builder"):
+        return
+
+    try:
+        ctrl: AppController = st.session_state.controller
+
+        user_text = str(st.session_state.get("prompt_text", "") or "").strip()
+        if not user_text:
+            logger(
+                "Prompt Builder cannot run because Prompt is empty.",
+                "WARN",
+                "PUBLIC",
+            )
+            st.error("Prompt is empty. Prompt Builder cannot run.")
+            return
+
+        project_name = _resolve_active_project(ctrl)
+        top_k = int(st.session_state.get("retrieval_top_k", 100))
+
+        use_a2_promptshaper_llm = bool(st.session_state.get("use_a2_promptshaper_llm", True))
+        use_retrieval_splade = bool(st.session_state.get("use_retrieval_splade", False))
+        use_reranking_colbert = bool(st.session_state.get("use_reranking_colbert", False))
+        st.session_state.sp = SuperPrompt()
+        st.session_state.sp_pre = SuperPrompt()
+        st.session_state.sp_a2 = SuperPrompt()
+        st.session_state.sp_rtv = SuperPrompt()
+        st.session_state.sp_rrk = SuperPrompt()
+        st.session_state.sp_a3 = SuperPrompt()
+        st.session_state.sp_a4 = SuperPrompt()
+        st.session_state["super_prompt_text"] = ""
+
+        _set_sidebar_pipeline_visual_step(
+            SIDEBAR_STEP_USER_PROMPT,
+            -1,
+        )
+
+        st.session_state["pipeline_running"] = True
+        st.session_state["pipeline_stage_index"] = 0
+        st.session_state["pipeline_stage_armed"] = False
+        st.session_state["pipeline_visual_tail_index"] = 0
+        st.session_state["pipeline_config"] = {
+            "user_text": user_text,
+            "project_name": project_name,
+            "top_k": top_k,
+            "use_a2_promptshaper_llm": use_a2_promptshaper_llm,
+            "use_retrieval_splade": use_retrieval_splade,
+            "use_reranking_colbert": use_reranking_colbert,
+        }
+
+        _set_pipeline_status(
+            stage_name="Queued",
+            step_index=0,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            message="Prompt Builder pipeline queued.",
+        )
+
+        logger(
+            (
+                "Prompt Builder started: "
+                f"A2_LLM={use_a2_promptshaper_llm}, "
+                f"SPLADE={use_retrieval_splade}, "
+                f"ColBERT={use_reranking_colbert}, "
+                f"top_k={top_k}, "
+                f"project={project_name}"
+            ),
+            "INFO",
+            "PUBLIC",
+        )
+
+        st.rerun()
+
+    except Exception as e:
+        logger(str(e), "ERROR", "PUBLIC")
+        st.error(str(e))
+
+
+def run_next_prompt_builder_step() -> None:
+    """
+    Advance the Prompt Builder pipeline state machine by one visual/execution phase.
+
+    Two-phase logic per stage:
+    1. Arm phase:
+       - write status for the next stage
+       - rerun so the user sees that status before the stage starts
+    2. Execute phase:
+       - run exactly one pipeline stage
+       - write SuperPrompt / snapshots
+       - rerun to expose logs and move to the next stage
+    """
+    if not _pipeline_is_running():
+        return
+
+    _hold_sidebar_active_step_minimum()
+
+    step_index = int(st.session_state.get("pipeline_stage_index", 0) or 0)
+
+    if step_index >= PIPELINE_TOTAL_STEPS:
+        _run_prompt_builder_visual_tail()
+        return
+
+    stage_name = pipeline_stage_name(step_index)
+
+    if not bool(st.session_state.get("pipeline_stage_armed", False)):
+        visual_step = _sidebar_visual_step_for_stage(
+            stage_name=stage_name,
+            step_index=step_index,
+        )
+
+        _set_sidebar_pipeline_visual_step(visual_step)
+
+        _set_pipeline_status(
+            stage_name=stage_name,
+            step_index=visual_step + 1,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            message=f"Running {stage_name}.",
+        )
+        st.session_state["pipeline_stage_armed"] = True
+        st.rerun()
+
+    try:
+        ctrl: AppController = st.session_state.controller
+        config = st.session_state.get("pipeline_config", {}) or {}
+
+        current_sp = st.session_state.get("sp")
+        if not isinstance(current_sp, SuperPrompt):
+            current_sp = None
+
+        logger(
+            f"Prompt Builder stage running: {step_index + 1}/{PIPELINE_TOTAL_STEPS} — {stage_name}",
+            "INFO",
+            "PUBLIC",
+        )
+
+        result = run_prompt_builder_stage(
+            step_index=step_index,
+            ctrl=ctrl,
+            sp=current_sp,
+            user_text=str(config.get("user_text", "") or ""),
+            project_name=str(config.get("project_name", "") or ""),
+            top_k=int(config.get("top_k", st.session_state.get("retrieval_top_k", 100)) or 100),
+            use_a2_promptshaper_llm=bool(config.get("use_a2_promptshaper_llm", True)),
+            use_retrieval_splade=bool(config.get("use_retrieval_splade", False)),
+            use_reranking_colbert=bool(config.get("use_reranking_colbert", False)),
+            memory_manager=st.session_state.get("memory_manager"),
+            ensure_memory_retrieval_configured=_ensure_memory_retrieval_configured,
+        )
+
+        sp: SuperPrompt = result["sp"]
+        snapshots: dict[str, SuperPrompt] = result.get("snapshots", {}) or {}
+
+        st.session_state.sp = sp
+
+        for snapshot_key, snapshot_value in snapshots.items():
+            st.session_state[snapshot_key] = snapshot_value
+
+        st.session_state["super_prompt_text"] = sp.prompt_ready
+
+        logger(
+            f"Prompt Builder stage finished: {step_index + 1}/{PIPELINE_TOTAL_STEPS} — {stage_name}",
+            "INFO",
+            "PUBLIC",
+        )
+
+        next_step_index = step_index + 1
+        st.session_state["pipeline_stage_index"] = next_step_index
+        st.session_state["pipeline_stage_armed"] = False
+
+        if next_step_index >= PIPELINE_TOTAL_STEPS:
+            st.session_state["pipeline_visual_tail_index"] = 0
+            _set_pipeline_status(
+                stage_name="Pipeline Tail",
+                step_index=SIDEBAR_STEP_HARD_RULE_INTEGRATION + 1,
+                total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+                message="Continuing final prompt assembly.",
+            )
+
+        st.rerun()
+
+    except Exception as e:
+        st.session_state["pipeline_running"] = False
+        st.session_state["pipeline_stage_armed"] = False
+        _set_pipeline_status(
+            stage_name="Failed",
+            step_index=step_index + 1,
+            total_steps=SIDEBAR_PIPELINE_TOTAL_STEPS,
+            message=str(e),
+        )
+        logger(str(e), "ERROR", "PUBLIC")
+        st.error(str(e))
+        st.rerun()
+
+
 def do_preprocess() -> None:
+    if _guard_pipeline_running("PreProcessing"):
+        return
+
     ctrl: AppController = st.session_state.controller
     user_text = st.session_state.get("prompt_text", "")
 
@@ -1215,6 +1824,8 @@ def do_preprocess() -> None:
     st.session_state.sp_rrk = SuperPrompt()
     st.session_state.sp_a3 = SuperPrompt()
     st.session_state.sp_a4 = SuperPrompt()
+
+    _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_PROMPT_QUALIFICATION)
 
     sp: SuperPrompt = st.session_state.sp
     sp = ctrl.preprocess(
@@ -1230,10 +1841,15 @@ def do_preprocess() -> None:
 
 def do_a2_promptshaper() -> None:
     """A2 button callback."""
+    if _guard_pipeline_running("A2 PromptShaper"):
+        return
+
     ctrl: AppController = st.session_state.controller
     sp: SuperPrompt = st.session_state.sp
 
     use_llm = bool(st.session_state.get("use_a2_promptshaper_llm", True))
+
+    _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_PROMPT_SHAPING)
 
     sp = ctrl.run_a2_promptshaper(
         sp,
@@ -1247,6 +1863,9 @@ def do_a2_promptshaper() -> None:
 
 def do_feed_memory_manually() -> None:
     """Manual memory feed button callback."""
+    if _guard_pipeline_running("Manual Memory Feed"):
+        return
+
     prompt_text = st.session_state.get("prompt_text", "")
     output_text = st.session_state.get("manual_memory_feed_text", "")
 
@@ -1403,27 +2022,37 @@ def _ensure_memory_retrieval_configured(ctrl: AppController) -> None:
     )
 
 
+def _resolve_active_project(ctrl: AppController) -> str:
+    project_name = st.session_state.get("active_project")
+    if not project_name:
+        available_projects = ctrl.list_projects()
+        if available_projects:
+            project_name = available_projects[0]
+            st.session_state["active_project"] = project_name
+
+    if not project_name or project_name == "(no projects yet)":
+        raise ValueError("No active project is available.")
+
+    return str(project_name)
+
+
 def do_retrieval() -> None:
     """Retrieval button callback."""
+    if _guard_pipeline_running("Retrieval"):
+        return
+
     try:
         ctrl: AppController = st.session_state.controller
         sp: SuperPrompt = st.session_state.sp
 
         _ensure_memory_retrieval_configured(ctrl)
 
-        project_name = st.session_state.get("active_project")
-        if not project_name:
-            available_projects = ctrl.list_projects()
-            if available_projects:
-                project_name = available_projects[0]
-                st.session_state["active_project"] = project_name
-
-        if not project_name or project_name == "(no projects yet)":
-            st.error("No active project is available for Retrieval.")
-            return
+        project_name = _resolve_active_project(ctrl)
 
         top_k = int(st.session_state.get("retrieval_top_k", 100))
         use_retrieval_splade = bool(st.session_state.get("use_retrieval_splade", False))
+
+        _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_MEMORY_CONTEXT)
 
         sp = ctrl.run_retrieval(
             sp,
@@ -1436,6 +2065,13 @@ def do_retrieval() -> None:
 
         st.session_state.sp = sp
         st.session_state.sp_rtv = copy.deepcopy(sp)
+
+        # Retrieval now also initializes an A3-ready passthrough view
+        # under views_by_stage["reranked"].
+        # Therefore sp_rrk can safely mirror this state until real ColBERT
+        # ReRanker overwrites it.
+        st.session_state.sp_rrk = copy.deepcopy(sp)
+
         st.session_state["super_prompt_text"] = sp.prompt_ready
 
     except Exception as e:
@@ -1444,11 +2080,20 @@ def do_retrieval() -> None:
 
 def do_reranker() -> None:
     """ReRanker button callback."""
+    if _guard_pipeline_running("ReRanker"):
+        return
+
     try:
         ctrl: AppController = st.session_state.controller
         sp: SuperPrompt = st.session_state.sp
 
+        if getattr(ctrl, "reranker", None) is None:
+            st.error("ReRanker is not initialized yet.")
+            return
+
         use_reranking_colbert = bool(st.session_state.get("use_reranking_colbert", False))
+
+        _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_MEMORY_CONTEXT)
 
         sp = ctrl.run_reranker(
             sp,
@@ -1467,9 +2112,14 @@ def do_reranker() -> None:
 
 def do_a3_nli_gate() -> None:
     """A3 button callback."""
+    if _guard_pipeline_running("A3 NLI Gate"):
+        return
+
     try:
         ctrl: AppController = st.session_state.controller
         sp: SuperPrompt = st.session_state.sp
+
+        _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_DOCUMENT_EVIDENCE)
 
         sp = ctrl.run_a3(sp)
 
@@ -1483,9 +2133,14 @@ def do_a3_nli_gate() -> None:
 
 def do_a4_condenser() -> None:
     """A4 button callback."""
+    if _guard_pipeline_running("A4 Condenser"):
+        return
+
     try:
         ctrl: AppController = st.session_state.controller
         sp: SuperPrompt = st.session_state.sp
+
+        _set_sidebar_pipeline_visual_step(SIDEBAR_STEP_CONTEXT_SYNTHESIS)
 
         sp = ctrl.run_a4(sp)
         sp.compose_prompt_ready()
@@ -1500,6 +2155,9 @@ def do_a4_condenser() -> None:
 
 def do_create_project() -> None:
     """Create Project form callback."""
+    if _guard_pipeline_running("Create Project"):
+        return
+
     try:
         ctrl: AppController = st.session_state.controller
         result = ctrl.create_project(st.session_state.get("new_project_name", ""))
@@ -1526,6 +2184,9 @@ def do_create_project() -> None:
 
 def do_add_files() -> None:
     """Add Files form callback."""
+    if _guard_pipeline_running("Add Files"):
+        return
+
     try:
         ctrl: AppController = st.session_state.controller
 
@@ -1580,6 +2241,7 @@ from __future__ import annotations
 import streamlit as st
 
 from ragstream.memory.storage.memory_file_manager import MemoryFileManager
+from ragstream.memory.importers.chatgpt_shared_link_importer import import_chatgpt_shared_link
 from ragstream.memory.memory_manager import MemoryManager
 from ragstream.textforge.RagLog import LogALL as logger
 
@@ -1748,6 +2410,98 @@ def do_files_confirm_delete_history() -> None:
         logger(str(e), "ERROR", "PUBLIC")
 
 
+def do_files_import_chatgpt_conversation() -> None:
+    """Import a public ChatGPT shared-link conversation as a memory history."""
+    shared_url = str(st.session_state.get("files_chatgpt_import_url", "") or "").strip()
+    title = str(st.session_state.get("files_chatgpt_import_title", "") or "").strip()
+    summary = str(st.session_state.get("files_chatgpt_import_summary", "") or "").strip()
+
+    if not shared_url:
+        _set_status("error", "ChatGPT shared link must not be empty.")
+        return
+
+    if not title:
+        _set_status("error", "Import title must not be empty.")
+        return
+
+    try:
+        memory_manager: MemoryManager = st.session_state.memory_manager
+        memory_ingestion_manager = st.session_state.get("memory_ingestion_manager")
+
+        active_project_name, embedded_files_snapshot = _get_active_project_snapshot()
+
+        result = import_chatgpt_shared_link(
+            shared_url=shared_url,
+            title=title,
+            memory_manager=memory_manager,
+            memory_ingestion_manager=memory_ingestion_manager,
+            memory_brief=summary,
+            memory_brief_title=title if summary else "",
+            active_project_name=active_project_name,
+            embedded_files_snapshot=embedded_files_snapshot,
+        )
+
+        st.session_state["files_selected_file_id"] = result.get("file_id", "")
+
+        _clear_memory_widget_state()
+
+        vector_info = result.get("vector_ingestion") or {}
+        vector_text = ""
+        if isinstance(vector_info, dict) and vector_info:
+            vector_text = (
+                f" | vector ingestion: "
+                f"{vector_info.get('success_count', 0)} ok, "
+                f"{vector_info.get('failure_count', 0)} failed"
+            )
+
+        _set_status(
+            "success",
+            (
+                "Imported ChatGPT conversation: "
+                f"{result.get('filename_ragmem', '')} | "
+                f"records: {result.get('record_count', 0)}"
+                f"{vector_text}"
+            ),
+        )
+
+        logger(
+            (
+                "ChatGPT shared conversation imported: "
+                f"{result.get('filename_ragmem', '')} | "
+                f"records={result.get('record_count', 0)}"
+            ),
+            "INFO",
+            "PUBLIC",
+        )
+
+        st.rerun()
+
+    except Exception as e:
+        _set_status("error", str(e))
+        logger(str(e), "ERROR", "PUBLIC")
+
+
+def _get_active_project_snapshot() -> tuple[str | None, list[str]]:
+    active_project = st.session_state.get("active_project")
+
+    if not active_project or active_project == "(no projects yet)":
+        return None, []
+
+    try:
+        ctrl = st.session_state.get("controller")
+        if ctrl is None:
+            return str(active_project), []
+
+        embedded_info = ctrl.get_embedded_files(active_project)
+        if embedded_info.get("success"):
+            return str(active_project), list(embedded_info.get("files", []))
+
+    except Exception:
+        return str(active_project), []
+
+    return str(active_project), []
+
+
 def _file_manager() -> MemoryFileManager:
     memory_manager: MemoryManager = st.session_state.memory_manager
     memory_vector_store = st.session_state.get("memory_vector_store")
@@ -1807,6 +2561,7 @@ from ragstream.app.ui_actions_files import (
     do_files_confirm_delete_history,
     do_files_create_history,
     do_files_delete_request,
+    do_files_import_chatgpt_conversation,
     do_files_load_history,
     do_files_rename_history,
 )
@@ -1814,8 +2569,9 @@ from ragstream.app.ui_actions_files import (
 
 TABLE_STRIPE_COLOR = "#E2FBD8"
 
-# Same visual width as: [New memory name] [New]
-# The remaining right side stays empty.
+# Main FILES layout:
+# left  = memory creation / histories / selected file / actions
+# right = ChatGPT shared-link import panel
 CONTENT_COLS = [3.0, 4.5]
 
 
@@ -1827,6 +2583,18 @@ def render_files_tab() -> None:
     histories = memory_manager.list_histories()
 
     _repair_selected_file_id(histories)
+
+    left_col, right_col = st.columns(CONTENT_COLS, gap="large")
+
+    with left_col:
+        _render_left_files_area(histories)
+
+    with right_col:
+        _render_chatgpt_import_area()
+
+
+def _render_left_files_area(histories: list[dict]) -> None:
+    """Render the normal FILES management area on the left side."""
     _render_new_memory_area()
 
     if not histories:
@@ -1855,7 +2623,7 @@ def _render_new_memory_area() -> None:
     """Render compact New Memory action."""
     st.markdown("### New Memory")
 
-    name_col, btn_col, gap_col = st.columns([2.2, 0.8, 4.5], gap="small")
+    name_col, btn_col = st.columns([2.2, 0.8], gap="small")
 
     with name_col:
         st.text_input(
@@ -1869,8 +2637,54 @@ def _render_new_memory_area() -> None:
         if st.button("New", key="btn_files_new", use_container_width=True):
             do_files_create_history()
 
-    with gap_col:
-        st.empty()
+
+def _render_chatgpt_import_area() -> None:
+    """Render ChatGPT shared-link import controls in a right-side panel."""
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stVerticalBlockBorderWrapper"]:has(#chatgpt-import-panel-marker) {
+            background-color: #f6fbff;
+            border: 1px solid #d6e8f5;
+            border-radius: 0.75rem;
+            padding: 0.85rem 1.0rem 1.0rem 1.0rem;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.container(border=True):
+        st.markdown('<span id="chatgpt-import-panel-marker"></span>', unsafe_allow_html=True)
+
+        st.markdown("### Import from ChatGPT UI")
+
+        st.text_input(
+            "ChatGPT shared link",
+            key="files_chatgpt_import_url",
+            placeholder="https://chatgpt.com/share/...",
+        )
+
+        st.text_input(
+            "Import title",
+            key="files_chatgpt_import_title",
+            placeholder="Memory history title",
+        )
+
+        st.text_area(
+            "Summary / MemoryBrief (optional)",
+            key="files_chatgpt_import_summary",
+            height=110,
+            placeholder="Optional shared MemoryBrief assigned to all imported records.",
+        )
+
+        if st.button(
+            "Import Conversation",
+            key="btn_files_import_chatgpt_conversation",
+            use_container_width=True,
+        ):
+            do_files_import_chatgpt_conversation()
 
 
 def _render_history_table(histories: list[dict]) -> None:
@@ -1903,39 +2717,33 @@ def _render_history_table(histories: list[dict]) -> None:
     visible_df = df[["Filename", "Created", "Updated", "Records"]].copy()
     styled_df = visible_df.style.apply(_stripe_table_rows, axis=1)
 
-    table_col, spacer_col = st.columns(CONTENT_COLS, gap="small")
-
-    with table_col:
-        event = st.dataframe(
-            styled_df,
-            key="files_history_table",
-            use_container_width=True,
-            hide_index=True,
-            height=320,
-            on_select="rerun",
-            selection_mode="single-row",
-            column_config={
-                "Filename": st.column_config.TextColumn(
-                    "Filename",
-                    width="medium",
-                ),
-                "Created": st.column_config.TextColumn(
-                    "Created",
-                    width="small",
-                ),
-                "Updated": st.column_config.TextColumn(
-                    "Updated",
-                    width="small",
-                ),
-                "Records": st.column_config.TextColumn(
-                    "Records",
-                    width="small",
-                ),
-            },
-        )
-
-    with spacer_col:
-        st.empty()
+    event = st.dataframe(
+        styled_df,
+        key="files_history_table",
+        use_container_width=True,
+        hide_index=True,
+        height=320,
+        on_select="rerun",
+        selection_mode="single-row",
+        column_config={
+            "Filename": st.column_config.TextColumn(
+                "Filename",
+                width="medium",
+            ),
+            "Created": st.column_config.TextColumn(
+                "Created",
+                width="small",
+            ),
+            "Updated": st.column_config.TextColumn(
+                "Updated",
+                width="small",
+            ),
+            "Records": st.column_config.TextColumn(
+                "Records",
+                width="small",
+            ),
+        },
+    )
 
     selected_rows = _get_selected_rows(event)
     if selected_rows:
@@ -1952,29 +2760,23 @@ def _render_selected_card(selected: dict) -> None:
     updated = str(selected.get("updated_at_utc", "") or "")
     records = int(selected.get("record_count", 0) or 0)
 
-    card_col, gap_col = st.columns(CONTENT_COLS, gap="small")
-
-    with card_col:
-        st.markdown(
-            f"""
-            <div style="
-                border:1px solid #d8d8d8;
-                border-radius:0.55rem;
-                padding:0.65rem 0.85rem;
-                background-color:#fafafa;
-            ">
-                <div style="font-weight:700; font-size:1.02rem;">{filename}</div>
-                <div style="font-size:0.84rem; color:#555;">file_id: {file_id}</div>
-                <div style="font-size:0.84rem; color:#555;">created: {created}</div>
-                <div style="font-size:0.84rem; color:#555;">updated: {updated}</div>
-                <div style="font-size:0.84rem; color:#555;">records: {records}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with gap_col:
-        st.empty()
+    st.markdown(
+        f"""
+        <div style="
+            border:1px solid #d8d8d8;
+            border-radius:0.55rem;
+            padding:0.65rem 0.85rem;
+            background-color:#fafafa;
+        ">
+            <div style="font-weight:700; font-size:1.02rem;">{filename}</div>
+            <div style="font-size:0.84rem; color:#555;">file_id: {file_id}</div>
+            <div style="font-size:0.84rem; color:#555;">created: {created}</div>
+            <div style="font-size:0.84rem; color:#555;">updated: {updated}</div>
+            <div style="font-size:0.84rem; color:#555;">records: {records}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _render_action_area(selected: dict) -> None:
@@ -1987,49 +2789,43 @@ def _render_action_area(selected: dict) -> None:
 
     st.markdown("### Actions")
 
-    action_col, gap_col = st.columns(CONTENT_COLS, gap="small")
+    if st.button("Load", key=f"btn_files_load_{file_id}", use_container_width=True):
+        do_files_load_history()
 
-    with action_col:
-        if st.button("Load", key=f"btn_files_load_{file_id}", use_container_width=True):
-            do_files_load_history()
+    rename_text_col, rename_btn_col = st.columns([2.1, 1.0], gap="small")
+    with rename_text_col:
+        st.text_input(
+            "Rename field",
+            key=rename_key,
+            placeholder="New name",
+            label_visibility="collapsed",
+        )
+    with rename_btn_col:
+        if st.button("Rename", key=f"btn_files_rename_{file_id}", use_container_width=True):
+            do_files_rename_history()
 
-        rename_text_col, rename_btn_col = st.columns([2.1, 1.0], gap="small")
-        with rename_text_col:
+    if not st.session_state.get(delete_pending_key, False):
+        if st.button("Delete", key=f"btn_files_delete_request_{file_id}", use_container_width=True):
+            do_files_delete_request()
+    else:
+        st.warning('Type "delete" to confirm deletion.')
+        confirm_text_col, confirm_btn_col = st.columns([2.1, 1.0], gap="small")
+
+        with confirm_text_col:
             st.text_input(
-                "Rename field",
-                key=rename_key,
-                placeholder="New name",
+                "Delete confirmation",
+                key=delete_confirm_key,
+                placeholder='type "delete"',
                 label_visibility="collapsed",
             )
-        with rename_btn_col:
-            if st.button("Rename", key=f"btn_files_rename_{file_id}", use_container_width=True):
-                do_files_rename_history()
 
-        if not st.session_state.get(delete_pending_key, False):
-            if st.button("Delete", key=f"btn_files_delete_request_{file_id}", use_container_width=True):
-                do_files_delete_request()
-        else:
-            st.warning('Type "delete" to confirm deletion.')
-            confirm_text_col, confirm_btn_col = st.columns([2.1, 1.0], gap="small")
-
-            with confirm_text_col:
-                st.text_input(
-                    "Delete confirmation",
-                    key=delete_confirm_key,
-                    placeholder='type "delete"',
-                    label_visibility="collapsed",
-                )
-
-            with confirm_btn_col:
-                if st.button(
-                    "Confirm Delete",
-                    key=f"btn_files_confirm_delete_{file_id}",
-                    use_container_width=True,
-                ):
-                    do_files_confirm_delete_history()
-
-    with gap_col:
-        st.empty()
+        with confirm_btn_col:
+            if st.button(
+                "Confirm Delete",
+                key=f"btn_files_confirm_delete_{file_id}",
+                use_container_width=True,
+            ):
+                do_files_confirm_delete_history()
 
 
 def _render_status() -> None:
@@ -2038,16 +2834,10 @@ def _render_status() -> None:
     if not status:
         return
 
-    status_col, gap_col = st.columns(CONTENT_COLS, gap="small")
-
-    with status_col:
-        if status.get("type") == "success":
-            st.success(status.get("message", ""))
-        else:
-            st.error(status.get("message", ""))
-
-    with gap_col:
-        st.empty()
+    if status.get("type") == "success":
+        st.success(status.get("message", ""))
+    else:
+        st.error(status.get("message", ""))
 
 
 def _repair_selected_file_id(histories: list[dict]) -> None:
@@ -2108,7 +2898,10 @@ Keep columns, containers, labels and visual order here.
 from __future__ import annotations
 
 import html
+import re
 import time
+
+from typing import Any
 
 import streamlit as st
 
@@ -2123,8 +2916,10 @@ from ragstream.app.ui_actions import (
     do_preprocess,
     do_reranker,
     do_retrieval,
+    do_user_prompt_changed,
+    request_prompt_builder_run,
+    run_next_prompt_builder_step,
 )
-
 
 TAG_COLORS: dict[str, str] = {
     "Gold": "#D4AF37",
@@ -2132,379 +2927,597 @@ TAG_COLORS: dict[str, str] = {
     "Black": "#111111",
 }
 
+MEMORY_HEIGHT = 650
+PROMPT_HEIGHT = 180
+ENGINEERED_PROMPT_EXPANDED_HEIGHT = 1200
+MANUAL_MEMORY_FEED_HEIGHT = 68
+RUNTIME_LOG_HEIGHT = 150
+EMBEDDED_FILES_HEIGHT = 120
+
+MAIN_COLUMNS = [4, 0.25, 4]
+ACTION_ROW_COLUMNS = [1.15, 3.35]
+MODEL_ROW_COLUMNS = [1.15, 1.1, 2.25]
+ENGINEERED_PROMPT_COLUMNS = [20, 1.8]
+ADVANCED_TOPK_COLUMNS = [0.9, 3.1]
+MEMORY_RECORD_COLUMNS = [8.8, 1.0]
+MEMORY_TAG_COLUMNS = [0.22, 1.0]
+PROJECT_HALF_COLUMNS = [1, 1]
+
+
+def _vertical_gap(height: str) -> None:
+    """Render a small vertical spacer."""
+    st.markdown(f"<div style='height:{height}'></div>", unsafe_allow_html=True)
+
+
+def _memory_display_name(filename_ragmem: str | None) -> tuple[str, str]:
+    """Return clean visible memory name plus real source filename."""
+    filename = str(filename_ragmem or "").strip()
+
+    if not filename:
+        return "Memory", ""
+
+    visible_name = re.sub(r"(?i)\.ragmem$", "", filename)
+    visible_name = re.sub(r"^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-", "", visible_name)
+    visible_name = visible_name.strip() or filename
+
+    return visible_name, filename
+
+
+def _model_options() -> list[str]:
+    return [
+        "OpenAI GPT-5.5",
+        "OpenAI GPT-5.4",
+        "OpenAI o3",
+        "OpenAI o2",
+        "OpenAI GPT-5 mini",
+        "OpenAI GPT-5 nano",
+        "Claude Opus 4.1",
+        "Claude Sonnet 4.5",
+        "Claude Haiku 3.5",
+        "Gemini 2.5 Pro",
+        "Gemini 2.5 Flash",
+        "Gemini 2.0 Flash",
+        "Local / Custom",
+    ]
+
+
+def _base_page_css() -> str:
+    return """
+        div[data-testid="stHeader"] {
+            display: none !important;
+        }
+        
+                /* Prevent accidental sidebar collapse */
+        button[aria-label="Close sidebar"],
+        button[title="Close sidebar"],
+        [data-testid="stSidebarCollapseButton"] {
+            display: none !important;
+        }
+
+        .block-container {
+            padding-top: 0.20rem;
+            padding-bottom: 0rem;
+            padding-left: 0.65rem;
+            padding-right: 0.65rem;
+        }
+
+        div[data-testid="stHorizontalBlock"] {
+            gap: 0.45rem !important;
+        }
+
+        div[data-baseweb="select"] > div {
+            min-height: 34px;
+        }
+    """
+
+
+def _product_identity_css() -> str:
+    return """
+        .ghost-product-title {
+            font-size: 2.0rem;
+            font-weight: 520;
+            font-style: italic;
+            letter-spacing: -0.025em;
+            color: #7A1E1E;
+            line-height: 1.15;
+            margin: 0.10rem 0 0.18rem 0;
+        }
+
+        .ghost-product-title .brand-initial {
+            font-weight: 800;
+        }
+
+        .ghost-product-subtitle {
+            font-size: 0.88rem;
+            color: #6B7280;
+            line-height: 1.25;
+            margin-bottom: 0.55rem;
+        }
+    """
+
+
+def _title_css() -> str:
+    return """
+        .field-title,
+        .panel-title,
+        .memory-title {
+            font-size: 1.08rem;
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: 0.30rem;
+            color: #1F2937;
+            letter-spacing: -0.010em;
+        }
+
+        .memory-title {
+            font-size: 1.12rem;
+            margin-bottom: 0.08rem;
+        }
+    """
+
+
+def _memory_css() -> str:
+    return """
+        .memory-box {
+            border-radius: 0.45rem;
+            padding: 0.55rem 0.70rem;
+            border: 1px solid #d8d8d8;
+            font-size: 1.02rem;
+            line-height: 1.38;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .memory-input-box {
+            background-color: #ffffff;
+        }
+
+        .memory-output-box {
+            background-color: #f3f4f6;
+        }
+
+        .memory-label {
+            font-size: 0.78rem;
+            font-weight: 650;
+            margin-bottom: 0.25rem;
+            color: #4b5563;
+            letter-spacing: 0.02em;
+        }
+
+        .memory-plain-text {
+            white-space: pre-wrap;
+            font-size: 1.02rem;
+            line-height: 1.38;
+            margin: 0;
+            font-family: inherit;
+        }
+
+        .memory-tag-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-bottom: 0.25rem;
+            min-height: 24px;
+        }
+
+        .memory-tag-square {
+            width: 18px;
+            height: 18px;
+            border-radius: 0.25rem;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+            flex: 0 0 auto;
+        }
+    """
+
+
+def _button_css() -> str:
+    return """
+        div[data-testid="stButton"] > button[kind="primary"] {
+            background-color: #BB0000 !important;
+            border-color: #BB0000 !important;
+            color: white !important;
+            font-weight: 800 !important;
+        }
+
+        div[data-testid="stButton"] > button[kind="primary"]:hover,
+        div[data-testid="stButton"] > button[kind="primary"]:focus {
+            background-color: #990000 !important;
+            border-color: #990000 !important;
+            color: white !important;
+        }
+
+        div[data-testid="stButton"] > button[kind="primary"] p {
+            color: white !important;
+            font-weight: 800 !important;
+        }
+
+        /* Prompt Builder intentionally uses the normal Streamlit button style. */
+
+        .st-key-btn_feed_memory_manually button {
+            background-color: #00A2E8 !important;
+            border-color: #00A2E8 !important;
+            color: white !important;
+            font-weight: 650 !important;
+        }
+
+        .st-key-btn_feed_memory_manually button:hover,
+        .st-key-btn_feed_memory_manually button:focus {
+            background-color: #00A2E8 !important;
+            border-color: #00A2E8 !important;
+            color: white !important;
+        }
+
+        .st-key-btn_feed_memory_manually button p {
+            color: white !important;
+            font-weight: 650 !important;
+        }
+    """
+
+
+def _form_field_css() -> str:
+    return """
+        textarea[aria-label="Manual Memory Feed (hidden)"] {
+            background-color: #EAF7FF !important;
+        }
+
+        div[data-testid="stTextInput"]:has(input[aria-label="Direct Recall Key"]) div[data-baseweb="input"] {
+            border: 2px solid #D11A2A !important;
+            border-radius: 0.45rem !important;
+            box-shadow: none !important;
+        }
+
+        div[data-testid="stTextInput"]:has(input[aria-label="Direct Recall Key"]) div[data-baseweb="input"]:focus-within {
+            border: 2px solid #D11A2A !important;
+            box-shadow: 0 0 0 1px rgba(209, 26, 42, 0.25) !important;
+        }
+    """
+
+
+def _runtime_log_css() -> str:
+    return """
+        .textforge-log-box {
+            background-color: #EAFBEA;
+            border: 1px solid #B7E4B7;
+            border-radius: 0.45rem;
+            padding: 0.55rem 0.70rem;
+            min-height: 140px;
+            max-height: 180px;
+            overflow-y: auto;
+            white-space: normal;
+            word-break: break-word;
+            font-family: monospace;
+            font-size: 0.88rem;
+            line-height: 1.35;
+        }
+    """
+
 
 def inject_base_css() -> None:
-    """Global CSS for simple spacing and boxes."""
+    """Global CSS for page spacing, product identity, panels, and buttons."""
+    css = "\n".join(
+        [
+            _base_page_css(),
+            _product_identity_css(),
+            _title_css(),
+            _memory_css(),
+            _button_css(),
+            _form_field_css(),
+            _runtime_log_css(),
+        ]
+    )
+
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+
+
+def render_page() -> None:
+    """
+    MAIN page layout:
+    - Product identity header
+    - Full-width Memory area
+    - LEFT: User Prompt + main actions
+    - RIGHT: Engineered Prompt + project/file context
+    """
+    render_product_identity_header()
+    render_memory_records(height=MEMORY_HEIGHT)
+
+    _vertical_gap("0.55rem")
+
+    col_user, spacer, col_engineered = st.columns(MAIN_COLUMNS, gap="small")
+
+    with col_user:
+        render_user_prompt_panel()
+        render_main_action_controls()
+        render_pipeline_status()
+
+        _vertical_gap("0.45rem")
+        render_textforge_gui_log(height=RUNTIME_LOG_HEIGHT)
+
+        if st.session_state.get("show_advanced_controls", False):
+            _vertical_gap("0.55rem")
+            render_advanced_controls()
+
+        # Must run after status/log rendering, but before Engineered Prompt widget creation.
+        run_next_prompt_builder_step()
+
+    with spacer:
+        st.empty()
+
+    with col_engineered:
+        render_engineered_prompt_panel()
+
+        _vertical_gap("0.55rem")
+
+        ctrl: AppController = st.session_state.controller
+        render_project_area(
+            ctrl,
+            show_ingestion_controls=bool(
+                st.session_state.get("enable_file_ingestion_controls", False)
+            ),
+        )
+
+
+def render_product_identity_header() -> None:
+    """Render the MAIN-page product identity."""
     st.markdown(
         """
-        <style>
-            /* Hide Streamlit header/toolbar to reduce top gap */
-            header {visibility: hidden;}
-            div[data-testid="stHeader"] {display: none;}
-            div[data-testid="stToolbar"] {display: none;}
-
-            /* Tighten page paddings to push content up/left */
-            .block-container {
-                padding-top: 0.2rem;
-                padding-bottom: 0rem;
-                padding-left: 0.6rem;
-                padding-right: 0.6rem;
-            }
-
-            /* Big, bold custom field titles */
-            .field-title {
-                font-size: 1.8rem;
-                font-weight: 800;
-                line-height: 1.2;
-                margin-bottom: 0.35rem;
-            }
-
-            /* Make row gaps compact */
-            div[data-testid="stHorizontalBlock"]{
-                gap: 0.4rem !important;
-            }
-
-            /* Memory card style */
-            .memory-box {
-                border-radius: 0.45rem;
-                padding: 0.55rem 0.7rem;
-                border: 1px solid #d8d8d8;
-                font-size: 0.95rem;
-                line-height: 1.35;
-                white-space: normal;
-                word-break: break-word;
-            }
-
-            .memory-input-box {
-                background-color: #ffffff;
-            }
-
-            .memory-output-box {
-                background-color: #f3f4f6;
-            }
-
-            .memory-label {
-                font-size: 0.82rem;
-                font-weight: 700;
-                margin-bottom: 0.25rem;
-                color: #4b5563;
-                letter-spacing: 0.02em;
-            }
-
-            .memory-plain-text {
-                white-space: pre-wrap;
-                font-size: 0.95rem;
-                line-height: 1.35;
-                margin: 0;
-                font-family: inherit;
-            }
-
-            .memory-tag-indicator {
-                display: flex;
-                align-items: center;
-                gap: 0.35rem;
-                margin-bottom: 0.25rem;
-                min-height: 24px;
-            }
-
-            .memory-tag-square {
-                width: 18px;
-                height: 18px;
-                border-radius: 0.25rem;
-                border: 1px solid rgba(0, 0, 0, 0.25);
-                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
-                flex: 0 0 auto;
-            }
-
-            .memory-tag-name {
-                font-size: 0.78rem;
-                color: #374151;
-                line-height: 1.0;
-                white-space: nowrap;
-            }
-
-
-
-            /* Manual memory feed button */
-            div[data-testid="stButton"] > button[kind="primary"] {
-                background-color: #3F48CC !important;
-                border-color: #3F48CC !important;
-                color: white !important;
-            }
-
-            div[data-testid="stButton"] > button[kind="primary"]:hover {
-                background-color: #3F48CC !important;
-                border-color: #3F48CC !important;
-                color: white !important;
-            }
-
-            div[data-testid="stButton"] > button[kind="primary"]:focus {
-                background-color: #3F48CC !important;
-                border-color: #3F48CC !important;
-                color: white !important;
-            }
-
-            div[data-testid="stButton"] > button[kind="primary"] p {
-                color: white !important;
-            }
-
-            /* Manual memory feed edit box */
-            textarea[aria-label="Manual Memory Feed (hidden)"] {
-                background-color: #EAF7FF !important;
-            }
-
-
-
-            /* TextForge GUI log box */
-            .textforge-log-box {
-                background-color: #EAFBEA;
-                border: 1px solid #B7E4B7;
-                border-radius: 0.45rem;
-                padding: 0.55rem 0.70rem;
-                min-height: 140px;
-                max-height: 180px;
-                overflow-y: auto;
-                white-space: normal;
-                word-break: break-word;
-                font-family: monospace;
-                font-size: 0.88rem;
-                line-height: 1.35;
-            }
-
-            /* Make small select boxes look compact */
-            div[data-baseweb="select"] > div {
-                min-height: 34px;
-            }
-
-            /* Direct Recall Key field: special red border */
-            div[data-testid="stTextInput"]:has(input[aria-label="Direct Recall Key"]) div[data-baseweb="input"] {
-                border: 2px solid #D11A2A !important;
-                border-radius: 0.45rem !important;
-                box-shadow: none !important;
-            }
-
-            div[data-testid="stTextInput"]:has(input[aria-label="Direct Recall Key"]) div[data-baseweb="input"]:focus-within {
-                border: 2px solid #D11A2A !important;
-                box-shadow: 0 0 0 1px rgba(209, 26, 42, 0.25) !important;
-            }
-        </style>
+        <div class="ghost-product-title">
+            <span class="brand-initial">G</span>enAI
+            <span class="brand-initial">H</span>ybrid
+            <span class="brand-initial">O</span>rchestrator
+            for
+            <span class="brand-initial">S</span>oftware
+            <span class="brand-initial">T</span>ooling
+            <span style="font-style:normal; font-weight:700;">(GHOST)</span>
+        </div>
+        <div class="ghost-product-subtitle">
+            Professional prompt orchestration, memory, retrieval, and software-tooling workflow control.
+        </div>
         """,
         unsafe_allow_html=True,
     )
 
 
-def render_page() -> None:
-    """
-    Two-column layout:
+def render_user_prompt_panel() -> None:
+    """Left column: User Prompt."""
+    st.markdown('<div class="panel-title">User Prompt</div>', unsafe_allow_html=True)
 
-    LEFT:
-      Prompt
-      Super-Prompt
-
-    RIGHT:
-      Memory
-      Buttons / Top-K / project controls / status
-    """
-    # Main 2-column layout
-    gutter_l, col_left, spacer, col_right, gutter_r = st.columns([0.6, 4, 0.25, 4, 0.6], gap="small")
-
-    with gutter_l:  # left gutter
-        st.empty()
-
-    with col_right:
-        render_right_panel()
-
-    with spacer:
-        st.empty()
-
-    with col_left:
-        render_left_panel()
-
-    with gutter_r:  # right gutter
-        st.empty()
-
-
-def render_left_panel() -> None:
-    """Left panel: Prompt at top, Super-Prompt below."""
-    # Prompt section
-    st.markdown('<div class="field-title">Prompt</div>', unsafe_allow_html=True)
     st.text_area(
         label="Prompt (hidden)",
         key="prompt_text",
-        height=240,
+        height=180,
         label_visibility="collapsed",
-    )
-
-    st.markdown("<div style='height:0.45rem'></div>", unsafe_allow_html=True)
-
-    # Super-Prompt section
-    st.markdown('<div class="field-title">Super-Prompt</div>', unsafe_allow_html=True)
-    st.text_area(
-        label="Super-Prompt (hidden)",
-        key="super_prompt_text",
-        height=780,
-        label_visibility="collapsed",
+        on_change=do_user_prompt_changed,
     )
 
 
-def render_right_panel() -> None:
-    """Right panel: Memory at top, all controls below."""
-    ctrl: AppController = st.session_state.controller
-    retrieval_ready = getattr(ctrl, "retriever", None) is not None
-    reranker_ready = getattr(ctrl, "reranker", None) is not None
+def render_engineered_prompt_panel() -> None:
+    """Right column: Engineered Prompt with compact/expanded display."""
+    if "engineered_prompt_expanded" not in st.session_state:
+        st.session_state["engineered_prompt_expanded"] = False
 
-    # Memory section
-    render_memory_records(height=420)
+    expanded = bool(st.session_state.get("engineered_prompt_expanded", False))
+    prompt_height = ENGINEERED_PROMPT_EXPANDED_HEIGHT if expanded else PROMPT_HEIGHT
 
-    st.markdown("<div style='height:0.45rem'></div>", unsafe_allow_html=True)
+    st.markdown('<div class="panel-title">Engineered Prompt</div>', unsafe_allow_html=True)
 
-    # Manual memory feed row
-    manual_feed_c1, manual_feed_c2 = st.columns([1, 3], gap="small")
+    prompt_col, expand_col = st.columns(ENGINEERED_PROMPT_COLUMNS, gap="small")
 
-    with manual_feed_c1:  # Manual memory feed button
+    with prompt_col:
+        st.text_area(
+            label="Engineered Prompt (hidden)",
+            key="super_prompt_text",
+            height=prompt_height,
+            label_visibility="collapsed",
+        )
+
+    with expand_col:
+        toggle_label = "⟪" if expanded else "⟫"
+        if st.button(
+            toggle_label,
+            key="btn_toggle_engineered_prompt",
+            use_container_width=True,
+            help="Expand / collapse Engineered Prompt",
+        ):
+            st.session_state["engineered_prompt_expanded"] = not expanded
+            st.rerun()
+
+
+def render_main_action_controls() -> None:
+    """Left column: main execution controls below User Prompt."""
+    _vertical_gap("0.45rem")
+
+    _render_prompt_builder_row()
+    _render_llm_call_row()
+    _render_manual_memory_feed_row()
+
+    _vertical_gap("0.45rem")
+
+
+def _render_prompt_builder_row() -> None:
+    action_col, detail_col = st.columns(ACTION_ROW_COLUMNS, gap="small")
+
+    with action_col:
+        if st.button(
+            "Prompt Builder",
+            key="btn_builder",
+            use_container_width=True,
+        ):
+            request_prompt_builder_run()
+
+    with detail_col:
+        cb1, cb2, cb3 = st.columns(3, gap="small")
+
+        with cb1:
+            use_a2_promptshaper_llm = st.checkbox(
+                "use PromptShaper",
+                key="use_a2_promptshaper_llm_widget",
+            )
+
+        with cb2:
+            use_retrieval_splade = st.checkbox(
+                "use Retrieval Splade",
+                key="use_retrieval_splade_widget",
+            )
+
+        with cb3:
+            use_reranking_colbert = st.checkbox(
+                "use Reranking Colbert",
+                key="use_reranking_colbert_widget",
+            )
+
+        st.session_state["use_a2_promptshaper_llm"] = bool(use_a2_promptshaper_llm)
+        st.session_state["use_retrieval_splade"] = bool(use_retrieval_splade)
+        st.session_state["use_reranking_colbert"] = bool(use_reranking_colbert)
+
+
+def _render_llm_call_row() -> None:
+    action_col, model_col, model_spacer = st.columns(MODEL_ROW_COLUMNS, gap="small")
+
+    with action_col:
+        if st.button(
+            "LLM Call",
+            key="btn_llm_call",
+            use_container_width=True,
+            type="primary",
+        ):
+            st.session_state["llm_call_status"] = "LLM Call requested."
+
+    with model_col:
+        st.selectbox(
+            "Model",
+            options=_model_options(),
+            key="selected_llm_model",
+            label_visibility="collapsed",
+        )
+
+    with model_spacer:
+        st.empty()
+
+
+def _render_manual_memory_feed_row() -> None:
+    action_col, detail_col = st.columns(ACTION_ROW_COLUMNS, gap="small")
+
+    with action_col:
         if st.button(
             "Feed Memory Manually",
             key="btn_feed_memory_manually",
             use_container_width=True,
-            type="primary",
         ):
             do_feed_memory_manually()
 
-    with manual_feed_c2:  # Manual memory feed edit box
+    with detail_col:
         st.text_area(
             label="Manual Memory Feed (hidden)",
             key="manual_memory_feed_text",
-            height=68,
+            height=MANUAL_MEMORY_FEED_HEIGHT,
             label_visibility="collapsed",
             placeholder="Paste LLM reply here for manual memory feed.",
         )
 
-    st.markdown("<div style='height:0.45rem'></div>", unsafe_allow_html=True)
 
-    # Row 1: 4 pipeline buttons
-    b1c1, b1c2, b1c3, b1c4 = st.columns(4, gap="small")
+def render_advanced_controls() -> None:
+    """Advanced/debug controls shown only when enabled from the sidebar."""
+    st.markdown('<div class="panel-title">Advanced Controls</div>', unsafe_allow_html=True)
 
-    with b1c1:  # Pre-Processing button
-        if st.button("Pre-Processing", key="btn_preproc", use_container_width=True):
-            do_preprocess()
+    _normalise_retrieval_top_k_widget()
+    _render_retrieval_top_k_control()
+    _render_manual_pipeline_buttons()
 
-    with b1c2:  # A2-PromptShaper button
-        if st.button("A2-PromptShaper", key="btn_a2", use_container_width=True):
-            do_a2_promptshaper()
 
-    with b1c3:  # Retrieval button
-        if st.button(
-            "Retrieval",
-            key="btn_retrieval",
-            use_container_width=True,
-            disabled=not retrieval_ready,
-        ):
-            do_retrieval()
+def _normalise_retrieval_top_k_widget() -> None:
+    if "retrieval_top_k_widget" not in st.session_state:
+        st.session_state["retrieval_top_k_widget"] = int(
+            st.session_state.get("retrieval_top_k", 30) or 30
+        )
 
-    with b1c4:  # ReRanker button
-        if st.button(
-            "ReRanker",
-            key="btn_reranker",
-            use_container_width=True,
-            disabled=not reranker_ready,
-        ):
-            do_reranker()
 
-    # Row 2: 4 pipeline buttons
-    b2c1, b2c2, b2c3, b2c4 = st.columns(4, gap="small")
+def _render_retrieval_top_k_control() -> None:
+    topk_c, gap_c = st.columns(ADVANCED_TOPK_COLUMNS, gap="small")
 
-    with b2c1:  # A3 NLI Gate button
-        if st.button("A3 NLI Gate", key="btn_a3", use_container_width=True):
-            do_a3_nli_gate()
-
-    with b2c2:  # A4 button
-        if st.button("A4 Condenser", key="btn_a4", use_container_width=True):
-            do_a4_condenser()
-
-    with b2c3:  # A5 button
-        st.button("A5 Format Enforcer", key="btn_a5", use_container_width=True)
-
-    with b2c4:  # Prompt Builder button
-        st.button("Prompt Builder", key="btn_builder", use_container_width=True)
-
-    topk_c, gap_c, opt_c1, opt_c2, opt_c3 = st.columns([0.5, 0.5, 1, 1, 1],
-                                                       gap="small")  # row: Top-K + spacer + 3 checkboxes
-
-    with topk_c:  # number input: Retrieval Top-K
-        st.number_input(
+    with topk_c:
+        selected_top_k = st.number_input(
             "Retrieval Top-K",
             min_value=1,
             max_value=1000,
             step=1,
-            key="retrieval_top_k",
+            key="retrieval_top_k_widget",
         )
 
-    with gap_c:  # empty spacer between Top-K and first checkbox
+        st.session_state["retrieval_top_k"] = int(selected_top_k)
+
+    with gap_c:
         st.empty()
 
-    with opt_c1:  # checkbox: use A2 PromptShaper LLM
-        st.checkbox(
-            "use A2 PromptShaper LLM",
-            key="use_a2_promptshaper_llm",
-        )
 
-    with opt_c2:  # checkbox: use Retrieval Splade
-        st.checkbox(
-            "use Retrieval Splade",
-            key="use_retrieval_splade",
-        )
+def _render_manual_pipeline_buttons() -> None:
+    b1c1, b1c2, b1c3, b1c4 = st.columns(4, gap="small")
 
-    with opt_c3:  # checkbox: use Reranking Colbert
-        st.checkbox(
-            "use Reranking Colbert",
-            key="use_reranking_colbert",
-        )
+    with b1c1:
+        if st.button("Pre-Processing", key="btn_preproc", use_container_width=True):
+            do_preprocess()
 
-    st.markdown("<div style='height:0.45rem'></div>", unsafe_allow_html=True)
+    with b1c2:
+        if st.button("A2-PromptShaper", key="btn_a2", use_container_width=True):
+            do_a2_promptshaper()
 
-    # TextForge GUI log / status log
-    render_textforge_gui_log(height=150)
+    with b1c3:
+        if st.button("Retrieval", key="btn_retrieval", use_container_width=True):
+            do_retrieval()
 
-    st.markdown("<div style='height:0.45rem'></div>", unsafe_allow_html=True)
+    with b1c4:
+        if st.button("ReRanker", key="btn_reranker", use_container_width=True):
+            do_reranker()
 
-    # Project controls / file ingestion
-    render_project_area(ctrl)
+    b2c1, b2c2, b2c3, b2c4 = st.columns(4, gap="small")
+
+    with b2c1:
+        if st.button("A3 NLI Gate", key="btn_a3", use_container_width=True):
+            do_a3_nli_gate()
+
+    with b2c2:
+        if st.button("A4 Condenser", key="btn_a4", use_container_width=True):
+            do_a4_condenser()
+
+    with b2c3:
+        st.button("A5 Format Enforcer", key="btn_a5", use_container_width=True)
+
+    with b2c4:
+        st.empty()
 
 
-def render_textforge_gui_log(height: int = 150) -> None:
+def render_pipeline_status() -> Any:
+    """Render only the Prompt Builder pipeline progress bar."""
+    status = st.session_state.get("pipeline_status")
+    if not isinstance(status, dict):
+        status = {
+            "stage_name": "Idle",
+            "step_index": 0,
+            "total_steps": 8,
+            "message": "No pipeline run active.",
+            "progress": 0.0,
+        }
+
+    stage_name = str(status.get("stage_name", "Idle") or "Idle")
+    step_index = int(status.get("step_index", 0) or 0)
+    total_steps = int(status.get("total_steps", 8) or 8)
+    progress = float(status.get("progress", 0.0) or 0.0)
+
+    st.progress(
+        progress,
+        text=f"{step_index}/{total_steps} — {stage_name}",
+    )
+
+
+def render_textforge_gui_log(height: int = RUNTIME_LOG_HEIGHT) -> None:
     """Render the TextForge GUI log box."""
     st.markdown(
         '<div class="field-title" style="font-size:1.05rem;">Runtime Log</div>',
         unsafe_allow_html=True,
     )
 
-    log_text = st.session_state.get("textforge_gui_log", "")
-    if not log_text:
-        log_text = "(no log messages yet)"
-
-    lines = log_text.splitlines()
-    if lines:
-        first_line = html.escape(lines[0])
-        older_lines = "<br>".join(
-            f"<i>{html.escape(line)}</i>"
-            for line in lines[1:]
-        )
-        if older_lines:
-            log_html = f"{first_line}<br>{older_lines}"
-        else:
-            log_html = first_line
-    else:
-        log_html = ""
-
-    flash_active = time.time() < st.session_state.get("runtime_log_flash_until", 0)
-
-    if flash_active:
-        log_box_style = (
-            f"min-height:{height}px; max-height:{height}px;"
-            "background-color:#FFE5E5; border-color:#FF9A9A;"
-        )
-    else:
-        log_box_style = f"min-height:{height}px; max-height:{height}px;"
+    log_html = _build_textforge_log_html()
+    log_box_style = _runtime_log_box_style(height=height)
 
     st.markdown(
         f'<div class="textforge-log-box" style="{log_box_style}">{log_html}</div>',
@@ -2512,19 +3525,44 @@ def render_textforge_gui_log(height: int = 150) -> None:
     )
 
 
-def render_memory_records(height: int = 420) -> None:
+def _build_textforge_log_html() -> str:
+    log_text = st.session_state.get("textforge_gui_log", "")
+    if not log_text:
+        log_text = "(no log messages yet)"
+
+    lines = log_text.splitlines()
+    if not lines:
+        return ""
+
+    first_line = html.escape(lines[0])
+    older_lines = "<br>".join(
+        f"<i>{html.escape(line)}</i>"
+        for line in lines[1:]
+    )
+
+    if older_lines:
+        return f"{first_line}<br>{older_lines}"
+
+    return first_line
+
+
+def _runtime_log_box_style(height: int) -> str:
+    flash_active = time.time() < st.session_state.get("runtime_log_flash_until", 0)
+
+    if flash_active:
+        return (
+            f"min-height:{height}px; max-height:{height}px;"
+            "background-color:#FFE5E5; border-color:#FF9A9A;"
+        )
+
+    return f"min-height:{height}px; max-height:{height}px;"
+
+
+def render_memory_records(height: int = MEMORY_HEIGHT) -> None:
     """Memory record list."""
     memory_manager = st.session_state.memory_manager
 
-    if memory_manager.filename_ragmem:
-        memory_title = f"Memory — {memory_manager.filename_ragmem}"
-    else:
-        memory_title = "Memory"
-
-    st.markdown(
-        f'<div class="field-title">{html.escape(memory_title)}</div>',
-        unsafe_allow_html=True,
-    )
+    _render_memory_title(memory_manager)
 
     memory_entries = memory_manager.records
 
@@ -2533,150 +3571,263 @@ def render_memory_records(height: int = 420) -> None:
     except TypeError:
         memory_container = st.container()
 
-    with memory_container:  # Memory container
+    with memory_container:
         if not memory_entries:
             st.info("No memory records yet.")
-        else:
-            for record in memory_entries:
-                tag_key = f"memory_tag_{record.record_id}"
-                source_mode_key = f"memory_retrieval_source_mode_{record.record_id}"
-                keywords_key = f"memory_user_keywords_{record.record_id}"
-                direct_recall_key = f"memory_direct_recall_key_{record.record_id}"
+            return
 
-                tag_options = list(memory_manager.tag_catalog)
-                record_tag = record.tag if record.tag in tag_options else "Green"
-
-                if tag_key not in st.session_state:
-                    st.session_state[tag_key] = record_tag
-                elif st.session_state[tag_key] not in tag_options:
-                    st.session_state[tag_key] = "Green"
-
-                if source_mode_key not in st.session_state:
-                    st.session_state[source_mode_key] = getattr(record, "retrieval_source_mode", "QA")
-                elif st.session_state[source_mode_key] not in {"QA", "Q", "A"}:
-                    st.session_state[source_mode_key] = "QA"
-
-                if keywords_key not in st.session_state:
-                    st.session_state[keywords_key] = ", ".join(record.user_keywords)
-
-                if direct_recall_key not in st.session_state:
-                    st.session_state[direct_recall_key] = getattr(record, "direct_recall_key", "")
-
-                selected_tag = st.session_state.get(tag_key, record_tag)
-                tag_color = TAG_COLORS.get(selected_tag, "#6B7280")
-
-                input_col, meta_col = st.columns([7.8, 2.0], gap="small")
-
-                with input_col:  # Memory INPUT box
-                    input_html = html.escape(record.input_text).replace("\n", "<br>")
-                    st.markdown(
-                        f"""
-                        <div class="memory-box memory-input-box">
-                            <div class="memory-label">INPUT</div>
-                            <div class="memory-plain-text">{input_html}</div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-                with meta_col:  # Memory metadata controls
-                    tag_square_col, tag_select_col = st.columns([0.22, 1.0], gap="small")
-
-                    with tag_square_col:
-                        st.markdown(
-                            f"""
-                            <div class="memory-tag-indicator">
-                                <span class="memory-tag-square" style="background-color:{tag_color};"></span>
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
-
-                    with tag_select_col:
-                        st.selectbox(
-                            "Tag",
-                            options=tag_options,
-                            key=tag_key,
-                            label_visibility="collapsed",
-                        )
-
-                    st.selectbox(
-                        "Retrieval Source Mode",
-                        options=["QA", "Q", "A"],
-                        key=source_mode_key,
-                        format_func={
-                            "QA": "Retrieve Q+A",
-                            "Q": "Retrieve only Q",
-                            "A": "Retrieve only A",
-                        }.get,
-                        label_visibility="collapsed",
-                    )
-
-                   # st.text_input(
-                    #    "User Keywords",
-                     #   key=keywords_key,
-                      #  label_visibility="collapsed",
-                       # placeholder="keywords",
-                    #)
-
-                    st.text_input(
-                        "Direct Recall Key",
-                        key=direct_recall_key,
-                        placeholder="Direct Recall Key",
-                     #   label_visibility="collapsed",
-                    )
-
-                output_html = html.escape(record.output_text).replace("\n", "<br>")
-                st.markdown(
-                    f"""
-                    <div class="memory-box memory-output-box">
-                        <div class="memory-label">OUTPUT</div>
-                        <div class="memory-plain-text">{output_html}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-
-                st.markdown("<div style='height:0.40rem'></div>", unsafe_allow_html=True)
+        for record in memory_entries:
+            _render_memory_record(memory_manager, record)
 
 
-def render_project_area(ctrl: AppController) -> None:
-    """Project selector, embedded files, Create Project and Add Files forms."""
+def _render_memory_title(memory_manager: Any) -> None:
+    memory_title, memory_source_file = _memory_display_name(
+        getattr(memory_manager, "filename_ragmem", "")
+    )
+
+    if memory_source_file:
+        st.markdown(
+            f"""
+            <div class="memory-title">
+                {html.escape(memory_title)}
+            </div>
+            <div style="
+                font-size:0.66rem;
+                color:#6b7280;
+                line-height:1.1;
+                margin-top:-0.02rem;
+                margin-bottom:0.30rem;
+            ">
+                extracted from {html.escape(memory_source_file)}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    st.markdown(
+        f'<div class="memory-title">{html.escape(memory_title)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _memory_record_keys(record: Any) -> tuple[str, str, str, str]:
+    return (
+        f"memory_tag_{record.record_id}",
+        f"memory_retrieval_source_mode_{record.record_id}",
+        f"memory_user_keywords_{record.record_id}",
+        f"memory_direct_recall_key_{record.record_id}",
+    )
+
+
+def _ensure_memory_record_session_state(
+    memory_manager: Any,
+    record: Any,
+    tag_key: str,
+    source_mode_key: str,
+    keywords_key: str,
+    direct_recall_key: str,
+) -> list[str]:
+    tag_options = list(memory_manager.tag_catalog)
+    record_tag = record.tag if record.tag in tag_options else "Green"
+
+    if tag_key not in st.session_state:
+        st.session_state[tag_key] = record_tag
+    elif st.session_state[tag_key] not in tag_options:
+        st.session_state[tag_key] = "Green"
+
+    if source_mode_key not in st.session_state:
+        st.session_state[source_mode_key] = getattr(record, "retrieval_source_mode", "QA")
+    elif st.session_state[source_mode_key] not in {"QA", "Q", "A"}:
+        st.session_state[source_mode_key] = "QA"
+
+    if keywords_key not in st.session_state:
+        st.session_state[keywords_key] = ", ".join(record.user_keywords)
+
+    if direct_recall_key not in st.session_state:
+        st.session_state[direct_recall_key] = getattr(record, "direct_recall_key", "")
+
+    return tag_options
+
+
+def _render_memory_record(memory_manager: Any, record: Any) -> None:
+    tag_key, source_mode_key, keywords_key, direct_recall_key = _memory_record_keys(record)
+
+    tag_options = _ensure_memory_record_session_state(
+        memory_manager=memory_manager,
+        record=record,
+        tag_key=tag_key,
+        source_mode_key=source_mode_key,
+        keywords_key=keywords_key,
+        direct_recall_key=direct_recall_key,
+    )
+
+    selected_tag = st.session_state.get(tag_key, record.tag)
+    tag_color = TAG_COLORS.get(selected_tag, "#6B7280")
+
+    input_col, meta_col = st.columns(MEMORY_RECORD_COLUMNS, gap="small")
+
+    with input_col:
+        _render_memory_record_input(record)
+
+    with meta_col:
+        _render_memory_record_meta(
+            tag_key=tag_key,
+            tag_options=tag_options,
+            tag_color=tag_color,
+            source_mode_key=source_mode_key,
+            direct_recall_key=direct_recall_key,
+        )
+
+    _render_memory_record_output(record)
+
+    _vertical_gap("0.40rem")
+
+
+def _render_memory_record_input(record: Any) -> None:
+    input_html = html.escape(record.input_text).replace("\n", "<br>")
+
+    st.markdown(
+        f"""
+        <div class="memory-box memory-input-box">
+            <div class="memory-label">INPUT</div>
+            <div class="memory-plain-text">{input_html}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_memory_record_meta(
+    tag_key: str,
+    tag_options: list[str],
+    tag_color: str,
+    source_mode_key: str,
+    direct_recall_key: str,
+) -> None:
+    tag_square_col, tag_select_col = st.columns(MEMORY_TAG_COLUMNS, gap="small")
+
+    with tag_square_col:
+        st.markdown(
+            f"""
+            <div class="memory-tag-indicator">
+                <span class="memory-tag-square" style="background-color:{tag_color};"></span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with tag_select_col:
+        st.selectbox(
+            "Tag",
+            options=tag_options,
+            key=tag_key,
+            label_visibility="collapsed",
+        )
+
+    st.selectbox(
+        "Retrieval Source Mode",
+        options=["QA", "Q", "A"],
+        key=source_mode_key,
+        format_func={
+            "QA": "Retrieve Q+A",
+            "Q": "Retrieve only Q",
+            "A": "Retrieve only A",
+        }.get,
+        label_visibility="collapsed",
+    )
+
+    st.text_input(
+        "Direct Recall Key",
+        key=direct_recall_key,
+        placeholder="Direct Recall Key",
+    )
+
+
+def _render_memory_record_output(record: Any) -> None:
+    output_html = html.escape(record.output_text).replace("\n", "<br>")
+
+    st.markdown(
+        f"""
+        <div class="memory-box memory-output-box">
+            <div class="memory-label">OUTPUT</div>
+            <div class="memory-plain-text">{output_html}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_project_area(ctrl: AppController, show_ingestion_controls: bool = False) -> None:
+    """
+    Project selector, embedded files, and optional file-ingestion controls.
+    """
     projects = ctrl.list_projects()
 
-    # Apply pending project switch before widget creation
+    _sync_pending_project(projects)
+
+    st.markdown('<div class="panel-title">Project Context</div>', unsafe_allow_html=True)
+
+    _render_project_selector(projects)
+    _render_embedded_files(ctrl, projects)
+
+    if show_ingestion_controls:
+        _vertical_gap("0.45rem")
+        _render_file_ingestion_controls(ctrl)
+
+    _render_ingestion_status()
+
+
+def _sync_pending_project(projects: list[str]) -> None:
     pending_project = st.session_state.get("pending_active_project")
-    if pending_project is not None:
-        if projects and pending_project in projects:
-            st.session_state["active_project"] = pending_project
-        st.session_state["pending_active_project"] = None
+    if pending_project is None:
+        return
 
-    # Active project selectbox
-    if projects:
-        if st.session_state.get("active_project") not in projects:
-            st.session_state["active_project"] = projects[0]
+    if projects and pending_project in projects:
+        st.session_state["active_project"] = pending_project
 
-        st.selectbox(
-            "Active DB / Project",
-            options=projects,
-            key="active_project",
-        )
-    else:
-        st.selectbox(
-            "Active DB / Project",
-            options=["(no projects yet)"],
-            index=0,
-            disabled=True,
-        )
+    st.session_state["pending_active_project"] = None
 
-    # Embedded Files view
+
+def _render_project_selector(projects: list[str]) -> None:
+    project_col, project_spacer = st.columns(PROJECT_HALF_COLUMNS, gap="small")
+
+    with project_col:
+        if projects:
+            if st.session_state.get("active_project") not in projects:
+                st.session_state["active_project"] = projects[0]
+
+            st.selectbox(
+                "Active DB / Project",
+                options=projects,
+                key="active_project",
+            )
+        else:
+            st.selectbox(
+                "Active DB / Project",
+                options=["(no projects yet)"],
+                index=0,
+                disabled=True,
+            )
+
+    with project_spacer:
+        st.empty()
+
+
+def _render_embedded_files(ctrl: AppController, projects: list[str]) -> None:
     active_project = st.session_state.get("active_project")
-    if projects and active_project in projects:
-        embedded_info = ctrl.get_embedded_files(active_project)
+    if not projects or active_project not in projects:
+        return
 
-        st.markdown("<div style='height:0.25rem'></div>", unsafe_allow_html=True)
+    embedded_info = ctrl.get_embedded_files(active_project)
+
+    _vertical_gap("0.25rem")
+
+    embedded_col, embedded_spacer = st.columns(PROJECT_HALF_COLUMNS, gap="small")
+
+    with embedded_col:
         st.markdown(
-            '<div class="field-title" style="font-size:1.05rem;">Embedded Files</div>',
+            '<div class="panel-title" style="font-size:0.95rem;">Embedded Files</div>',
             unsafe_allow_html=True,
         )
 
@@ -2686,65 +3837,84 @@ def render_project_area(ctrl: AppController) -> None:
             st.text_area(
                 label="Embedded Files (hidden)",
                 value=embedded_text,
-                height=120,
+                height=EMBEDDED_FILES_HEIGHT,
                 disabled=True,
                 label_visibility="collapsed",
             )
         else:
             st.error(embedded_info.get("message", "Could not read embedded file list."))
 
-    # Project forms row
+    with embedded_spacer:
+        st.empty()
+
+
+def _render_file_ingestion_controls(ctrl: AppController) -> None:
+    st.markdown('<div class="panel-title">File Ingestion Controls</div>', unsafe_allow_html=True)
+
     create_col, add_col = st.columns(2, gap="small")
 
-    with create_col:  # Create Project form
-        with st.form("create_project_form", clear_on_submit=False):  # form: create project
-            st.text_input("Project Name", key="new_project_name")
-            create_clicked = st.form_submit_button("Create Project", use_container_width=True)
+    with create_col:
+        _render_create_project_form()
 
-            if create_clicked:
-                do_create_project()
+    with add_col:
+        _render_add_files_form(ctrl)
 
-    with add_col:  # Add Files form
-        with st.form("add_files_form", clear_on_submit=False):  # form: add files
-            add_projects = ctrl.list_projects()
 
-            if add_projects:
-                current_active_project = st.session_state.get("active_project")
-                if current_active_project in add_projects:
-                    default_add_project = current_active_project
-                else:
-                    default_add_project = add_projects[0]
+def _render_create_project_form() -> None:
+    with st.form("create_project_form", clear_on_submit=False):
+        st.text_input("Project Name", key="new_project_name")
+        create_clicked = st.form_submit_button("Create Project", use_container_width=True)
 
-                st.selectbox(
-                    "Choose Project",
-                    options=add_projects,
-                    key="add_files_project",
-                    index=add_projects.index(default_add_project),
-                )
+        if create_clicked:
+            do_create_project()
 
-                st.file_uploader(
-                    "Select .txt / .md files from your local machine",
-                    type=["txt", "md"],
-                    accept_multiple_files=True,
-                    key="ingestion_uploaded_files",
-                )
 
-                add_clicked = st.form_submit_button("Add Files", use_container_width=True)
+def _render_add_files_form(ctrl: AppController) -> None:
+    with st.form("add_files_form", clear_on_submit=False):
+        add_projects = ctrl.list_projects()
 
-                if add_clicked:
-                    do_add_files()
-            else:
-                st.info("Create a project first, then add files.")
+        if not add_projects:
+            st.info("Create a project first, then add files.")
+            return
 
-    # Status area
-    status = st.session_state.get("ingestion_status")
-    if status:
-        if status.get("type") == "success":
-            st.success(status.get("message", ""))
+        current_active_project = st.session_state.get("active_project")
+        if current_active_project in add_projects:
+            default_add_project = current_active_project
         else:
-            st.error(status.get("message", ""))
-        for detail in status.get("details", []):
-            st.caption(detail)
+            default_add_project = add_projects[0]
+
+        st.selectbox(
+            "Choose Project",
+            options=add_projects,
+            key="add_files_project",
+            index=add_projects.index(default_add_project),
+        )
+
+        st.file_uploader(
+            "Select .txt / .md files from your local machine",
+            type=["txt", "md"],
+            accept_multiple_files=True,
+            key="ingestion_uploaded_files",
+        )
+
+        add_clicked = st.form_submit_button("Add Files", use_container_width=True)
+
+        if add_clicked:
+            do_add_files()
+
+
+def _render_ingestion_status() -> None:
+    status = st.session_state.get("ingestion_status")
+    if not status:
+        return
+
+    if status.get("type") == "success":
+        st.success(status.get("message", ""))
+    else:
+        st.error(status.get("message", ""))
+
+    for detail in status.get("details", []):
+        st.caption(detail)
 ```
 
 ### ~\ragstream\app\ui_metrics.py
@@ -2753,13 +3923,581 @@ def render_project_area(ctrl: AppController) -> None:
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import html
+from dataclasses import dataclass
+
 import streamlit as st
+import streamlit.components.v1 as components
+
+
+@dataclass(frozen=True)
+class DemoPath:
+    path_id: int
+    label: str
+    subtitle: str
+    accent: str
+    soft: str
+    glow: str
+    nodes: tuple[str, ...]
+
+
+def _demo_paths() -> dict[int, DemoPath]:
+    return {
+        1: DemoPath(
+            path_id=1,
+            label="Path 1 — Requirements Audit",
+            subtitle="User request → requirements → trace matrix → engineered prompt",
+            accent="#38BDF8",
+            soft="#E0F7FF",
+            glow="rgba(56, 189, 248, 0.55)",
+            nodes=("ROOT", "REQ", "TRACE", "PROMPT"),
+        ),
+        2: DemoPath(
+            path_id=2,
+            label="Path 2 — Architecture Trace",
+            subtitle="User request → architecture → UML view → engineered prompt",
+            accent="#A78BFA",
+            soft="#F1EAFE",
+            glow="rgba(167, 139, 250, 0.55)",
+            nodes=("ROOT", "ARCH", "UML", "PROMPT"),
+        ),
+        3: DemoPath(
+            path_id=3,
+            label="Path 3 — Code Review",
+            subtitle="User request → code → focused files → engineered prompt",
+            accent="#34D399",
+            soft="#E8FFF4",
+            glow="rgba(52, 211, 153, 0.55)",
+            nodes=("ROOT", "CODE", "FILES", "PROMPT"),
+        ),
+        4: DemoPath(
+            path_id=4,
+            label="Path 4 — Quality Gate",
+            subtitle="User request → tests → validation gate → engineered prompt",
+            accent="#FBBF24",
+            soft="#FFF7DF",
+            glow="rgba(251, 191, 36, 0.58)",
+            nodes=("ROOT", "TEST", "QUALITY", "PROMPT"),
+        ),
+        5: DemoPath(
+            path_id=5,
+            label="Path 5 — Release Brief",
+            subtitle="User request → release → status pack → engineered prompt",
+            accent="#FB7185",
+            soft="#FFF0F3",
+            glow="rgba(251, 113, 133, 0.55)",
+            nodes=("ROOT", "RELEASE", "STATUS", "PROMPT"),
+        ),
+    }
+
+
+def _node_catalog() -> dict[str, dict[str, str]]:
+    return {
+        "ROOT": {"title": "User Request", "caption": "incoming task", "x": "50", "y": "8"},
+        "REQ": {"title": "Requirements", "caption": "rules · scope", "x": "12", "y": "30"},
+        "ARCH": {"title": "Architecture", "caption": "system shape", "x": "31", "y": "30"},
+        "CODE": {"title": "Code", "caption": "implementation", "x": "50", "y": "30"},
+        "TEST": {"title": "Tests", "caption": "evidence", "x": "69", "y": "30"},
+        "RELEASE": {"title": "Release", "caption": "delivery", "x": "88", "y": "30"},
+        "TRACE": {"title": "Trace Matrix", "caption": "REQ → code", "x": "16", "y": "56"},
+        "UML": {"title": "UML View", "caption": "structure", "x": "34", "y": "56"},
+        "FILES": {"title": "File Focus", "caption": "exact sources", "x": "50", "y": "56"},
+        "QUALITY": {"title": "Quality Gate", "caption": "checks", "x": "66", "y": "56"},
+        "STATUS": {"title": "Status Pack", "caption": "summary", "x": "84", "y": "56"},
+        "PROMPT": {"title": "Engineered Prompt", "caption": "LLM-ready", "x": "50", "y": "82"},
+    }
+
+
+def _edge_catalog() -> list[tuple[str, str]]:
+    return [
+        ("ROOT", "REQ"),
+        ("ROOT", "ARCH"),
+        ("ROOT", "CODE"),
+        ("ROOT", "TEST"),
+        ("ROOT", "RELEASE"),
+        ("REQ", "TRACE"),
+        ("ARCH", "UML"),
+        ("CODE", "FILES"),
+        ("TEST", "QUALITY"),
+        ("RELEASE", "STATUS"),
+        ("TRACE", "PROMPT"),
+        ("UML", "PROMPT"),
+        ("FILES", "PROMPT"),
+        ("QUALITY", "PROMPT"),
+        ("STATUS", "PROMPT"),
+    ]
+
+
+def _init_metrics_state() -> None:
+    if "metrics_demo_active_path" not in st.session_state:
+        st.session_state["metrics_demo_active_path"] = 1
+
+
+def _active_path_id() -> int:
+    try:
+        value = int(st.session_state.get("metrics_demo_active_path", 1))
+    except Exception:
+        value = 1
+
+    if value not in _demo_paths():
+        value = 1
+
+    return value
+
+
+def _set_active_path(path_id: int) -> None:
+    st.session_state["metrics_demo_active_path"] = int(path_id)
+
+
+def _render_path_selector() -> DemoPath:
+    paths = _demo_paths()
+    active_id = _active_path_id()
+
+    st.markdown("### Interactive Flow Demo")
+
+    left, right = st.columns([1.1, 2.9], gap="medium")
+
+    with left:
+        selected_path_id = st.number_input(
+            "Choose active path",
+            min_value=1,
+            max_value=5,
+            value=active_id,
+            step=1,
+            key="metrics_demo_path_number",
+        )
+        _set_active_path(int(selected_path_id))
+
+    active_path = paths[_active_path_id()]
+
+    with right:
+        st.markdown(
+            f"""
+            <div style="
+                border:1px solid rgba(30,41,59,0.10);
+                border-radius:18px;
+                padding:0.75rem 1rem;
+                background:linear-gradient(90deg, {active_path.soft}, #ffffff);
+                box-shadow:0 8px 22px rgba(15,23,42,0.06);
+            ">
+                <div style="font-size:1.05rem; font-weight:800; color:#1f2937;">
+                    {html.escape(active_path.label)}
+                </div>
+                <div style="font-size:0.92rem; color:#64748b; margin-top:0.15rem;">
+                    {html.escape(active_path.subtitle)}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    return active_path
+
+
+def _is_active_node(node_id: str, active_path: DemoPath) -> bool:
+    return node_id in active_path.nodes
+
+
+def _is_active_edge(edge: tuple[str, str], active_path: DemoPath) -> bool:
+    src, dst = edge
+    nodes = list(active_path.nodes)
+
+    for i in range(len(nodes) - 1):
+        if nodes[i] == src and nodes[i + 1] == dst:
+            return True
+
+    return False
+
+
+def _edge_svg(
+    src_id: str,
+    dst_id: str,
+    nodes: dict[str, dict[str, str]],
+    active: bool,
+    active_path: DemoPath,
+) -> str:
+    src = nodes[src_id]
+    dst = nodes[dst_id]
+
+    x1 = float(src["x"])
+    y1 = float(src["y"]) + 5.9
+    x2 = float(dst["x"])
+    y2 = float(dst["y"]) - 5.9
+
+    edge_class = "edge active-edge" if active else "edge"
+    stroke = active_path.accent if active else "#CBD5E1"
+    width = "1.75" if active else "0.85"
+
+    return (
+        f'<path class="{edge_class}" '
+        f'd="M {x1} {y1} C {x1} {(y1 + y2) / 2}, {x2} {(y1 + y2) / 2}, {x2} {y2}" '
+        f'stroke="{stroke}" stroke-width="{width}" fill="none" />'
+    )
+
+
+def _node_svg(
+    node_id: str,
+    data: dict[str, str],
+    active: bool,
+    active_path: DemoPath,
+) -> str:
+    x = float(data["x"])
+    y = float(data["y"])
+
+    title = html.escape(data["title"])
+    caption = html.escape(data["caption"])
+
+    if active:
+        fill = active_path.soft
+        stroke = active_path.accent
+        title_color = "#0F172A"
+        caption_color = "#334155"
+        node_class = "node active-node"
+    else:
+        fill = "#F8FAFC"
+        stroke = "#E2E8F0"
+        title_color = "#475569"
+        caption_color = "#94A3B8"
+        node_class = "node"
+
+    return f"""
+    <g class="{node_class}" transform-origin="{x}px {y}px">
+        <rect
+            x="{x - 8.9}"
+            y="{y - 5.0}"
+            width="17.8"
+            height="10.0"
+            rx="5.0"
+            fill="{fill}"
+            stroke="{stroke}"
+            stroke-width="0.9"
+        />
+        <text
+            x="{x}"
+            y="{y - 0.9}"
+            text-anchor="middle"
+            font-size="2.15"
+            font-weight="800"
+            fill="{title_color}"
+        >{title}</text>
+        <text
+            x="{x}"
+            y="{y + 2.25}"
+            text-anchor="middle"
+            font-size="1.55"
+            font-weight="500"
+            fill="{caption_color}"
+        >{caption}</text>
+    </g>
+    """
+
+
+def _legend_card(path_id: int, active_path: DemoPath) -> str:
+    paths = _demo_paths()
+    path = paths[path_id]
+
+    css_class = "legend-card"
+    if path_id == active_path.path_id:
+        css_class += " legend-card-active"
+
+    short_name = path.label.replace(f"Path {path_id} — ", "")
+
+    return f"""
+    <div class="{css_class}">
+        <div class="legend-number">Path {path_id}</div>
+        <div class="legend-name">{html.escape(short_name)}</div>
+    </div>
+    """
+
+
+def _build_flow_html(active_path: DemoPath) -> str:
+    nodes = _node_catalog()
+    edges = _edge_catalog()
+
+    svg_edges = "\n".join(
+        _edge_svg(
+            src_id=edge[0],
+            dst_id=edge[1],
+            nodes=nodes,
+            active=_is_active_edge(edge, active_path),
+            active_path=active_path,
+        )
+        for edge in edges
+    )
+
+    svg_nodes = "\n".join(
+        _node_svg(
+            node_id=node_id,
+            data=data,
+            active=_is_active_node(node_id, active_path),
+            active_path=active_path,
+        )
+        for node_id, data in nodes.items()
+    )
+
+    legend_cards = "\n".join(
+        _legend_card(path_id, active_path)
+        for path_id in range(1, 6)
+    )
+
+    return f"""
+    <!doctype html>
+    <html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            html, body {{
+                margin: 0;
+                padding: 0;
+                background: transparent;
+                font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    Helvetica,
+                    Arial,
+                    sans-serif;
+            }}
+
+            .ghost-flow-shell {{
+                box-sizing: border-box;
+                width: 100%;
+                padding: 20px 22px 22px 22px;
+                border-radius: 28px;
+                background:
+                    radial-gradient(circle at 18% 20%, rgba(56,189,248,0.16), transparent 24%),
+                    radial-gradient(circle at 82% 28%, rgba(167,139,250,0.14), transparent 25%),
+                    radial-gradient(circle at 45% 92%, rgba(52,211,153,0.13), transparent 30%),
+                    linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+                border: 1px solid rgba(148,163,184,0.24);
+                box-shadow:
+                    0 24px 58px rgba(15,23,42,0.08),
+                    inset 0 1px 0 rgba(255,255,255,0.92);
+            }}
+
+            .title-row {{
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 18px;
+                margin-bottom: 12px;
+            }}
+
+            .title-main {{
+                font-size: 22px;
+                font-weight: 850;
+                letter-spacing: 0.01em;
+                color: #111827;
+                line-height: 1.15;
+            }}
+
+            .title-sub {{
+                margin-top: 5px;
+                color: #64748B;
+                font-size: 14px;
+            }}
+
+            .active-pill {{
+                white-space: nowrap;
+                font-size: 13px;
+                font-weight: 800;
+                color: #334155;
+                background: {active_path.soft};
+                border: 1px solid {active_path.accent};
+                border-radius: 999px;
+                padding: 8px 14px;
+                box-shadow:
+                    0 8px 20px rgba(15,23,42,0.07),
+                    0 0 18px {active_path.glow};
+            }}
+
+            .svg-wrap {{
+                width: 100%;
+                overflow: hidden;
+                border-radius: 22px;
+                background:
+                    linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px),
+                    rgba(255,255,255,0.78);
+                background-size: 28px 28px;
+                border: 1px solid rgba(226,232,240,0.95);
+            }}
+
+            svg {{
+                display: block;
+                width: 100%;
+                height: 560px;
+            }}
+
+            .edge {{
+                opacity: 0.72;
+                stroke-linecap: round;
+            }}
+
+            .active-edge {{
+                opacity: 1.0;
+                filter: drop-shadow(0 0 3px {active_path.accent});
+                stroke-dasharray: 2.8 2.0;
+                animation:
+                    ghostDash 1.1s linear infinite,
+                    ghostEdgePulse 1.55s ease-in-out infinite;
+            }}
+
+            .node rect {{
+                filter: drop-shadow(0 5px 8px rgba(15,23,42,0.10));
+            }}
+
+            .active-node rect {{
+                filter:
+                    drop-shadow(0 0 7px {active_path.accent})
+                    drop-shadow(0 12px 16px rgba(15,23,42,0.14));
+                animation: ghostNodePulse 1.55s ease-in-out infinite;
+            }}
+
+            @keyframes ghostNodePulse {{
+                0% {{
+                    opacity: 0.88;
+                    transform: scale(1);
+                }}
+                50% {{
+                    opacity: 1.0;
+                    transform: scale(1.018);
+                }}
+                100% {{
+                    opacity: 0.88;
+                    transform: scale(1);
+                }}
+            }}
+
+            @keyframes ghostEdgePulse {{
+                0% {{
+                    opacity: 0.60;
+                }}
+                50% {{
+                    opacity: 1.0;
+                }}
+                100% {{
+                    opacity: 0.60;
+                }}
+            }}
+
+            @keyframes ghostDash {{
+                from {{
+                    stroke-dashoffset: 0;
+                }}
+                to {{
+                    stroke-dashoffset: -18;
+                }}
+            }}
+
+            .legend {{
+                display: grid;
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                gap: 10px;
+                margin-top: 13px;
+            }}
+
+            .legend-card {{
+                box-sizing: border-box;
+                border-radius: 16px;
+                padding: 11px 12px;
+                border: 1px solid rgba(148,163,184,0.22);
+                background: rgba(255,255,255,0.74);
+                color: #475569;
+                font-size: 12px;
+                min-height: 62px;
+            }}
+
+            .legend-card-active {{
+                border-color: {active_path.accent};
+                background: {active_path.soft};
+                color: #0F172A;
+                box-shadow:
+                    0 10px 24px rgba(15,23,42,0.08),
+                    0 0 18px {active_path.glow};
+            }}
+
+            .legend-number {{
+                font-weight: 900;
+                margin-bottom: 3px;
+            }}
+
+            .legend-name {{
+                font-weight: 750;
+                line-height: 1.2;
+            }}
+        </style>
+    </head>
+
+    <body>
+        <div class="ghost-flow-shell">
+            <div class="title-row">
+                <div>
+                    <div class="title-main">GHOST Pipeline Tree — Interactive Path Demo</div>
+                    <div class="title-sub">
+                        Select a number from 1 to 5. The active route receives stronger color, glow, and motion.
+                    </div>
+                </div>
+                <div class="active-pill">
+                    Active: {html.escape(active_path.label)}
+                </div>
+            </div>
+
+            <div class="svg-wrap">
+                <svg viewBox="0 0 100 92" preserveAspectRatio="xMidYMid meet">
+                    {svg_edges}
+                    {svg_nodes}
+                </svg>
+            </div>
+
+            <div class="legend">
+                {legend_cards}
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+
+def _render_flow_chart(active_path: DemoPath) -> None:
+    flow_html = _build_flow_html(active_path)
+    components.html(flow_html, height=720, scrolling=False)
 
 
 def render_metrics_tab() -> None:
-    """METRICS tab placeholder."""
+    """METRICS tab demo with an interactive visual flowchart."""
+    _init_metrics_state()
+
     st.markdown("## Metrics")
-    st.info("Metrics tab placeholder.")
+    st.info(
+        "Demo page: this visualizes how a future GHOST metrics / pipeline cockpit could show active execution paths."
+    )
+
+    active_path = _render_path_selector()
+    _render_flow_chart(active_path)
+
+    st.markdown("### Selected Path")
+    st.markdown(
+        f"""
+        <div style="
+            border-left:5px solid {active_path.accent};
+            background:{active_path.soft};
+            border-radius:14px;
+            padding:0.85rem 1rem;
+            margin-top:0.75rem;
+            color:#1f2937;
+        ">
+            <div style="font-weight:850; font-size:1rem;">
+                {html.escape(active_path.label)}
+            </div>
+            <div style="margin-top:0.2rem; color:#475569;">
+                {html.escape(active_path.subtitle)}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 ```
 
 ### ~\ragstream\app\ui_settings.py
@@ -2788,6 +4526,7 @@ Run on a free port, e.g.:
 
 from __future__ import annotations
 
+import html
 import json
 import threading
 
@@ -2795,6 +4534,7 @@ from pathlib import Path
 from typing import Any
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from ragstream.app.controller import AppController
 from ragstream.app.ui_layout import inject_base_css, render_page
@@ -2811,6 +4551,7 @@ from ragstream.textforge.RagLog import LogALL as logger
 from ragstream.textforge.RagLog import LogDeveloper as _logger_dev
 
 DEV_LOG_ENABLED = False
+
 
 def logger_dev(*args, **kwargs):
     if DEV_LOG_ENABLED:
@@ -2978,54 +4719,278 @@ def init_session_state() -> None:
     if "use_reranking_colbert" not in st.session_state:
         st.session_state["use_reranking_colbert"] = False
 
+    if "use_a2_promptshaper_llm_widget" not in st.session_state:
+        st.session_state["use_a2_promptshaper_llm_widget"] = bool(
+            st.session_state["use_a2_promptshaper_llm"]
+        )
+
+    if "use_retrieval_splade_widget" not in st.session_state:
+        st.session_state["use_retrieval_splade_widget"] = bool(
+            st.session_state["use_retrieval_splade"]
+        )
+
+    if "use_reranking_colbert_widget" not in st.session_state:
+        st.session_state["use_reranking_colbert_widget"] = bool(
+            st.session_state["use_reranking_colbert"]
+        )
+
     if "manual_memory_feed_text" not in st.session_state:
         st.session_state["manual_memory_feed_text"] = ""
 
-def render_tabs() -> None:
-    """
-    Top-level Streamlit tabs.
+    if "show_advanced_controls" not in st.session_state:
+        st.session_state["show_advanced_controls"] = False
 
-    MAIN keeps the existing RAGstream page.
-    Other tabs are separated into their own UI modules so ui_layout.py
-    does not become overloaded.
+    if "enable_file_ingestion_controls" not in st.session_state:
+        st.session_state["enable_file_ingestion_controls"] = False
+
+    if "active_sidebar_page" not in st.session_state:
+        st.session_state["active_sidebar_page"] = "Main"
+
+    if "sidebar_pipeline_active_step" not in st.session_state:
+        st.session_state["sidebar_pipeline_active_step"] = 0
+
+    if "sidebar_pipeline_completed_step" not in st.session_state:
+        st.session_state["sidebar_pipeline_completed_step"] = -1
+
+
+def _page_options() -> list[str]:
+    return [
+        "Main",
+        "Files",
+        "Hard Rules",
+        "Metrics",
+        "General Settings",
+    ]
+
+
+def _sidebar_pipeline_steps() -> list[str]:
+    return [
+        "User Prompt",
+        "Prompt Qualification",
+        "Prompt Shaping",
+        "Memory Context",
+        "Document Evidence",
+        "Context Synthesis",
+        "Hard Rule Integration",
+        "LLM-Ready Context",
+    ]
+
+
+def _init_page_state() -> None:
+    if "active_sidebar_page" not in st.session_state:
+        st.session_state["active_sidebar_page"] = "Main"
+
+    if st.session_state["active_sidebar_page"] not in _page_options():
+        st.session_state["active_sidebar_page"] = "Main"
+
+
+def _render_sidebar_flowchart() -> None:
+    steps = _sidebar_pipeline_steps()
+
+    try:
+        active_step = int(st.session_state.get("sidebar_pipeline_active_step", 0) or 0)
+    except Exception:
+        active_step = 0
+
+    if active_step < 0:
+        active_step = 0
+
+    if active_step >= len(steps):
+        active_step = len(steps) - 1
+
+    items: list[str] = []
+
+    for index, label in enumerate(steps):
+        state_class = " flow-box-active" if index == active_step else ""
+
+        items.append(
+            f"""
+            <div class="flow-box{state_class}">
+                {html.escape(label)}
+            </div>
+            """
+        )
+
+        if index < len(steps) - 1:
+            items.append('<div class="flow-arrow">↓</div>')
+
+    flow_html = f"""
+    <!doctype html>
+    <html>
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            html, body {{
+                margin: 0;
+                padding: 0;
+                background: transparent;
+                font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    Helvetica,
+                    Arial,
+                    sans-serif;
+            }}
+
+            .flow-shell {{
+                box-sizing: border-box;
+                width: 61.8%;
+                margin: 18px auto 0 auto;
+                padding: 0;
+            }}
+
+            .flow-box {{
+                box-sizing: border-box;
+                width: 100%;
+                min-height: 32px;
+                border: 1.3px solid #111111;
+                border-radius: 2px;
+                background: transparent;
+                color: #111111;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 3px 5px;
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 1.12;
+            }}
+
+            .flow-box-active {{
+                background: #FFF176;
+            }}
+
+            .flow-arrow {{
+                text-align: center;
+                font-size: 18px;
+                line-height: 1.05;
+                color: #111111;
+                margin: 2px 0;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="flow-shell">
+            {"".join(items)}
+        </div>
+    </body>
+    </html>
     """
-    tab_main, tab_files, tab_hard_rules, tab_metrics, tab_settings = st.tabs(
-        [
-            "MAIN",
-            "FILES",
-            "HARD RULES",
-            "METRICS",
-            "GENERAL SETTINGS",
-        ]
+
+    components.html(
+        flow_html,
+        height=500,
+        scrolling=False,
     )
 
-    with tab_main:
+
+def render_sidebar_navigation() -> str:
+    _init_page_state()
+
+    options = _page_options()
+    active_page = st.session_state["active_sidebar_page"]
+
+    with st.sidebar:
+        st.markdown(
+            """
+            <div style="
+                padding:0.45rem 0.25rem 0.90rem 0.25rem;
+            ">
+                <div style="
+                    font-size:1.55rem;
+                    font-weight:800;
+                    letter-spacing:0.045em;
+                    color:#111827;
+                    line-height:1.05;
+                ">
+                    GHOST
+                </div>
+                <div style="
+                    margin-top:0.32rem;
+                    font-size:0.88rem;
+                    color:#4B5563;
+                    line-height:1.32;
+                ">
+                    GenAI Hybrid Orchestrator<br>
+                    for Software Tooling
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        selected_page = st.radio(
+            "Navigation",
+            options=options,
+            index=options.index(active_page),
+            key="sidebar_navigation_radio",
+            label_visibility="collapsed",
+        )
+
+        st.session_state["active_sidebar_page"] = selected_page
+
+        st.markdown("---")
+
+        if selected_page == "Main":
+            st.caption("Main workflow")
+            st.caption("Memory · Prompt · Builder · LLM")
+
+            st.checkbox(
+                "Enable file ingestion controls",
+                key="enable_file_ingestion_controls",
+            )
+
+            st.checkbox(
+                "Show advanced controls",
+                key="show_advanced_controls",
+            )
+
+            _render_sidebar_flowchart()
+
+        elif selected_page == "Files":
+            st.caption("Memory files and imports")
+        elif selected_page == "Hard Rules":
+            st.caption("Rule governance")
+        elif selected_page == "Metrics":
+            st.caption("Metrics and visual pipeline demos")
+        elif selected_page == "General Settings":
+            st.caption("Runtime configuration")
+
+    return selected_page
+
+
+def render_active_page(page_name: str) -> None:
+    if page_name == "Main":
         render_page()
-
-    with tab_files:
+    elif page_name == "Files":
         render_files_tab()
-
-    with tab_hard_rules:
+    elif page_name == "Hard Rules":
         st.markdown("## Hard Rules")
         st.info("Hard Rules tab placeholder.")
-
-    with tab_metrics:
+    elif page_name == "Metrics":
         render_metrics_tab()
-
-    with tab_settings:
+    elif page_name == "General Settings":
         render_settings_tab()
+    else:
+        render_page()
 
 
 def main() -> None:
-    st.set_page_config(page_title="RAGstream", layout="wide")
+    st.set_page_config(
+        page_title="GHOST",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
 
     inject_base_css()
 
-    st.title("RAGstream")
-
     init_session_state()
 
-    render_tabs()
+    selected_page = render_sidebar_navigation()
+    render_active_page(selected_page)
 
 
 if __name__ == "__main__":
@@ -5959,11 +7924,44 @@ class SuperPromptProjector:
 
     @staticmethod
     def build_query_text(sp: "SuperPrompt") -> str:
+        """
+        Build the document Retrieval query text from SuperPrompt.
+
+        6-state routing:
+
+        1. SAME_TOPIC + STRONG       -> current prompt only
+        2. RELATED_DOMAIN + STRONG   -> current prompt only
+        3. IRRELEVANT + STRONG       -> current prompt only
+        4. SAME_TOPIC + WEAK         -> current prompt + full ActiveBrief
+        5. RELATED_DOMAIN + WEAK     -> current prompt + ActiveBrief title
+        6. IRRELEVANT + WEAK         -> no document retrieval
+        """
         if sp is None:
             raise ValueError("SuperPromptProjector.build_query_text: 'sp' must not be None")
 
         if not hasattr(sp, "body") or sp.body is None:
             raise ValueError("SuperPromptProjector.build_query_text: SuperPrompt has no usable 'body'")
+
+        extras = getattr(sp, "extras", {}) or {}
+
+        materiality = str(
+            extras.get("activebrief_prompt_materiality", "") or ""
+        ).strip().upper()
+
+        topic_relation = str(
+            extras.get("activebrief_topic_relation", "") or ""
+        ).strip().upper()
+
+        activebrief_snapshot = extras.get("activebrief_relation_activebrief", {}) or {}
+        if isinstance(activebrief_snapshot, dict):
+            active_brief_title = str(activebrief_snapshot.get("title", "") or "").strip()
+            active_brief_text = str(activebrief_snapshot.get("body", "") or "").strip()
+        else:
+            active_brief_title = ""
+            active_brief_text = ""
+
+        if materiality == "WEAK" and topic_relation == "IRRELEVANT":
+            return ""
 
         blocks: List[str] = []
 
@@ -5986,6 +7984,18 @@ class SuperPromptProjector:
             blocks.append(context)
             blocks.append("")
 
+        if materiality == "WEAK" and topic_relation == "SAME_TOPIC":
+            if active_brief_text:
+                blocks.append("## PREVIOUS MEMORY SUMMARY")
+                blocks.append(active_brief_text)
+                blocks.append("")
+
+        elif materiality == "WEAK" and topic_relation == "RELATED_DOMAIN":
+            if active_brief_title:
+                blocks.append("## PREVIOUS MEMORY TITLE")
+                blocks.append(active_brief_title)
+                blocks.append("")
+
         query_text = "\n".join(blocks).strip()
 
         if not query_text:
@@ -5995,6 +8005,89 @@ class SuperPromptProjector:
             )
 
         return query_text
+
+    @staticmethod
+    def build_a3_comparison_prompt_text(sp: "SuperPrompt") -> str:
+        """
+        Build the A3 comparison prompt.
+
+        6-state routing:
+
+        1. SAME_TOPIC + STRONG       -> current prompt + full ActiveBrief
+        2. RELATED_DOMAIN + STRONG   -> current prompt + full ActiveBrief
+        3. IRRELEVANT + STRONG       -> current prompt + ActiveBrief title
+        4. SAME_TOPIC + WEAK         -> current prompt + full ActiveBrief
+        5. RELATED_DOMAIN + WEAK     -> current prompt + ActiveBrief title
+        6. IRRELEVANT + WEAK         -> current prompt + full ActiveBrief
+        """
+        if sp is None:
+            raise ValueError("SuperPromptProjector.build_a3_comparison_prompt_text: 'sp' must not be None")
+
+        if not hasattr(sp, "body") or sp.body is None:
+            raise ValueError(
+                "SuperPromptProjector.build_a3_comparison_prompt_text: SuperPrompt has no usable 'body'"
+            )
+
+        extras = getattr(sp, "extras", {}) or {}
+
+        materiality = str(
+            extras.get("activebrief_prompt_materiality", "") or ""
+        ).strip().upper()
+
+        topic_relation = str(
+            extras.get("activebrief_topic_relation", "") or ""
+        ).strip().upper()
+
+        activebrief_snapshot = extras.get("activebrief_relation_activebrief", {}) or {}
+        if isinstance(activebrief_snapshot, dict):
+            active_brief_title = str(activebrief_snapshot.get("title", "") or "").strip()
+            active_brief_text = str(activebrief_snapshot.get("body", "") or "").strip()
+        else:
+            active_brief_title = ""
+            active_brief_text = ""
+
+        lines: List[str] = ["<user_prompt_under_evaluation>"]
+
+        task = (sp.body.get("task") or "").strip()
+        purpose = (sp.body.get("purpose") or "").strip()
+        context = (sp.body.get("context") or "").strip()
+
+        if task:
+            lines.append("TASK:")
+            lines.append(task)
+            lines.append("")
+
+        if purpose:
+            lines.append("PURPOSE:")
+            lines.append(purpose)
+            lines.append("")
+
+        if context:
+            lines.append("CONTEXT:")
+            lines.append(context)
+            lines.append("")
+
+        use_full_brief = (
+            (materiality == "STRONG" and topic_relation in {"SAME_TOPIC", "RELATED_DOMAIN"})
+            or (materiality == "WEAK" and topic_relation in {"SAME_TOPIC", "IRRELEVANT"})
+        )
+
+        use_title_only = (
+            (materiality == "STRONG" and topic_relation == "IRRELEVANT")
+            or (materiality == "WEAK" and topic_relation == "RELATED_DOMAIN")
+        )
+
+        if use_full_brief and active_brief_text:
+            lines.append("PREVIOUS MEMORY SUMMARY:")
+            lines.append(active_brief_text)
+            lines.append("")
+        elif use_title_only and active_brief_title:
+            lines.append("PREVIOUS MEMORY TITLE:")
+            lines.append(active_brief_title)
+            lines.append("")
+
+        lines.append("</user_prompt_under_evaluation>")
+        return "\n".join(lines).strip()
 
     def compose_prompt_ready(self) -> str:
         self.sp.System_MD = self._render_system_md()
@@ -6062,16 +8155,11 @@ class SuperPromptProjector:
         format_value = (self.sp.body.get("format") or "").strip()
         text_value = (self.sp.body.get("text") or "").strip()
 
-        active_brief_title = str(getattr(self.sp, "active_memory_brief_title", "") or "").strip()
-        active_brief_text = str(getattr(self.sp, "active_memory_brief", "") or "").strip()
-
-        if not active_brief_title:
-            active_brief_title = str((getattr(self.sp, "extras", {}) or {}).get("active_memory_brief_title", "") or "").strip()
-
-        if not active_brief_text:
-            active_brief_text = str((getattr(self.sp, "extras", {}) or {}).get("active_memory_brief", "") or "").strip()
-
-        lines.append("## User")
+        lines.append("## Current User Request")
+        lines.append(
+            "Priority: highest. Answer this request directly. "
+            "Treat all later memory and retrieved context as supporting background only."
+        )
         lines.append("")
 
         lines.append("### Task")
@@ -6088,15 +8176,6 @@ class SuperPromptProjector:
             lines.append(context_value)
             lines.append("")
 
-        if active_brief_title or active_brief_text:
-            lines.append("### Active Memory Brief")
-            if active_brief_title:
-                lines.append(f"Title: {active_brief_title}")
-                lines.append("")
-            if active_brief_text:
-                lines.append(active_brief_text)
-                lines.append("")
-
         if format_value:
             lines.append("### Format")
             lines.append(format_value)
@@ -6111,36 +8190,97 @@ class SuperPromptProjector:
 
     def _render_retrieved_context_md(self) -> str:
         """
-        Render retrieved/condensed context for GUI-visible SuperPrompt preview.
+        Render supporting context for GUI-visible SuperPrompt preview.
 
         Rules:
-        - show synthesized Memory Context, not raw memory episodes/chunks
+        - Previous Conversation Summary belongs under Supporting Context.
+        - Memory Context belongs under Supporting Context.
+        - Retrieved Project Evidence Summary belongs under Supporting Context.
         - show document raw chunks after Retrieval/Reranker/A3
         - hide document raw chunks after A4/A5
-        - keep document summary context when available
         """
+        extras = getattr(self.sp, "extras", {}) or {}
+
+        materiality = str(
+            extras.get("activebrief_prompt_materiality", "") or ""
+        ).strip().upper()
+
+        topic_relation = str(
+            extras.get("activebrief_topic_relation", "") or ""
+        ).strip().upper()
+
+        activebrief_snapshot = extras.get("activebrief_relation_activebrief", {}) or {}
+        if isinstance(activebrief_snapshot, dict):
+            active_brief_title = str(activebrief_snapshot.get("title", "") or "").strip()
+            active_brief_text = str(activebrief_snapshot.get("body", "") or "").strip()
+        else:
+            active_brief_title = ""
+            active_brief_text = ""
+
+        use_full_brief = (
+            (materiality == "STRONG" and topic_relation in {"SAME_TOPIC", "RELATED_DOMAIN"})
+            or (materiality == "WEAK" and topic_relation in {"SAME_TOPIC", "IRRELEVANT"})
+        )
+
+        use_title_only = (
+            (materiality == "STRONG" and topic_relation == "IRRELEVANT")
+            or (materiality == "WEAK" and topic_relation == "RELATED_DOMAIN")
+        )
+
         memory_context_md = self._render_memory_context_md()
         document_context_md = self._render_document_context_summary_md()
         raw_document_evidence_md = self._render_raw_document_evidence_for_stage_md()
 
-        if not memory_context_md and not document_context_md and not raw_document_evidence_md:
+        has_previous_summary = use_full_brief and (active_brief_title or active_brief_text)
+        has_previous_topic = use_title_only and active_brief_title
+
+        if (
+            not has_previous_summary
+            and not has_previous_topic
+            and not memory_context_md
+            and not document_context_md
+            and not raw_document_evidence_md
+        ):
             return ""
 
         lines: List[str] = []
 
-        lines.append("## Retrieved Context")
+        lines.append("## Supporting Context")
+        lines.append("Priority: supporting only. Use this material only when it helps answer the current TASK.")
         lines.append("")
+
+        if has_previous_summary:
+            lines.append("### Previous Conversation Summary")
+            lines.append("Priority: background only. Use this for continuity, but do not treat it as the current task.")
+            lines.append("")
+
+            if active_brief_title:
+                lines.append(f"Title: {active_brief_title}")
+                lines.append("")
+
+            if active_brief_text:
+                lines.append(active_brief_text)
+                lines.append("")
+
+        elif has_previous_topic:
+            lines.append("### Previous Conversation Topic")
+            lines.append("Priority: weak background only. Use only for continuity or topic-shift awareness.")
+            lines.append("")
+            lines.append(f"Title: {active_brief_title}")
+            lines.append("")
 
         if memory_context_md:
             lines.append("### Memory Context")
+            lines.append("This is synthesized memory context. It is background support, not the current task.")
+            lines.append("")
             lines.append(memory_context_md)
             lines.append("")
 
         if document_context_md:
-            lines.append("### Document Context Summary")
+            lines.append("### Retrieved Project Evidence Summary")
             lines.append(
                 "The following summary is retrieved from selected project files. "
-                "It is supporting context for the task, not part of the task itself."
+                "It is supporting evidence for the current TASK, not the task itself."
             )
             lines.append("")
             lines.append(document_context_md)
@@ -6148,6 +8288,8 @@ class SuperPromptProjector:
 
         if raw_document_evidence_md:
             lines.append("### Raw Retrieved Evidence")
+            lines.append("Raw evidence is lower priority than the current TASK and should only support the answer.")
+            lines.append("")
             lines.append(raw_document_evidence_md)
 
         return "\n".join(lines).strip()
@@ -8008,10 +10150,10 @@ class Retriever:
         return valid_ranked_rows, hydrated
 
     def _write_stage_to_superprompt(
-        self,
-        sp: SuperPrompt,
-        ranked_rows: List[RankedRow],
-        hydrated_chunks: List[Chunk],
+            self,
+            sp: SuperPrompt,
+            ranked_rows: List[RankedRow],
+            hydrated_chunks: List[Chunk],
     ) -> None:
         """
         Persist the Retrieval result into the evolving SuperPrompt.
@@ -8021,11 +10163,14 @@ class Retriever:
             the hydrated Chunk objects in retrieval order
         - views_by_stage["retrieval"]:
             ordered triples (chunk_id, retrieval_score, SELECTED)
-            where retrieval_score is now the final fused RRF score
+            where retrieval_score is the current retrieval score
+        - views_by_stage["reranked"]:
+            A3-ready passthrough view initialized from Retrieval.
+            If real ColBERT ReRanker runs later, it overwrites this view.
         - final_selection_ids:
             ordered chunk IDs from the current retrieval result
         - stage/history:
-            bookkeeping for the pipeline lifecycle
+            Retrieval remains the current lifecycle stage.
         """
         if len(ranked_rows) != len(hydrated_chunks):
             raise RuntimeError(
@@ -8035,16 +10180,36 @@ class Retriever:
         sp.base_context_chunks = list(hydrated_chunks)
 
         retrieval_view: List[tuple[str, float, A3ChunkStatus]] = []
+        a3_ready_view: List[tuple[str, float, A3ChunkStatus]] = []
         final_ids: List[str] = []
 
-        for chunk_id, score, _meta in ranked_rows:
-            retrieval_view.append((str(chunk_id), float(score), A3ChunkStatus.SELECTED))
-            final_ids.append(str(chunk_id))
+        for position, (chunk_id, score, _meta) in enumerate(ranked_rows, start=1):
+            chunk_id_str = str(chunk_id)
+            score_float = float(score)
+
+            retrieval_view.append((chunk_id_str, score_float, A3ChunkStatus.SELECTED))
+            a3_ready_view.append((chunk_id_str, score_float, A3ChunkStatus.SELECTED))
+            final_ids.append(chunk_id_str)
 
         sp.views_by_stage["retrieval"] = retrieval_view
+
+        # Important:
+        # Retrieval initializes an A3-ready candidate view immediately.
+        # This is not real ColBERT reranking.
+        # It is a deterministic passthrough so A3 can run directly after Retrieval.
+        # If ColBERT is enabled later, Reranker.run(...) overwrites this key.
+        sp.views_by_stage["reranked"] = a3_ready_view
+
         sp.final_selection_ids = final_ids
         sp.stage = "retrieval"
         sp.history_of_stages.append("retrieval")
+
+        if not hasattr(sp, "extras") or sp.extras is None:
+            sp.extras = {}
+
+        sp.extras["a3_ready_source"] = "retrieval_passthrough"
+        sp.extras["a3_ready_candidate_count"] = len(a3_ready_view)
+        sp.extras["reranked_is_passthrough"] = True
 ```
 
 ### ~\ragstream\retrieval\retriever_emb.py
@@ -13137,6 +15302,889 @@ class MemorySentenceReducer:
             return json.dumps(data, ensure_ascii=False, indent=2, default=str)
         except Exception:
             return repr(data)
+```
+
+### ~\ragstream\memory\importers\chatgpt_shared_link_importer.py
+```python
+# ragstream/memory/importers/chatgpt_shared_link_importer.py
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+from typing import Any
+
+from ragstream.memory.importers.chatgpt_shared_link_importer_helpers import (
+    assign_memory_brief_to_records,
+    build_memory_records,
+    ingest_imported_history,
+    messages_to_pairs,
+    persist_records_as_new_history,
+    read_chatgpt_shared_link,
+    validate_shared_url,
+    validate_title,
+)
+
+
+def import_chatgpt_shared_link(
+    *,
+    shared_url: str,
+    title: str,
+    memory_manager: Any,
+    memory_ingestion_manager: Any | None = None,
+    memory_brief: str = "",
+    memory_brief_title: str = "",
+    active_project_name: str | None = None,
+    embedded_files_snapshot: list[str] | None = None,
+    headless: bool = True,
+    timeout_ms: int = 60000,
+    wait_after_load_ms: int = 3000,
+    wait_for_stable_messages: bool = True,
+) -> dict[str, Any]:
+    """
+    Import one public ChatGPT shared conversation into RAGstream Memory.
+
+    This main file intentionally stays small:
+    - validate input
+    - read the shared page
+    - convert messages into Q/A memory pairs
+    - build MemoryRecord objects
+    - persist them as a normal memory history
+    - optionally ingest vectors
+    """
+
+    # 1. Validate user-facing import inputs before opening the browser.
+    clean_url = validate_shared_url(shared_url)
+    clean_title = validate_title(title)
+    clean_memory_brief = str(memory_brief or "").strip()
+    clean_memory_brief_title = str(memory_brief_title or "").strip() or clean_title
+
+    # 2. Open the public ChatGPT shared page and extract conversation messages.
+    page_data = read_chatgpt_shared_link(
+        clean_url,
+        headless=headless,
+        timeout_ms=timeout_ms,
+        wait_after_load_ms=wait_after_load_ms,
+        wait_for_stable_messages=wait_for_stable_messages,
+    )
+
+    # 3. Convert extracted user/assistant messages into RAGstream Q/A pairs.
+    pairs = messages_to_pairs(
+        messages=page_data.get("messages", []),
+        raw_text=str(page_data.get("raw_text", "") or ""),
+        shared_url=clean_url,
+        title=clean_title,
+    )
+
+    if not pairs:
+        raise ValueError("No importable conversation text was found in the shared link.")
+
+    # 4. Build normal MemoryRecord objects without changing MemoryRecord itself.
+    records = build_memory_records(
+        pairs=pairs,
+        shared_url=clean_url,
+        active_project_name=active_project_name,
+        embedded_files_snapshot=embedded_files_snapshot or [],
+    )
+
+    # 5. Attach the optional MemoryBrief to all imported records as shared context.
+    if clean_memory_brief:
+        assign_memory_brief_to_records(
+            records=records,
+            memory_brief=clean_memory_brief,
+            memory_brief_title=clean_memory_brief_title,
+        )
+
+    # 6. Persist the imported records as a new ordinary RAGstream memory history.
+    persist_records_as_new_history(
+        memory_manager=memory_manager,
+        title=clean_title,
+        records=records,
+    )
+
+    # 7. Optionally ingest the new memory history into the memory vector store.
+    vector_ingestion_result = ingest_imported_history(
+        memory_ingestion_manager=memory_ingestion_manager,
+    )
+
+    # 8. Return a compact import report for the Streamlit action/status layer.
+    return {
+        "success": True,
+        "shared_url": clean_url,
+        "title": memory_manager.title,
+        "file_id": memory_manager.file_id,
+        "filename_ragmem": memory_manager.filename_ragmem,
+        "filename_meta": memory_manager.filename_meta,
+        "record_count": len(records),
+        "pair_count": len(pairs),
+        "message_count": len(page_data.get("messages", []) or []),
+        "raw_text_chars": len(str(page_data.get("raw_text", "") or "")),
+        "extraction_method": page_data.get("extraction_method", ""),
+        "memory_brief_assigned": bool(clean_memory_brief),
+        "vector_ingestion": vector_ingestion_result,
+    }
+```
+
+### ~\ragstream\memory\importers\chatgpt_shared_link_importer_helpers.py
+```python
+# ragstream/memory/importers/chatgpt_shared_link_importer_helpers.py
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+import re
+from typing import Any
+
+from ragstream.memory.memory_record import MemoryRecord
+
+
+CHATGPT_SHARED_LINK_PATTERN = re.compile(
+    r"^https://chatgpt\.com/share/[A-Za-z0-9_-]+(?:\?.*)?$"
+)
+
+VALID_CHATGPT_ROLES = {"user", "assistant"}
+
+
+# -----------------------------------------------------------------------------
+# Public helper API used by chatgpt_shared_link_importer.py
+# -----------------------------------------------------------------------------
+
+
+def read_chatgpt_shared_link(
+    shared_url: str,
+    *,
+    headless: bool = True,
+    timeout_ms: int = 60000,
+    wait_after_load_ms: int = 3000,
+    wait_for_stable_messages: bool = True,
+) -> dict[str, Any]:
+    """
+    Read a public ChatGPT shared-link page.
+
+    Preferred extraction:
+    - DOM message blocks converted to cleaner Markdown.
+    - Code blocks are reconstructed as fenced code frames.
+
+    Fallback extraction:
+    - embedded page data.
+    - full body text if structured extraction fails.
+    """
+    clean_url = validate_shared_url(shared_url)
+
+    try:
+        from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+        from playwright.sync_api import sync_playwright
+    except Exception as exc:
+        raise RuntimeError(
+            "Playwright is required for ChatGPT shared-link import. "
+            "Install it through requirements.txt and run: "
+            "python -m playwright install chromium"
+        ) from exc
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=headless)
+        try:
+            page = browser.new_page()
+
+            _goto_with_retry(
+                page,
+                clean_url,
+                timeout_ms=timeout_ms,
+                attempts=3,
+                wait_between_attempts_ms=2500,
+            )
+
+            try:
+                page.wait_for_selector(
+                    "[data-message-author-role]",
+                    timeout=min(20000, int(timeout_ms)),
+                )
+            except PlaywrightTimeoutError:
+                pass
+
+            if int(wait_after_load_ms) > 0:
+                page.wait_for_timeout(int(wait_after_load_ms))
+
+            if wait_for_stable_messages:
+                _scroll_and_wait_until_messages_are_stable(
+                    page,
+                    timeout_ms=min(25000, int(timeout_ms)),
+                    poll_ms=500,
+                    stable_rounds=4,
+                    max_scroll_rounds=8,
+                )
+
+            dom_messages = _extract_dom_messages_as_markdown(page)
+            structured_messages = _extract_structured_messages(page)
+            raw_text = _extract_body_text(page)
+
+            selected_messages, extraction_method = _select_best_message_source(
+                dom_messages=dom_messages,
+                structured_messages=structured_messages,
+            )
+
+            if selected_messages:
+                return {
+                    "shared_url": clean_url,
+                    "messages": selected_messages,
+                    "raw_text": raw_text,
+                    "extraction_method": extraction_method,
+                }
+
+            return {
+                "shared_url": clean_url,
+                "messages": [],
+                "raw_text": raw_text,
+                "extraction_method": "body_text_fallback",
+            }
+
+        finally:
+            browser.close()
+
+
+def messages_to_pairs(
+    *,
+    messages: list[dict[str, str]],
+    raw_text: str,
+    shared_url: str,
+    title: str,
+) -> list[dict[str, str]]:
+    """Convert ordered user/assistant messages into Q/A memory pairs."""
+    pairs: list[dict[str, str]] = []
+    pending_user_parts: list[str] = []
+    pending_assistant_parts: list[str] = []
+
+    def flush_pair() -> None:
+        nonlocal pending_user_parts
+        nonlocal pending_assistant_parts
+
+        input_text = "\n\n".join(pending_user_parts).strip()
+        output_text = "\n\n".join(pending_assistant_parts).strip()
+
+        if input_text and output_text:
+            pairs.append(
+                {
+                    "input_text": input_text,
+                    "output_text": output_text,
+                }
+            )
+
+        pending_user_parts = []
+        pending_assistant_parts = []
+
+    for message in messages or []:
+        role = str(message.get("role", "") or "").strip().lower()
+        text = clean_text(str(message.get("text", "") or ""))
+
+        if role not in VALID_CHATGPT_ROLES or not text:
+            continue
+
+        if role == "user":
+            if pending_user_parts and pending_assistant_parts:
+                flush_pair()
+            pending_user_parts.append(text)
+            continue
+
+        if role == "assistant" and pending_user_parts:
+            pending_assistant_parts.append(text)
+
+    if pending_user_parts and pending_assistant_parts:
+        flush_pair()
+
+    if pairs:
+        return pairs
+
+    clean_raw_text = clean_text(raw_text)
+    if clean_raw_text:
+        return [
+            {
+                "input_text": (
+                    "Imported ChatGPT shared conversation\n"
+                    f"Title: {title}\n"
+                    f"Source URL: {shared_url}"
+                ),
+                "output_text": clean_raw_text,
+            }
+        ]
+
+    return []
+
+
+def build_memory_records(
+    *,
+    pairs: list[dict[str, str]],
+    shared_url: str,
+    active_project_name: str | None,
+    embedded_files_snapshot: list[str],
+) -> list[MemoryRecord]:
+    """Build normal MemoryRecord objects from imported Q/A pairs."""
+    records: list[MemoryRecord] = []
+    previous_record_id: str | None = None
+    source = f"chatgpt_shared_link:{shared_url}"
+
+    for pair in pairs:
+        input_text = clean_text(str(pair.get("input_text", "") or ""))
+        output_text = clean_text(str(pair.get("output_text", "") or ""))
+
+        if not input_text or not output_text:
+            continue
+
+        record = MemoryRecord(
+            input_text=input_text,
+            output_text=output_text,
+            source=source,
+            parent_id=previous_record_id,
+            tag="Green",
+            user_keywords=["chatgpt_shared_link"],
+            active_project_name=active_project_name,
+            embedded_files_snapshot=embedded_files_snapshot,
+            retrieval_source_mode="QA",
+            direct_recall_key="",
+            active_retrieval_brief_title="",
+            active_retrieval_brief="",
+            active_retrieval_brief_contributor_ids=[],
+        )
+
+        records.append(record)
+        previous_record_id = record.record_id
+
+    return records
+
+
+def assign_memory_brief_to_records(
+    *,
+    records: list[MemoryRecord],
+    memory_brief: str,
+    memory_brief_title: str,
+) -> None:
+    """Attach one shared MemoryBrief to all imported records."""
+    clean_memory_brief = clean_text(memory_brief)
+    clean_memory_brief_title = clean_text(memory_brief_title)
+
+    if not clean_memory_brief:
+        return
+
+    contributor_ids = [record.record_id for record in records]
+    for record in records:
+        record.update_active_retrieval_brief(
+            active_retrieval_brief=clean_memory_brief,
+            contributor_ids=contributor_ids,
+            active_retrieval_brief_title=clean_memory_brief_title,
+        )
+
+
+def persist_records_as_new_history(
+    *,
+    memory_manager: Any,
+    title: str,
+    records: list[MemoryRecord],
+) -> None:
+    """Persist imported records as a new ordinary RAGstream memory history."""
+    if memory_manager is None:
+        raise ValueError("memory_manager is required.")
+
+    if not records:
+        raise ValueError("No MemoryRecord objects were created.")
+
+    memory_manager.start_new_history(title)
+    memory_manager.records = list(records)
+    memory_manager.pending_activebrief_topic_buffer = {}
+
+    memory_manager.files_root.mkdir(parents=True, exist_ok=True)
+
+    with memory_manager.ragmem_path.open("w", encoding="utf-8") as f:
+        for record in memory_manager.records:
+            f.write(record.to_ragmem_block())
+            f.write("\n")
+
+    memory_manager.b_file_created = True
+    memory_manager.save_metainfo()
+    memory_manager.refresh_sqlite_index()
+
+
+def ingest_imported_history(*, memory_ingestion_manager: Any | None) -> dict[str, Any] | None:
+    """Run vector ingestion for the imported history when the ingestion layer exists."""
+    if memory_ingestion_manager is None:
+        return None
+
+    return memory_ingestion_manager.ingest_all()
+
+
+def validate_shared_url(shared_url: str) -> str:
+    """Validate and normalize a ChatGPT shared conversation URL."""
+    clean_url = str(shared_url or "").strip()
+
+    if not clean_url:
+        raise ValueError("ChatGPT shared link must not be empty.")
+
+    if not CHATGPT_SHARED_LINK_PATTERN.match(clean_url):
+        raise ValueError(
+            "ChatGPT shared link must match: https://chatgpt.com/share/<conversation-id>"
+        )
+
+    return clean_url
+
+
+def validate_title(title: str) -> str:
+    """Validate and normalize the memory history title."""
+    clean_title = str(title or "").strip()
+
+    if not clean_title:
+        raise ValueError("Import title must not be empty.")
+
+    return clean_title
+
+
+# -----------------------------------------------------------------------------
+# Playwright navigation / extraction internals
+# -----------------------------------------------------------------------------
+
+
+def _goto_with_retry(
+    page: Any,
+    url: str,
+    *,
+    timeout_ms: int = 60000,
+    attempts: int = 3,
+    wait_between_attempts_ms: int = 2500,
+) -> None:
+    """Navigate with retry for temporary browser/network errors."""
+    last_error: Exception | None = None
+
+    for attempt in range(1, int(attempts) + 1):
+        try:
+            page.goto(
+                url,
+                wait_until="domcontentloaded",
+                timeout=int(timeout_ms),
+            )
+            return
+
+        except Exception as exc:
+            last_error = exc
+            message = str(exc)
+
+            retryable = any(
+                token in message
+                for token in (
+                    "ERR_NETWORK_CHANGED",
+                    "ERR_TIMED_OUT",
+                    "ERR_CONNECTION_RESET",
+                    "ERR_INTERNET_DISCONNECTED",
+                    "net::ERR_NETWORK_CHANGED",
+                    "net::ERR_TIMED_OUT",
+                    "net::ERR_CONNECTION_RESET",
+                    "net::ERR_INTERNET_DISCONNECTED",
+                )
+            )
+
+            if not retryable or attempt >= int(attempts):
+                raise
+
+            page.wait_for_timeout(int(wait_between_attempts_ms))
+
+    if last_error is not None:
+        raise last_error
+
+
+def _scroll_and_wait_until_messages_are_stable(
+    page: Any,
+    *,
+    timeout_ms: int = 25000,
+    poll_ms: int = 500,
+    stable_rounds: int = 4,
+    max_scroll_rounds: int = 8,
+) -> None:
+    """Scroll gently and wait until visible message count stops increasing."""
+    try:
+        start_ms = int(page.evaluate("Date.now()"))
+    except Exception:
+        return
+
+    previous_count = -1
+    stable_count = 0
+    scroll_round = 0
+
+    while True:
+        try:
+            now_ms = int(page.evaluate("Date.now()"))
+        except Exception:
+            return
+
+        if now_ms - start_ms > int(timeout_ms):
+            return
+
+        try:
+            current_count = int(
+                page.evaluate(
+                    '() => document.querySelectorAll("[data-message-author-role]").length'
+                )
+            )
+        except Exception:
+            current_count = 0
+
+        if current_count > 0 and current_count == previous_count:
+            stable_count += 1
+        else:
+            stable_count = 0
+            previous_count = current_count
+
+        if current_count > 0 and stable_count >= int(stable_rounds):
+            return
+
+        if scroll_round < int(max_scroll_rounds):
+            try:
+                page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
+            except Exception:
+                pass
+            scroll_round += 1
+
+        page.wait_for_timeout(int(poll_ms))
+
+
+def _extract_dom_messages_as_markdown(page: Any) -> list[dict[str, str]]:
+    """Extract visible message DOM and reconstruct cleaner Markdown/code frames."""
+    script = r'''
+    () => {
+        const nodes = Array.from(document.querySelectorAll("[data-message-author-role]"));
+
+        function normalizeLanguage(value) {
+            const raw = String(value || "").trim().toLowerCase();
+            if (!raw) return "";
+
+            const cleaned = raw
+                .replace(/^language-/, "")
+                .replace(/^lang-/, "")
+                .replace(/[^a-z0-9#+.-]/g, "");
+
+            const aliases = {
+                py: "python",
+                python3: "python",
+                sh: "bash",
+                shell: "bash",
+                zsh: "bash",
+                ps1: "powershell",
+                yml: "yaml",
+                js: "javascript",
+                ts: "typescript",
+                md: "markdown",
+                docker: "dockerfile"
+            };
+
+            return aliases[cleaned] || cleaned;
+        }
+
+        function detectLanguage(codeText, preNode, codeNode) {
+            const candidates = [];
+
+            if (codeNode) candidates.push(codeNode.getAttribute("data-language"));
+            if (codeNode) candidates.push(codeNode.getAttribute("class"));
+            if (preNode) candidates.push(preNode.getAttribute("data-language"));
+            if (preNode) candidates.push(preNode.getAttribute("class"));
+
+            for (const candidate of candidates) {
+                const text = String(candidate || "");
+                const match = text.match(/(?:language-|lang-)([a-zA-Z0-9#+.-]+)/);
+                if (match) return normalizeLanguage(match[1]);
+                const direct = normalizeLanguage(text);
+                if (direct && direct.length <= 20) return direct;
+            }
+
+            const code = String(codeText || "").trim();
+
+            if (/^FROM\s+\S+/m.test(code) || /^RUN\s+/m.test(code) || /^CMD\s+\[/m.test(code)) {
+                return "dockerfile";
+            }
+            if (/^\s*def\s+\w+\s*\(/m.test(code) || /^\s*class\s+\w+/m.test(code) || /^\s*import\s+\w+/m.test(code) || /^\s*from\s+\w+/m.test(code)) {
+                return "python";
+            }
+            if (/^\s*\{[\s\S]*\}\s*$/.test(code) || /^\s*\[[\s\S]*\]\s*$/.test(code)) {
+                return "json";
+            }
+            if (/^\s*<\?xml/m.test(code) || /^\s*<[^>]+>/m.test(code)) {
+                return "xml";
+            }
+            if (/^\s*(git|python|pip|pytest|streamlit|docker|aws|cd|ls|mkdir|rm|cp|mv)\b/m.test(code)) {
+                return "bash";
+            }
+            if (/^\s*SELECT\s+/im.test(code) || /^\s*INSERT\s+/im.test(code) || /^\s*UPDATE\s+/im.test(code)) {
+                return "sql";
+            }
+
+            return "";
+        }
+
+        function labelForLanguage(language) {
+            if (!language) return "Code frame";
+
+            const labels = {
+                python: "Code frame: Python",
+                bash: "Code frame: Bash",
+                powershell: "Code frame: PowerShell",
+                json: "Code frame: JSON",
+                yaml: "Code frame: YAML",
+                javascript: "Code frame: JavaScript",
+                typescript: "Code frame: TypeScript",
+                dockerfile: "Code frame: Dockerfile",
+                markdown: "Code frame: Markdown",
+                html: "Code frame: HTML",
+                css: "Code frame: CSS",
+                xml: "Code frame: XML",
+                sql: "Code frame: SQL"
+            };
+
+            return labels[language] || `Code frame: ${language.charAt(0).toUpperCase()}${language.slice(1)}`;
+        }
+
+        function removeUiNoise(root) {
+            const selectors = [
+                "button",
+                "svg",
+                "[role='button']",
+                "[aria-label*='Copy']",
+                "[data-testid*='copy']",
+                ".sr-only"
+            ];
+
+            for (const selector of selectors) {
+                for (const item of Array.from(root.querySelectorAll(selector))) {
+                    item.remove();
+                }
+            }
+        }
+
+        function convertInlineCode(root) {
+            for (const codeNode of Array.from(root.querySelectorAll("code"))) {
+                if (codeNode.closest("pre")) continue;
+
+                const text = codeNode.innerText || codeNode.textContent || "";
+                if (!text.trim()) continue;
+
+                codeNode.replaceWith(document.createTextNode("`" + text.trim() + "`"));
+            }
+        }
+
+        function convertCodeBlocks(root) {
+            for (const preNode of Array.from(root.querySelectorAll("pre"))) {
+                const codeNode = preNode.querySelector("code");
+                const codeText = (codeNode ? codeNode.innerText : preNode.innerText) || "";
+                const cleanCode = codeText.replace(/\n*Copy code\n*/gi, "").trim();
+
+                if (!cleanCode) {
+                    preNode.remove();
+                    continue;
+                }
+
+                const language = detectLanguage(cleanCode, preNode, codeNode);
+                const label = labelForLanguage(language);
+                const fenceLanguage = language || "";
+                const markdownBlock = `\n\n${label}\n\n\`\`\`${fenceLanguage}\n${cleanCode}\n\`\`\`\n\n`;
+
+                preNode.replaceWith(document.createTextNode(markdownBlock));
+            }
+        }
+
+        return nodes.map((node) => {
+            const clone = node.cloneNode(true);
+            removeUiNoise(clone);
+            convertCodeBlocks(clone);
+            convertInlineCode(clone);
+
+            return {
+                role: node.getAttribute("data-message-author-role") || "",
+                text: clone.innerText || clone.textContent || ""
+            };
+        });
+    }
+    '''
+
+    try:
+        raw_messages = page.evaluate(script)
+    except Exception:
+        raw_messages = []
+
+    return _normalize_messages(raw_messages)
+
+
+def _extract_structured_messages(page: Any) -> list[dict[str, str]]:
+    """Extract fallback messages from embedded JSON-like page state."""
+    script = r'''
+    () => {
+        const roots = [];
+
+        function safePush(value) {
+            if (value !== undefined && value !== null) roots.push(value);
+        }
+
+        safePush(window.__NEXT_DATA__);
+        safePush(window.__remixContext);
+        safePush(window.__reactRouterContext);
+        safePush(window.__NUXT__);
+        safePush(window.__APOLLO_STATE__);
+
+        for (const scriptNode of Array.from(document.querySelectorAll("script"))) {
+            const text = scriptNode.textContent || "";
+            const trimmed = text.trim();
+            if (!trimmed) continue;
+
+            if (scriptNode.type === "application/json" || trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                try { safePush(JSON.parse(trimmed)); } catch (e) {}
+            }
+        }
+
+        const out = [];
+        const seen = new Set();
+
+        function contentToText(content) {
+            if (!content) return "";
+            if (typeof content === "string") return content;
+            if (Array.isArray(content)) return content.map(contentToText).filter(Boolean).join("\n");
+            if (typeof content !== "object") return "";
+            if (typeof content.text === "string") return content.text;
+            if (typeof content.value === "string") return content.value;
+            if (Array.isArray(content.parts)) return content.parts.map(contentToText).filter(Boolean).join("\n");
+            if (Array.isArray(content.content)) return content.content.map(contentToText).filter(Boolean).join("\n");
+            if (typeof content.content === "string") return content.content;
+            return "";
+        }
+
+        function visit(value) {
+            if (!value || typeof value !== "object") return;
+            if (seen.has(value)) return;
+            seen.add(value);
+
+            const role = value?.author?.role || value?.message?.author?.role || value?.node?.message?.author?.role || "";
+            const message = value?.message || value?.node?.message || value;
+            const content = message?.content || message?.text || value?.content || value?.text || null;
+            const text = contentToText(content);
+
+            if ((role === "user" || role === "assistant") && text && text.trim()) {
+                out.push({role, text: text.trim()});
+            }
+
+            if (Array.isArray(value)) {
+                for (const item of value) visit(item);
+            } else {
+                for (const key of Object.keys(value)) visit(value[key]);
+            }
+        }
+
+        for (const root of roots) visit(root);
+        return out;
+    }
+    '''
+
+    try:
+        raw_messages = page.evaluate(script)
+    except Exception:
+        raw_messages = []
+
+    return _normalize_messages(raw_messages)
+
+
+def _select_best_message_source(
+    *,
+    dom_messages: list[dict[str, str]],
+    structured_messages: list[dict[str, str]],
+) -> tuple[list[dict[str, str]], str]:
+    """Prefer DOM Markdown when message coverage is comparable; otherwise use larger source."""
+    dom_count = len(dom_messages or [])
+    structured_count = len(structured_messages or [])
+
+    if dom_count <= 0 and structured_count <= 0:
+        return [], ""
+
+    if dom_count >= structured_count:
+        return dom_messages, "dom_markdown_codeframe"
+
+    if dom_count >= 2 and structured_count - dom_count <= 2:
+        return dom_messages, "dom_markdown_codeframe"
+
+    return structured_messages, "embedded_author_role"
+
+
+def _extract_body_text(page: Any) -> str:
+    try:
+        text = page.locator("body").inner_text(timeout=10000)
+    except Exception:
+        return ""
+
+    return clean_text(text)
+
+
+def _normalize_messages(raw_messages: Any) -> list[dict[str, str]]:
+    messages: list[dict[str, str]] = []
+
+    for item in raw_messages or []:
+        if not isinstance(item, dict):
+            continue
+
+        role = str(item.get("role", "") or "").strip().lower()
+        text = clean_text(str(item.get("text", "") or ""))
+
+        if role not in VALID_CHATGPT_ROLES:
+            continue
+
+        if not text:
+            continue
+
+        messages.append(
+            {
+                "role": role,
+                "text": text,
+            }
+        )
+
+    return _dedupe_consecutive_messages(messages)
+
+
+def _dedupe_consecutive_messages(messages: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Remove only consecutive duplicates; repeated later turns remain valid."""
+    result: list[dict[str, str]] = []
+    previous_key: tuple[str, str] | None = None
+
+    for message in messages:
+        role = str(message.get("role", "") or "").strip().lower()
+        text = clean_text(str(message.get("text", "") or ""))
+
+        if role not in VALID_CHATGPT_ROLES or not text:
+            continue
+
+        key = (role, text)
+        if key == previous_key:
+            continue
+
+        result.append({"role": role, "text": text})
+        previous_key = key
+
+    return result
+
+
+def clean_text(text: str) -> str:
+    """Normalize imported text and remove common shared-page UI noise."""
+    value = str(text or "")
+    value = value.replace("\r\n", "\n").replace("\r", "\n")
+
+    noise_lines = {
+        "copy",
+        "copy code",
+        "copied",
+        "edit",
+        "share",
+        "regenerate",
+        "open in app",
+        "chatgpt can make mistakes. check important info.",
+    }
+
+    cleaned_lines: list[str] = []
+    for line in value.split("\n"):
+        stripped = line.strip()
+        if stripped.lower() in noise_lines:
+            continue
+        cleaned_lines.append(line)
+
+    value = "\n".join(cleaned_lines)
+    value = re.sub(r"[ \t]+\n", "\n", value)
+    value = re.sub(r"\n[ \t]+", "\n", value)
+    value = re.sub(r"\n{3,}", "\n\n", value)
+    return value.strip()
 ```
 
 ### ~\ragstream\memory\ingestion\memory_chunker.py

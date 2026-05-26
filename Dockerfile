@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 3. Copy requirements and install Python deps
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN python -m playwright install --with-deps chromium
 
 # 4. Copy the whole project into the image
 COPY . /app
