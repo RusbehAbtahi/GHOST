@@ -1,8 +1,4 @@
-Yes — this is the right document. I would name it:
 
-`Architecture_Memory.md`
-
-````markdown
 # Architecture_Memory.md
 
 Last sync: 30.04.2026
@@ -662,5 +658,3 @@ MemoryRecord
   remains the permanent source of truth.
 ```
 
-```
-```
