@@ -31,26 +31,63 @@ from ragstream.app.ui_actions import (
     run_next_prompt_builder_step,
 )
 
-TAG_COLORS: dict[str, str] = {
-    "Gold": "#D4AF37",
-    "Green": "#00A86B",
-    "Black": "#111111",
+FONT_FAMILY = (
+    '"Manrope", -apple-system, BlinkMacSystemFont, '
+    '"Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+)
+
+COLOR_PRIMARY = "#004643"
+COLOR_SECONDARY = "#afcecc"
+COLOR_SURFACE = "#edeae3"
+COLOR_FIELD_BACKGROUND = "#DCE7EE"
+COLOR_SURFACE_MUTED = "#f7f6f1"
+COLOR_INPUT_BACKGROUND = COLOR_FIELD_BACKGROUND
+COLOR_PANEL = "#ffffff"
+COLOR_BORDER = "#000000"
+COLOR_TEXT = "#000000"
+COLOR_TEXT_MUTED = "#6B7280"
+COLOR_TEXT_SOFT = "#6B7280"
+COLOR_TEXT_INVERSE = "#ffffff"
+COLOR_BUTTON_MAIN = "#edeae3"
+COLOR_BUTTON_ACTION = "#004643"
+COLOR_BUTTON_MEMORY = "#afcecc"
+COLOR_PRIORITY_BORDER = "#004643"
+COLOR_EXCLUDED_TEXT = "#8A8F93"
+COLOR_RUNTIME_LOG_BG = "#afcecc"
+COLOR_RUNTIME_LOG_BORDER = "#004643"
+COLOR_FLASH_BG = "#FFE5E5"
+COLOR_FLASH_BORDER = "#FF9A9A"
+
+TAG_DISPLAY_LABELS: dict[str, str] = {
+    "Green": "Standard",
+    "Gold": "Priority",
+    "Black": "Excluded",
 }
 
-MEMORY_HEIGHT = 650
+BLACKBOARD_ACTOR_OPTIONS: list[str] = [
+    "Programmer — Claude Sonnet 4.5",
+    "Watchdog — Claude Sonnet 4.5",
+    "Auditor — ChatGPT 5.5",
+    "Documentation Lead — ChatGPT 5.5",
+]
+
+MEMORY_HEIGHT = 1000
+MEMORY_PANEL_HEIGHT = 1000
+
+
 PROMPT_HEIGHT = 180
 ENGINEERED_PROMPT_EXPANDED_HEIGHT = 1200
 MANUAL_MEMORY_FEED_HEIGHT = 68
 RUNTIME_LOG_HEIGHT = 150
 EMBEDDED_FILES_HEIGHT = 120
 
-MAIN_COLUMNS = [4, 0.25, 4]
+MAIN_COLUMNS = [4.2, 0.25, 4.8]
 ACTION_ROW_COLUMNS = [1.15, 3.35]
 MODEL_ROW_COLUMNS = [1.15, 1.1, 2.25]
 ENGINEERED_PROMPT_COLUMNS = [20, 1.8]
 ADVANCED_TOPK_COLUMNS = [0.9, 3.1]
-MEMORY_RECORD_COLUMNS = [8.8, 1.0]
-MEMORY_TAG_COLUMNS = [0.22, 1.0]
+MEMORY_META_AREA_COLUMNS = [0.95, 0.05]
+MEMORY_META_ROW_COLUMNS = [1.00, 0.80, 2.0, 0.62, 1.18]
 PROJECT_HALF_COLUMNS = [1, 1]
 
 
@@ -91,207 +128,313 @@ def _model_options() -> list[str]:
     ]
 
 
+def _theme_css() -> str:
+    return f"""
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+        html,
+        body,
+        .stApp,
+        button,
+        input,
+        textarea,
+        select,
+        [class*="css"] {{
+            font-family: {FONT_FAMILY} !important;
+        }}
+
+        .stApp {{
+            background-color: {COLOR_PANEL};
+            color: {COLOR_TEXT};
+        }}
+    """
+
+
 def _base_page_css() -> str:
-    return """
+    return f"""
         header,
         header[data-testid="stHeader"],
-        div[data-testid="stHeader"] {
+        div[data-testid="stHeader"] {{
             display: none !important;
             height: 0 !important;
-        }
+        }}
 
-        /* Prevent accidental sidebar collapse */
         button[aria-label="Close sidebar"],
         button[title="Close sidebar"],
-        [data-testid="stSidebarCollapseButton"] {
+        [data-testid="stSidebarCollapseButton"] {{
             display: none !important;
-        }
+        }}
 
-        .block-container {
+        .block-container {{
             padding-top: 0.65rem;
             padding-bottom: 0rem;
             padding-left: 0.65rem;
             padding-right: 0.65rem;
-        }
+        }}
 
-        div[data-testid="stHorizontalBlock"] {
+        div[data-testid="stHorizontalBlock"] {{
             gap: 0.45rem !important;
-        }
+        }}
 
-        div[data-baseweb="select"] > div {
+        div[data-baseweb="select"] > div {{
             min-height: 34px;
-        }
+        }}
+
+        textarea,
+        div[data-baseweb="select"] > div,
+        div[data-baseweb="input"] {{
+            background-color: {COLOR_INPUT_BACKGROUND} !important;
+            border-color: {COLOR_BORDER}33 !important;
+            box-shadow: none !important;
+        }}
+
+        textarea:focus,
+        div[data-baseweb="select"] > div:focus-within,
+        div[data-baseweb="input"]:focus-within {{
+            background-color: {COLOR_INPUT_BACKGROUND} !important;
+            border-color: {COLOR_PRIMARY} !important;
+            box-shadow: 0 0 0 1px {COLOR_SECONDARY} !important;
+        }}
+
+        textarea:disabled,
+        div[data-baseweb="input"][aria-disabled="true"] {{
+            background-color: {COLOR_INPUT_BACKGROUND} !important;
+            color: {COLOR_TEXT} !important;
+            opacity: 1 !important;
+        }}
     """
 
 
 def _product_identity_css() -> str:
-    return """
-        .ghost-product-title {
+    return f"""
+        .ghost-product-title {{
             font-size: 2.0rem;
-            font-weight: 520;
-            font-style: italic;
+            font-weight: 650;
             letter-spacing: -0.025em;
-            color: #7A1E1E;
+            color: {COLOR_PRIMARY};
             line-height: 1.15;
             margin: 0.10rem 0 0.18rem 0;
-        }
+        }}
 
-        .ghost-product-title .brand-initial {
+        .ghost-product-title .brand-initial {{
             font-weight: 800;
-        }
+        }}
 
-        .ghost-product-subtitle {
+        .ghost-product-subtitle {{
             font-size: 0.88rem;
-            color: #6B7280;
+            color: {COLOR_TEXT_MUTED};
             line-height: 1.25;
             margin-bottom: 0.55rem;
-        }
+        }}
     """
 
 
 def _title_css() -> str:
-    return """
+    return f"""
         .field-title,
         .panel-title,
-        .memory-title {
+        .memory-title {{
             font-size: 1.08rem;
-            font-weight: 600;
+            font-weight: 700;
             line-height: 1.2;
             margin-bottom: 0.30rem;
-            color: #1F2937;
+            color: {COLOR_TEXT};
             letter-spacing: -0.010em;
-        }
+        }}
 
-        .memory-title {
+        .memory-title {{
             font-size: 1.12rem;
             margin-bottom: 0.08rem;
-        }
+        }}
     """
 
 
 def _memory_css() -> str:
-    return """
-        .memory-box {
+    return f"""
+        .memory-content-shell {{
+            border-radius: 0.55rem;
+            padding: 0.10rem 0.10rem 0.20rem 0.10rem;
+            margin-bottom: 0.40rem;
+        }}
+
+        .memory-content-shell.priority {{
+            border: 2px solid {COLOR_PRIORITY_BORDER};
+            padding: 0.55rem 0.60rem 0.65rem 0.60rem;
+            background-color: {COLOR_PANEL};
+        }}
+
+        .memory-content-shell.excluded {{
+            opacity: 0.68;
+        }}
+
+        .memory-request-box {{
+            border: none;
             border-radius: 0.45rem;
-            padding: 0.55rem 0.70rem;
-            border: 1px solid #d8d8d8;
-            font-size: 1.02rem;
-            line-height: 1.38;
+            padding: 0.35rem 0.25rem 0.45rem 0.25rem;
+            background-color: {COLOR_PANEL};
+            font-size: 1.00rem;
+            line-height: 1.36;
             white-space: normal;
             word-break: break-word;
-        }
+        }}
 
-        .memory-input-box {
-            background-color: #ffffff;
-        }
+        .memory-response-box {{
+            border-radius: 0.45rem;
+            padding: 0.55rem 0.70rem;
+            border: 1.5px solid {COLOR_BORDER};
+            background-color: {COLOR_BUTTON_MAIN};
+            font-size: 1.00rem;
+            line-height: 1.36;
+            white-space: normal;
+            word-break: break-word;
+        }}
 
-        .memory-output-box {
-            background-color: #f3f4f6;
-        }
-
-        .memory-label {
-            font-size: 0.78rem;
-            font-weight: 650;
+        .memory-label {{
+            font-size: 0.92rem;
+            font-weight: 800;
             margin-bottom: 0.25rem;
-            color: #4b5563;
+            color: {COLOR_PRIMARY};
             letter-spacing: 0.02em;
-        }
+        }}
 
-        .memory-plain-text {
+        .memory-content-shell.priority .memory-label {{
+            font-size: 0.96rem;
+            font-weight: 850;
+        }}
+
+        .memory-content-shell.excluded .memory-label,
+        .memory-content-shell.excluded .memory-plain-text {{
+            color: {COLOR_EXCLUDED_TEXT};
+        }}
+
+        .memory-plain-text {{
             white-space: pre-wrap;
-            font-size: 1.02rem;
-            line-height: 1.38;
+            font-size: 1.00rem;
+            line-height: 1.36;
             margin: 0;
             font-family: inherit;
-        }
+            color: {COLOR_TEXT};
+        }}
 
-        .memory-tag-indicator {
+        .memory-meta-label {{
             display: flex;
             align-items: center;
-            gap: 0.35rem;
-            margin-bottom: 0.25rem;
-            min-height: 24px;
-        }
-
-        .memory-tag-square {
-            width: 18px;
-            height: 18px;
-            border-radius: 0.25rem;
-            border: 1px solid rgba(0, 0, 0, 0.25);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
-            flex: 0 0 auto;
-        }
+            justify-content: flex-end;
+            min-height: 34px;
+            padding-right: 0.12rem;
+            font-size: 0.78rem;
+            font-weight: 750;
+            color: {COLOR_TEXT};
+            white-space: nowrap;
+        }}
     """
 
 
 def _button_css() -> str:
-    return """
-div[data-testid="stButton"] > button[kind="primary"] {
-    background-color: #22B14C !important;
-    border-color: #22B14C !important;
-    color: white !important;
-    font-weight: 800 !important;
-}
+    return f"""
+        div[data-testid="stButton"] > button {{
+            border-radius: 0.35rem !important;
+            border: 1.5px solid {COLOR_BORDER} !important;
+            font-weight: 700 !important;
+        }}
 
-div[data-testid="stButton"] > button[kind="primary"]:hover,
-div[data-testid="stButton"] > button[kind="primary"]:focus {
-    background-color: #22B14C !important;
-    border-color: #22B14C !important;
-    color: white !important;
-}
+        div[data-testid="stButton"] > button p {{
+            font-weight: 700 !important;
+        }}
 
-        div[data-testid="stButton"] > button[kind="primary"] p {
-            color: white !important;
+        div[data-testid="stButton"] > button[kind="primary"] {{
+            background-color: {COLOR_BUTTON_ACTION} !important;
+            border-color: {COLOR_BORDER} !important;
+            color: {COLOR_TEXT_INVERSE} !important;
             font-weight: 800 !important;
-        }
+        }}
 
-        /* Prompt Builder intentionally uses the normal Streamlit button style. */
+        div[data-testid="stButton"] > button[kind="primary"] p,
+        .st-key-btn_llm_call button p {{
+            color: {COLOR_TEXT_INVERSE} !important;
+            font-weight: 800 !important;
+        }}
 
-        .st-key-btn_feed_memory_manually button {
-            background-color: #00A2E8 !important;
-            border-color: #00A2E8 !important;
-            color: white !important;
-            font-weight: 650 !important;
-        }
+        .st-key-btn_builder button {{
+            background-color: {COLOR_BUTTON_MAIN} !important;
+            border-color: {COLOR_BORDER} !important;
+            color: {COLOR_TEXT} !important;
+            font-weight: 750 !important;
+        }}
+
+        .st-key-btn_builder button:hover,
+        .st-key-btn_builder button:focus {{
+            background-color: {COLOR_BUTTON_MAIN} !important;
+            border-color: {COLOR_BORDER} !important;
+            color: {COLOR_TEXT} !important;
+        }}
+
+        .st-key-btn_builder button p {{
+            color: {COLOR_TEXT} !important;
+            font-weight: 750 !important;
+        }}
+
+        .st-key-btn_llm_call button {{
+            background-color: {COLOR_BUTTON_ACTION} !important;
+            border-color: {COLOR_BORDER} !important;
+            color: {COLOR_TEXT_INVERSE} !important;
+            font-weight: 800 !important;
+        }}
+
+        .st-key-btn_llm_call button:hover,
+        .st-key-btn_llm_call button:focus {{
+            background-color: {COLOR_BUTTON_ACTION} !important;
+            border-color: {COLOR_BORDER} !important;
+            color: {COLOR_TEXT_INVERSE} !important;
+        }}
+
+        .st-key-btn_feed_memory_manually button {{
+            background-color: {COLOR_BUTTON_MEMORY} !important;
+            border-color: {COLOR_BORDER} !important;
+            color: {COLOR_TEXT} !important;
+            font-weight: 750 !important;
+        }}
 
         .st-key-btn_feed_memory_manually button:hover,
-        .st-key-btn_feed_memory_manually button:focus {
-            background-color: #00A2E8 !important;
-            border-color: #00A2E8 !important;
-            color: white !important;
-        }
+        .st-key-btn_feed_memory_manually button:focus {{
+            background-color: {COLOR_BUTTON_MEMORY} !important;
+            border-color: {COLOR_BORDER} !important;
+            color: {COLOR_TEXT} !important;
+        }}
 
-        .st-key-btn_feed_memory_manually button p {
-            color: white !important;
-            font-weight: 650 !important;
-        }
+        .st-key-btn_feed_memory_manually button p {{
+            color: {COLOR_TEXT} !important;
+            font-weight: 750 !important;
+        }}
     """
 
 
 def _form_field_css() -> str:
-    return """
-        textarea[aria-label="Manual Memory Feed (hidden)"] {
-            background-color: #EAF7FF !important;
-        }
+    return f"""
+        textarea[aria-label="Manual Memory Feed (hidden)"] {{
+            background-color: {COLOR_INPUT_BACKGROUND} !important;
+        }}
 
-        div[data-testid="stTextInput"]:has(input[aria-label="Direct Recall Key"]) div[data-baseweb="input"] {
-            border: 2px solid #D11A2A !important;
+        div[data-testid="stTextInput"]:has(input[aria-label="Recall Key"]) div[data-baseweb="input"],
+        div[data-testid="stTextInput"]:has(input[aria-label="Direct Recall Key"]) div[data-baseweb="input"] {{
+            border: 1.5px solid {COLOR_BORDER} !important;
             border-radius: 0.45rem !important;
             box-shadow: none !important;
-        }
+        }}
 
-        div[data-testid="stTextInput"]:has(input[aria-label="Direct Recall Key"]) div[data-baseweb="input"]:focus-within {
-            border: 2px solid #D11A2A !important;
-            box-shadow: 0 0 0 1px rgba(209, 26, 42, 0.25) !important;
-        }
+        div[data-testid="stTextInput"]:has(input[aria-label="Recall Key"]) div[data-baseweb="input"]:focus-within,
+        div[data-testid="stTextInput"]:has(input[aria-label="Direct Recall Key"]) div[data-baseweb="input"]:focus-within {{
+            border: 1.5px solid {COLOR_PRIMARY} !important;
+            box-shadow: 0 0 0 1px {COLOR_SECONDARY} !important;
+        }}
     """
 
 
 def _runtime_log_css() -> str:
-    return """
-        .textforge-log-box {
-            background-color: #EAFBEA;
-            border: 1px solid #B7E4B7;
+    return f"""
+        .textforge-log-box {{
+            background-color: {COLOR_SECONDARY};
+            border: 1.5px solid {COLOR_RUNTIME_LOG_BORDER};
             border-radius: 0.45rem;
             padding: 0.55rem 0.70rem;
             min-height: 140px;
@@ -302,7 +445,8 @@ def _runtime_log_css() -> str:
             font-family: monospace;
             font-size: 0.88rem;
             line-height: 1.35;
-        }
+            color: {COLOR_TEXT};
+        }}
     """
 
 
@@ -310,6 +454,7 @@ def inject_base_css() -> None:
     """Global CSS for page spacing, product identity, panels, and buttons."""
     css = "\n".join(
         [
+            _theme_css(),
             _base_page_css(),
             _product_identity_css(),
             _title_css(),
@@ -327,40 +472,28 @@ def render_page() -> None:
     """
     MAIN page layout:
     - Product identity header
-    - Full-width Memory area
-    - LEFT: User Prompt + main actions
-    - RIGHT: Engineered Prompt + project/file context
+    - LEFT: prompt, actions, engineered prompt, status, log, project/files, advanced controls
+    - RIGHT: full-height Memory area
     """
+
+    # Advance the Prompt Builder state machine before rendering the page.
+    # This avoids interrupting a half-rendered Streamlit layout with st.rerun().
+    run_next_prompt_builder_step()
+
     render_product_identity_header()
-    render_memory_records(height=MEMORY_HEIGHT)
 
-    _vertical_gap("0.55rem")
+    col_left, spacer, col_memory = st.columns(MAIN_COLUMNS, gap="small")
 
-    col_user, spacer, col_engineered = st.columns(MAIN_COLUMNS, gap="small")
-
-    with col_user:
+    with col_left:
         render_user_prompt_panel()
         render_main_action_controls()
+        render_engineered_prompt_panel()
         render_pipeline_status()
 
         _vertical_gap("0.45rem")
         render_textforge_gui_log(height=RUNTIME_LOG_HEIGHT)
 
-        if st.session_state.get("show_advanced_controls", False):
-            _vertical_gap("0.55rem")
-            render_advanced_controls()
-
-        # Must run after status/log rendering, but before Engineered Prompt widget creation.
-        run_next_prompt_builder_step()
-
-    with spacer:
-        st.empty()
-
-    with col_engineered:
-        render_engineered_prompt_panel()
-
         _vertical_gap("0.55rem")
-
         ctrl: AppController = st.session_state.controller
         render_project_area(
             ctrl,
@@ -368,6 +501,16 @@ def render_page() -> None:
                 st.session_state.get("enable_file_ingestion_controls", False)
             ),
         )
+
+        if st.session_state.get("show_advanced_controls", False):
+            _vertical_gap("0.55rem")
+            render_advanced_controls()
+
+    with spacer:
+        st.empty()
+
+    with col_memory:
+        render_memory_records(height=MEMORY_PANEL_HEIGHT)
 
 
 def render_product_identity_header() -> None:
@@ -405,7 +548,7 @@ def render_user_prompt_panel() -> None:
 
 
 def render_engineered_prompt_panel() -> None:
-    """Right column: Engineered Prompt with compact/expanded display."""
+    """Engineered Prompt with compact/expanded display."""
     if "engineered_prompt_expanded" not in st.session_state:
         st.session_state["engineered_prompt_expanded"] = False
 
@@ -665,7 +808,7 @@ def _runtime_log_box_style(height: int) -> str:
     if flash_active:
         return (
             f"min-height:{height}px; max-height:{height}px;"
-            "background-color:#FFE5E5; border-color:#FF9A9A;"
+            f"background-color:{COLOR_FLASH_BG}; border-color:{COLOR_FLASH_BORDER};"
         )
 
     return f"min-height:{height}px; max-height:{height}px;"
@@ -706,7 +849,7 @@ def _render_memory_title(memory_manager: Any) -> None:
             </div>
             <div style="
                 font-size:0.66rem;
-                color:#6b7280;
+                color:{COLOR_TEXT_MUTED};
                 line-height:1.1;
                 margin-top:-0.02rem;
                 margin-bottom:0.30rem;
@@ -724,13 +867,18 @@ def _render_memory_title(memory_manager: Any) -> None:
     )
 
 
-def _memory_record_keys(record: Any) -> tuple[str, str, str, str]:
+def _memory_record_keys(record: Any) -> tuple[str, str, str, str, str]:
     return (
         f"memory_tag_{record.record_id}",
         f"memory_retrieval_source_mode_{record.record_id}",
         f"memory_user_keywords_{record.record_id}",
         f"memory_direct_recall_key_{record.record_id}",
+        f"memory_blackboard_actor_{record.record_id}",
     )
+
+
+def _tag_display_name(tag_value: str) -> str:
+    return TAG_DISPLAY_LABELS.get(str(tag_value), str(tag_value))
 
 
 def _ensure_memory_record_session_state(
@@ -740,6 +888,7 @@ def _ensure_memory_record_session_state(
     source_mode_key: str,
     keywords_key: str,
     direct_recall_key: str,
+    actor_key: str,
 ) -> list[str]:
     tag_options = list(memory_manager.tag_catalog)
     record_tag = record.tag if record.tag in tag_options else "Green"
@@ -749,6 +898,7 @@ def _ensure_memory_record_session_state(
     elif st.session_state[tag_key] not in tag_options:
         st.session_state[tag_key] = "Green"
 
+    # Kept internally for retrieval compatibility. It is no longer shown in the UI.
     if source_mode_key not in st.session_state:
         st.session_state[source_mode_key] = getattr(record, "retrieval_source_mode", "QA")
     elif st.session_state[source_mode_key] not in {"QA", "Q", "A"}:
@@ -760,11 +910,21 @@ def _ensure_memory_record_session_state(
     if direct_recall_key not in st.session_state:
         st.session_state[direct_recall_key] = getattr(record, "direct_recall_key", "")
 
+    if actor_key not in st.session_state:
+        st.session_state[actor_key] = getattr(
+            record,
+            "blackboard_actor",
+            BLACKBOARD_ACTOR_OPTIONS[0],
+        )
+
+    if st.session_state[actor_key] not in BLACKBOARD_ACTOR_OPTIONS:
+        st.session_state[actor_key] = BLACKBOARD_ACTOR_OPTIONS[0]
+
     return tag_options
 
 
 def _render_memory_record(memory_manager: Any, record: Any) -> None:
-    tag_key, source_mode_key, keywords_key, direct_recall_key = _memory_record_keys(record)
+    tag_key, source_mode_key, keywords_key, direct_recall_key, actor_key = _memory_record_keys(record)
 
     tag_options = _ensure_memory_record_session_state(
         memory_manager=memory_manager,
@@ -773,102 +933,102 @@ def _render_memory_record(memory_manager: Any, record: Any) -> None:
         source_mode_key=source_mode_key,
         keywords_key=keywords_key,
         direct_recall_key=direct_recall_key,
+        actor_key=actor_key,
     )
 
     selected_tag = st.session_state.get(tag_key, record.tag)
-    tag_color = TAG_COLORS.get(selected_tag, "#6B7280")
 
-    input_col, meta_col = st.columns(MEMORY_RECORD_COLUMNS, gap="small")
+    meta_left, meta_right = st.columns(MEMORY_META_AREA_COLUMNS, gap="small")
 
-    with input_col:
-        _render_memory_record_input(record)
-
-    with meta_col:
-        _render_memory_record_meta(
+    with meta_left:
+        _render_memory_record_meta_row(
             tag_key=tag_key,
             tag_options=tag_options,
-            tag_color=tag_color,
-            source_mode_key=source_mode_key,
+            actor_key=actor_key,
             direct_recall_key=direct_recall_key,
         )
 
-    _render_memory_record_output(record)
+    with meta_right:
+        st.empty()
 
+    _vertical_gap("0.18rem")
+    _render_memory_record_content(record, selected_tag=selected_tag)
     _vertical_gap("0.40rem")
 
 
-def _render_memory_record_input(record: Any) -> None:
-    input_html = html.escape(record.input_text).replace("\n", "<br>")
-
-    st.markdown(
-        f"""
-        <div class="memory-box memory-input-box">
-            <div class="memory-label">INPUT</div>
-            <div class="memory-plain-text">{input_html}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def _render_memory_record_meta(
+def _render_memory_record_meta_row(
     tag_key: str,
     tag_options: list[str],
-    tag_color: str,
-    source_mode_key: str,
+    actor_key: str,
     direct_recall_key: str,
 ) -> None:
-    tag_square_col, tag_select_col = st.columns(MEMORY_TAG_COLUMNS, gap="small")
+    tag_col, actor_label_col, actor_col, recall_label_col, recall_col = st.columns(
+        MEMORY_META_ROW_COLUMNS,
+        gap="small",
+    )
 
-    with tag_square_col:
-        st.markdown(
-            f"""
-            <div class="memory-tag-indicator">
-                <span class="memory-tag-square" style="background-color:{tag_color};"></span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with tag_select_col:
+    with tag_col:
         st.selectbox(
             "Tag",
             options=tag_options,
             key=tag_key,
+            format_func=_tag_display_name,
             label_visibility="collapsed",
         )
 
-    st.selectbox(
-        "Retrieval Source Mode",
-        options=["QA", "Q", "A"],
-        key=source_mode_key,
-        format_func={
-            "QA": "Retrieve Q+A",
-            "Q": "Retrieve only Q",
-            "A": "Retrieve only A",
-        }.get,
-        label_visibility="collapsed",
+    with actor_label_col:
+        st.markdown(
+            '<div class="memory-meta-label">Blackboard Actor</div>',
+            unsafe_allow_html=True,
+        )
+
+    with actor_col:
+        st.selectbox(
+            "Blackboard Actor",
+            options=BLACKBOARD_ACTOR_OPTIONS,
+            key=actor_key,
+            label_visibility="collapsed",
+        )
+
+    with recall_label_col:
+        st.markdown(
+            '<div class="memory-meta-label">Recall Key</div>',
+            unsafe_allow_html=True,
+        )
+
+    with recall_col:
+        st.text_input(
+            "Recall Key",
+            key=direct_recall_key,
+            placeholder="Recall Key",
+            label_visibility="collapsed",
+        )
+
+
+def _render_memory_record_content(record: Any, selected_tag: str) -> None:
+    state_class = "standard"
+    if selected_tag == "Gold":
+        state_class = "priority"
+    elif selected_tag == "Black":
+        state_class = "excluded"
+
+    request_html = html.escape(str(getattr(record, "input_text", "") or "")).replace("\n", "<br>")
+    response_html = html.escape(str(getattr(record, "output_text", "") or "")).replace("\n", "<br>")
+
+    memory_html = (
+        f'<div class="memory-content-shell {state_class}">'
+        f'<div class="memory-request-box">'
+        f'<div class="memory-label">REQUEST</div>'
+        f'<div class="memory-plain-text">{request_html}</div>'
+        f'</div>'
+        f'<div class="memory-response-box">'
+        f'<div class="memory-label">RESPONSE</div>'
+        f'<div class="memory-plain-text">{response_html}</div>'
+        f'</div>'
+        f'</div>'
     )
 
-    st.text_input(
-        "Direct Recall Key",
-        key=direct_recall_key,
-        placeholder="Direct Recall Key",
-    )
-
-
-def _render_memory_record_output(record: Any) -> None:
-    output_html = html.escape(record.output_text).replace("\n", "<br>")
-
-    st.markdown(
-        f"""
-        <div class="memory-box memory-output-box">
-            <div class="memory-label">OUTPUT</div>
-            <div class="memory-plain-text">{output_html}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(memory_html, unsafe_allow_html=True)
 
 
 def render_project_area(ctrl: AppController, show_ingestion_controls: bool = False) -> None:

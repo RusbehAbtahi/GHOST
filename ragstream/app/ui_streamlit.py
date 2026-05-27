@@ -18,7 +18,17 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from ragstream.app.controller import AppController
-from ragstream.app.ui_layout import inject_base_css, render_page
+from ragstream.app.ui_layout import (
+    COLOR_BORDER,
+    COLOR_PANEL,
+    COLOR_PRIMARY,
+    COLOR_TEXT,
+    COLOR_TEXT_INVERSE,
+    COLOR_TEXT_MUTED,
+    FONT_FAMILY,
+    inject_base_css,
+    render_page,
+)
 from ragstream.app.ui_files import render_files_tab
 from ragstream.app.ui_metrics import render_metrics_tab
 from ragstream.app.ui_settings import render_settings_tab
@@ -293,7 +303,7 @@ def _render_sidebar_flowchart() -> None:
         )
 
         if index < len(steps) - 1:
-            items.append('<div class="flow-arrow">↓</div>')
+            items.append('<div class="flow-arrow" aria-hidden="true"></div>')
 
     flow_html = f"""
     <!doctype html>
@@ -305,19 +315,12 @@ def _render_sidebar_flowchart() -> None:
                 margin: 0;
                 padding: 0;
                 background: transparent;
-                font-family:
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    Roboto,
-                    Helvetica,
-                    Arial,
-                    sans-serif;
+                font-family: {FONT_FAMILY};
             }}
 
             .flow-shell {{
                 box-sizing: border-box;
-                width: 61.8%;
+                width: 64%;
                 margin: 18px auto 0 auto;
                 padding: 0;
             }}
@@ -326,30 +329,53 @@ def _render_sidebar_flowchart() -> None:
                 box-sizing: border-box;
                 width: 100%;
                 min-height: 32px;
-                border: 1.3px solid #111111;
-                border-radius: 2px;
-                background: transparent;
-                color: #111111;
+                border: 2px solid {COLOR_BORDER};
+                border-radius: 1px;
+                background: {COLOR_PANEL};
+                color: {COLOR_TEXT};
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 text-align: center;
                 padding: 3px 5px;
-                font-size: 14px;
-                font-weight: 400;
+                font-size: 13px;
+                font-weight: 750;
                 line-height: 1.12;
             }}
 
             .flow-box-active {{
-                background: #FFF176;
+                background: {COLOR_PRIMARY};
+                color: {COLOR_TEXT_INVERSE};
             }}
 
             .flow-arrow {{
-                text-align: center;
-                font-size: 18px;
-                line-height: 1.05;
-                color: #111111;
-                margin: 2px 0;
+                height: 23px;
+                position: relative;
+                margin: 0;
+            }}
+
+            .flow-arrow::before {{
+                content: "";
+                position: absolute;
+                left: 50%;
+                top: 0;
+                width: 2px;
+                height: 17px;
+                background: {COLOR_PRIMARY};
+                transform: translateX(-50%);
+            }}
+
+            .flow-arrow::after {{
+                content: "";
+                position: absolute;
+                left: 50%;
+                top: 15px;
+                width: 0;
+                height: 0;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 7px solid {COLOR_PRIMARY};
+                transform: translateX(-50%);
             }}
         </style>
     </head>
@@ -367,7 +393,6 @@ def _render_sidebar_flowchart() -> None:
         scrolling=False,
     )
 
-
 def render_sidebar_navigation() -> str:
     _init_page_state()
 
@@ -376,7 +401,7 @@ def render_sidebar_navigation() -> str:
 
     with st.sidebar:
         st.markdown(
-            """
+            f"""
             <div style="
                 padding:0.45rem 0.25rem 0.90rem 0.25rem;
             ">
@@ -384,7 +409,7 @@ def render_sidebar_navigation() -> str:
                     font-size:1.55rem;
                     font-weight:800;
                     letter-spacing:0.045em;
-                    color:#111827;
+                    color:{COLOR_PRIMARY};
                     line-height:1.05;
                 ">
                     GHOST
@@ -392,7 +417,7 @@ def render_sidebar_navigation() -> str:
                 <div style="
                     margin-top:0.32rem;
                     font-size:0.88rem;
-                    color:#4B5563;
+                    color:{COLOR_TEXT_MUTED};
                     line-height:1.32;
                 ">
                     GenAI Hybrid Orchestrator<br>
