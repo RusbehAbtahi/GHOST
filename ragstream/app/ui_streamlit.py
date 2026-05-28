@@ -13,15 +13,15 @@ import threading
 
 from pathlib import Path
 from typing import Any
-
+import textwrap
 import streamlit as st
-import streamlit.components.v1 as components
 
 from ragstream.app.controller import AppController
 from ragstream.app.ui_layout import (
     COLOR_BORDER,
     COLOR_PANEL,
     COLOR_PRIMARY,
+    COLOR_SECONDARY,
     COLOR_TEXT,
     COLOR_TEXT_INVERSE,
     COLOR_TEXT_MUTED,
@@ -275,7 +275,13 @@ def _init_page_state() -> None:
         st.session_state["active_sidebar_page"] = "Main"
 
 
-def _render_sidebar_flowchart() -> None:
+def _render_sidebar_flowchart(flowchart_slot: Any | None = None) -> None:
+    """
+    Render the sidebar pipeline flowchart into a stable placeholder.
+
+    The placeholder is created during sidebar rendering and can later be updated
+    by the Prompt Builder runner while the same script run is still active.
+    """
     steps = _sidebar_pipeline_steps()
 
     try:
@@ -283,16 +289,22 @@ def _render_sidebar_flowchart() -> None:
     except Exception:
         active_step = 0
 
-    if active_step < 0:
-        active_step = 0
+    try:
+        completed_step = int(st.session_state.get("sidebar_pipeline_completed_step", -1) or -1)
+    except Exception:
+        completed_step = -1
 
-    if active_step >= len(steps):
-        active_step = len(steps) - 1
+    active_step = max(0, min(active_step, len(steps) - 1))
+    completed_step = max(-1, min(completed_step, len(steps) - 1))
 
     items: list[str] = []
 
     for index, label in enumerate(steps):
-        state_class = " flow-box-active" if index == active_step else ""
+        state_class = ""
+        if index == active_step:
+            state_class = " flow-box-active"
+        elif index <= completed_step:
+            state_class = " flow-box-done"
 
         items.append(
             f"""
@@ -306,98 +318,95 @@ def _render_sidebar_flowchart() -> None:
             items.append('<div class="flow-arrow" aria-hidden="true"></div>')
 
     flow_html = f"""
-    <!doctype html>
-    <html>
-    <head>
-        <meta charset="utf-8" />
-        <style>
-            html, body {{
-                margin: 0;
-                padding: 0;
-                background: transparent;
-                font-family: {FONT_FAMILY};
-            }}
+    <style>
+        .ghost-sidebar-flow-shell {{
+            box-sizing: border-box;
+            width: 64%;
+            margin: 18px auto 0 auto;
+            padding: 0;
+        }}
 
-            .flow-shell {{
-                box-sizing: border-box;
-                width: 64%;
-                margin: 18px auto 0 auto;
-                padding: 0;
-            }}
+        .ghost-sidebar-flow-shell .flow-box {{
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 32px;
+            border: 2px solid {COLOR_BORDER};
+            border-radius: 1px;
+            background: {COLOR_PANEL};
+            color: {COLOR_TEXT};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 3px 5px;
+            font-size: 13px;
+            font-weight: 750;
+            line-height: 1.12;
+        }}
 
-            .flow-box {{
-                box-sizing: border-box;
-                width: 100%;
-                min-height: 32px;
-                border: 2px solid {COLOR_BORDER};
-                border-radius: 1px;
-                background: {COLOR_PANEL};
-                color: {COLOR_TEXT};
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                padding: 3px 5px;
-                font-size: 13px;
-                font-weight: 750;
-                line-height: 1.12;
-            }}
+        .ghost-sidebar-flow-shell .flow-box-active {{
+            background: {COLOR_PRIMARY};
+            color: {COLOR_TEXT_INVERSE};
+        }}
 
-            .flow-box-active {{
-                background: {COLOR_PRIMARY};
-                color: {COLOR_TEXT_INVERSE};
-            }}
+        .ghost-sidebar-flow-shell .flow-box-done {{
+            background: {COLOR_SECONDARY};
+            color: {COLOR_TEXT};
+        }}
 
-            .flow-arrow {{
-                height: 23px;
-                position: relative;
-                margin: 0;
-            }}
+        .ghost-sidebar-flow-shell .flow-arrow {{
+            height: 23px;
+            position: relative;
+            margin: 0;
+        }}
 
-            .flow-arrow::before {{
-                content: "";
-                position: absolute;
-                left: 50%;
-                top: 0;
-                width: 2px;
-                height: 17px;
-                background: {COLOR_PRIMARY};
-                transform: translateX(-50%);
-            }}
+        .ghost-sidebar-flow-shell .flow-arrow::before {{
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 2px;
+            height: 17px;
+            background: {COLOR_PRIMARY};
+            transform: translateX(-50%);
+        }}
 
-            .flow-arrow::after {{
-                content: "";
-                position: absolute;
-                left: 50%;
-                top: 15px;
-                width: 0;
-                height: 0;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 7px solid {COLOR_PRIMARY};
-                transform: translateX(-50%);
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="flow-shell">
-            {"".join(items)}
-        </div>
-    </body>
-    </html>
+        .ghost-sidebar-flow-shell .flow-arrow::after {{
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 15px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 7px solid {COLOR_PRIMARY};
+            transform: translateX(-50%);
+        }}
+    </style>
+
+    <div class="ghost-sidebar-flow-shell">
+        {"".join(items)}
+    </div>
     """
 
-    components.html(
-        flow_html,
-        height=500,
-        scrolling=False,
-    )
+    flow_html = textwrap.dedent(flow_html).strip()
 
-def render_sidebar_navigation() -> str:
+    if flowchart_slot is None:
+        st.html(flow_html, width="stretch")
+    else:
+        flowchart_slot.empty()
+        with flowchart_slot.container():
+            st.html(flow_html, width="stretch")
+
+
+def render_sidebar_navigation() -> tuple[str, Any | None]:
     _init_page_state()
 
     options = _page_options()
     active_page = st.session_state["active_sidebar_page"]
+
+    sidebar_flowchart_slot: Any | None = None
 
     with st.sidebar:
         st.markdown(
@@ -454,7 +463,8 @@ def render_sidebar_navigation() -> str:
                 key="show_advanced_controls",
             )
 
-            _render_sidebar_flowchart()
+            sidebar_flowchart_slot = st.empty()
+            _render_sidebar_flowchart(sidebar_flowchart_slot)
 
         elif selected_page == "Files":
             st.caption("Memory files and imports")
@@ -465,12 +475,19 @@ def render_sidebar_navigation() -> str:
         elif selected_page == "General Settings":
             st.caption("Runtime configuration")
 
-    return selected_page
+    return selected_page, sidebar_flowchart_slot
 
 
-def render_active_page(page_name: str) -> None:
+def render_active_page(
+    page_name: str,
+    *,
+    sidebar_flowchart_slot: Any | None = None,
+) -> None:
     if page_name == "Main":
-        render_page()
+        render_page(
+            sidebar_flowchart_slot=sidebar_flowchart_slot,
+            render_sidebar_flowchart=_render_sidebar_flowchart,
+        )
     elif page_name == "Files":
         render_files_tab()
     elif page_name == "Hard Rules":
@@ -481,7 +498,10 @@ def render_active_page(page_name: str) -> None:
     elif page_name == "General Settings":
         render_settings_tab()
     else:
-        render_page()
+        render_page(
+            sidebar_flowchart_slot=sidebar_flowchart_slot,
+            render_sidebar_flowchart=_render_sidebar_flowchart,
+        )
 
 
 def main() -> None:
@@ -495,8 +515,11 @@ def main() -> None:
 
     init_session_state()
 
-    selected_page = render_sidebar_navigation()
-    render_active_page(selected_page)
+    selected_page, sidebar_flowchart_slot = render_sidebar_navigation()
+    render_active_page(
+        selected_page,
+        sidebar_flowchart_slot=sidebar_flowchart_slot,
+    )
 
 
 if __name__ == "__main__":

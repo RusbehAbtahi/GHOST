@@ -182,12 +182,12 @@ class A3NLIGate:
                 "CONFIDENTIAL",
             )
 
-        raw_result: Union[str, JsonDict] = self._llm_client.chat(
+        raw_result: Union[str, JsonDict] = self._llm_client.responses(
             messages=messages,
             model_name=agent.model_name,
-            temperature=agent.temperature,
             max_output_tokens=agent.max_output_tokens,
-            response_format=response_format,
+            reasoning_effort="minimal",
+            return_metadata=False,
             prompt_cache_key=f"{agent_id}_{version}",
         )
 

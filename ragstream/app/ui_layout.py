@@ -11,12 +11,13 @@ import html
 import re
 import time
 
-from typing import Any
+from typing import Any, Callable
 
 import streamlit as st
 
 from ragstream.app.controller import AppController
 from ragstream.app.ui_actions import (
+    LivePipelineSurfaces,
     do_a2_promptshaper,
     do_a3_nli_gate,
     do_a4_condenser,
@@ -27,8 +28,7 @@ from ragstream.app.ui_actions import (
     do_reranker,
     do_retrieval,
     do_user_prompt_changed,
-    request_prompt_builder_run,
-    run_next_prompt_builder_step,
+    run_prompt_builder_live,
 )
 
 FONT_FAMILY = (
@@ -73,7 +73,6 @@ BLACKBOARD_ACTOR_OPTIONS: list[str] = [
 
 MEMORY_HEIGHT = 1000
 MEMORY_PANEL_HEIGHT = 1000
-
 
 PROMPT_HEIGHT = 180
 ENGINEERED_PROMPT_EXPANDED_HEIGHT = 1200
@@ -468,7 +467,11 @@ def inject_base_css() -> None:
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 
-def render_page() -> None:
+def render_page(
+    *,
+    sidebar_flowchart_slot: Any | None = None,
+    render_sidebar_flowchart: Callable[[Any | None], None] | None = None,
+) -> None:
     """
     MAIN page layout:
     - Product identity header
@@ -476,23 +479,44 @@ def render_page() -> None:
     - RIGHT: full-height Memory area
     """
 
-    # Advance the Prompt Builder state machine before rendering the page.
-    # This avoids interrupting a half-rendered Streamlit layout with st.rerun().
-    run_next_prompt_builder_step()
-
     render_product_identity_header()
 
     col_left, spacer, col_memory = st.columns(MAIN_COLUMNS, gap="small")
 
     with col_left:
         render_user_prompt_panel()
-        render_main_action_controls()
-        render_engineered_prompt_panel()
-        render_pipeline_status()
+
+        builder_clicked = render_main_action_controls()
+
+        engineered_prompt_slot = st.empty()
+
+        progress_slot = st.empty()
+        status_slot = st.empty()
+        render_pipeline_status(
+            progress_slot=progress_slot,
+            status_slot=status_slot,
+        )
 
         _vertical_gap("0.45rem")
-        render_textforge_gui_log(height=RUNTIME_LOG_HEIGHT)
+        runtime_log_slot = st.empty()
+        render_textforge_gui_log(
+            height=RUNTIME_LOG_HEIGHT,
+            log_slot=runtime_log_slot,
+        )
 
+        if builder_clicked:
+            surfaces = LivePipelineSurfaces(
+                progress_slot=progress_slot,
+                status_slot=status_slot,
+                runtime_log_slot=runtime_log_slot,
+                sidebar_flowchart_slot=sidebar_flowchart_slot,
+                render_runtime_log=render_textforge_gui_log,
+                render_sidebar_flowchart=render_sidebar_flowchart,
+            )
+            run_prompt_builder_live(surfaces=surfaces)
+
+        with engineered_prompt_slot.container():
+            render_engineered_prompt_panel()
         _vertical_gap("0.55rem")
         ctrl: AppController = st.session_state.controller
         render_project_area(
@@ -579,27 +603,28 @@ def render_engineered_prompt_panel() -> None:
             st.rerun()
 
 
-def render_main_action_controls() -> None:
+def render_main_action_controls() -> bool:
     """Left column: main execution controls below User Prompt."""
     _vertical_gap("0.45rem")
 
     _render_llm_call_row()
-    _render_prompt_builder_row()
+    builder_clicked = _render_prompt_builder_row()
     _render_manual_memory_feed_row()
 
     _vertical_gap("0.45rem")
 
+    return bool(builder_clicked)
 
-def _render_prompt_builder_row() -> None:
+
+def _render_prompt_builder_row() -> bool:
     action_col, detail_col = st.columns(ACTION_ROW_COLUMNS, gap="small")
 
     with action_col:
-        if st.button(
+        builder_clicked = st.button(
             "Prompt Builder",
             key="btn_builder",
             use_container_width=True,
-        ):
-            request_prompt_builder_run()
+        )
 
     with detail_col:
         cb1, cb2, cb3 = st.columns(3, gap="small")
@@ -625,6 +650,8 @@ def _render_prompt_builder_row() -> None:
         st.session_state["use_a2_promptshaper_llm"] = bool(use_a2_promptshaper_llm)
         st.session_state["use_retrieval_splade"] = bool(use_retrieval_splade)
         st.session_state["use_reranking_colbert"] = bool(use_reranking_colbert)
+
+    return bool(builder_clicked)
 
 
 def _render_llm_call_row() -> None:
@@ -742,8 +769,12 @@ def _render_manual_pipeline_buttons() -> None:
         st.empty()
 
 
-def render_pipeline_status() -> Any:
-    """Render only the Prompt Builder pipeline progress bar."""
+def render_pipeline_status(
+    *,
+    progress_slot: Any | None = None,
+    status_slot: Any | None = None,
+) -> Any:
+    """Render the Prompt Builder progress bar in the original status area."""
     status = st.session_state.get("pipeline_status")
     if not isinstance(status, dict):
         status = {
@@ -758,27 +789,37 @@ def render_pipeline_status() -> Any:
     step_index = int(status.get("step_index", 0) or 0)
     total_steps = int(status.get("total_steps", 8) or 8)
     progress = float(status.get("progress", 0.0) or 0.0)
+    message = str(status.get("message", "") or "")
 
-    st.progress(
+    progress_target = progress_slot if progress_slot is not None else st
+    progress_target.progress(
         progress,
         text=f"{step_index}/{total_steps} — {stage_name}",
     )
 
+    if status_slot is not None:
+        if message and stage_name not in {"Idle", "Done"}:
+            status_slot.info(message)
+        else:
+            status_slot.empty()
 
-def render_textforge_gui_log(height: int = RUNTIME_LOG_HEIGHT) -> None:
-    """Render the TextForge GUI log box."""
-    st.markdown(
-        '<div class="field-title" style="font-size:1.05rem;">Runtime Log</div>',
-        unsafe_allow_html=True,
-    )
 
+def render_textforge_gui_log(
+    height: int = RUNTIME_LOG_HEIGHT,
+    *,
+    log_slot: Any | None = None,
+) -> None:
+    """Render the TextForge GUI log box in the original Runtime Log area."""
     log_html = _build_textforge_log_html()
     log_box_style = _runtime_log_box_style(height=height)
 
-    st.markdown(
-        f'<div class="textforge-log-box" style="{log_box_style}">{log_html}</div>',
-        unsafe_allow_html=True,
+    log_block = (
+        '<div class="field-title" style="font-size:1.05rem;">Runtime Log</div>'
+        f'<div class="textforge-log-box" style="{log_box_style}">{log_html}</div>'
     )
+
+    target = log_slot if log_slot is not None else st
+    target.markdown(log_block, unsafe_allow_html=True)
 
 
 def _build_textforge_log_html() -> str:
@@ -812,6 +853,7 @@ def _runtime_log_box_style(height: int) -> str:
         )
 
     return f"min-height:{height}px; max-height:{height}px;"
+
 
 
 def render_memory_records(height: int = MEMORY_HEIGHT) -> None:

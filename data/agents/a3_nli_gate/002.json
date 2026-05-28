@@ -16,7 +16,7 @@
 
   "llm_config": {
     "provider": "openai",
-    "model_name": "gpt-4o-mini",
+    "model_name": "gpt-5-mini",
     "temperature": 0.0,
     "max_tokens": 1024,
     "response_format": "json"
