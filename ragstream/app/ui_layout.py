@@ -7,9 +7,12 @@ Keep columns, containers, labels and visual order here.
 
 from __future__ import annotations
 
+import base64
 import html
 import re
 import time
+
+from pathlib import Path
 
 from typing import Any, Callable
 
@@ -88,6 +91,21 @@ ADVANCED_TOPK_COLUMNS = [0.9, 3.1]
 MEMORY_META_AREA_COLUMNS = [0.95, 0.05]
 MEMORY_META_ROW_COLUMNS = [1.00, 0.80, 2.0, 0.62, 1.18]
 PROJECT_HALF_COLUMNS = [1, 1]
+
+MAIN_WORKSPACE_TITLE = "Prompt Workspace"
+MAIN_WORKSPACE_SUBTITLE = (
+    "Prompt orchestration, memory retrieval, and agentic software-tooling workflow control."
+)
+
+SIDEBAR_PRODUCT_SUBTITLE = "GenAI Hybrid Orchestrator<br>for Software Tooling"
+
+GHOST_LOGO_CANDIDATE_PATHS = (
+    "ragstream/app/assets/Ghost-Logo-08.png",
+    "assets/Ghost-Logo-08.png",
+    "doc/04-GUI/Ghost-Logo-08.png",
+    "docs/04-GUI/Ghost-Logo-08.png",
+    "Ghost-Logo-08.png",
+)
 
 
 def _vertical_gap(height: str) -> None:
@@ -224,6 +242,39 @@ def _product_identity_css() -> str:
             color: {COLOR_TEXT_MUTED};
             line-height: 1.25;
             margin-bottom: 0.55rem;
+        }}
+    """
+
+
+def _sidebar_brand_css() -> str:
+    return f"""
+        .ghost-sidebar-brand {{
+            padding: 0.25rem 0.25rem 0.92rem 0.25rem;
+        }}
+
+        .ghost-sidebar-logo {{
+            width: 100%;
+            max-width: 210px;
+            margin: 0 0 0.52rem 0;
+            display: block;
+        }}
+
+        .ghost-sidebar-subtitle {{
+            font-size: 0.94rem;
+            font-weight: 650;
+            color: {COLOR_TEXT_MUTED};
+            line-height: 1.28;
+            letter-spacing: -0.010em;
+            margin-top: 0.05rem;
+        }}
+
+        .ghost-sidebar-fallback-title {{
+            font-size: 1.75rem;
+            font-weight: 850;
+            letter-spacing: 0.055em;
+            color: {COLOR_PRIMARY};
+            line-height: 1.0;
+            margin-bottom: 0.48rem;
         }}
     """
 
@@ -456,6 +507,7 @@ def inject_base_css() -> None:
             _theme_css(),
             _base_page_css(),
             _product_identity_css(),
+            _sidebar_brand_css(),
             _title_css(),
             _memory_css(),
             _button_css(),
@@ -465,6 +517,58 @@ def inject_base_css() -> None:
     )
 
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def _resolve_ghost_logo_path() -> Path | None:
+    root = _project_root()
+
+    for relative_path in GHOST_LOGO_CANDIDATE_PATHS:
+        candidate = root / relative_path
+        if candidate.exists() and candidate.is_file():
+            return candidate
+
+    return None
+
+
+def _image_file_to_data_uri(path: Path) -> str:
+    suffix = path.suffix.lower()
+
+    if suffix == ".svg":
+        mime_type = "image/svg+xml"
+    elif suffix in {".jpg", ".jpeg"}:
+        mime_type = "image/jpeg"
+    else:
+        mime_type = "image/png"
+
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{mime_type};base64,{encoded}"
+
+
+def render_sidebar_brand_identity() -> None:
+    """Render GHOST logo + compact product subtitle in the left sidebar."""
+    logo_path = _resolve_ghost_logo_path()
+
+    if logo_path is not None:
+        logo_src = _image_file_to_data_uri(logo_path)
+        logo_html = f'<img class="ghost-sidebar-logo" src="{logo_src}" alt="GHOST logo" />'
+    else:
+        logo_html = '<div class="ghost-sidebar-fallback-title">GHOST</div>'
+
+    st.markdown(
+        f"""
+        <div class="ghost-sidebar-brand">
+            {logo_html}
+            <div class="ghost-sidebar-subtitle">
+                {SIDEBAR_PRODUCT_SUBTITLE}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_page(
@@ -538,20 +642,14 @@ def render_page(
 
 
 def render_product_identity_header() -> None:
-    """Render the MAIN-page product identity."""
+    """Render the MAIN-page workspace identity."""
     st.markdown(
-        """
+        f"""
         <div class="ghost-product-title">
-            <span class="brand-initial">G</span>enAI
-            <span class="brand-initial">H</span>ybrid
-            <span class="brand-initial">O</span>rchestrator
-            for
-            <span class="brand-initial">S</span>oftware
-            <span class="brand-initial">T</span>ooling
-            <span style="font-style:normal; font-weight:700;">(GHOST)</span>
+            {html.escape(MAIN_WORKSPACE_TITLE)}
         </div>
         <div class="ghost-product-subtitle">
-            Professional prompt orchestration, memory, retrieval, and software-tooling workflow control.
+            {html.escape(MAIN_WORKSPACE_SUBTITLE)}
         </div>
         """,
         unsafe_allow_html=True,
@@ -631,19 +729,19 @@ def _render_prompt_builder_row() -> bool:
 
         with cb1:
             use_a2_promptshaper_llm = st.checkbox(
-                "use PromptShaper",
+                "Prompt shaping",
                 key="use_a2_promptshaper_llm_widget",
             )
 
         with cb2:
             use_retrieval_splade = st.checkbox(
-                "use Retrieval Splade",
+                "SPLADE retrieval",
                 key="use_retrieval_splade_widget",
             )
 
         with cb3:
             use_reranking_colbert = st.checkbox(
-                "use Reranking Colbert",
+                "ColBERT reranking",
                 key="use_reranking_colbert_widget",
             )
 

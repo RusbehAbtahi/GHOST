@@ -28,6 +28,7 @@ from ragstream.app.ui_layout import (
     FONT_FAMILY,
     inject_base_css,
     render_page,
+    render_sidebar_brand_identity,
 )
 from ragstream.app.ui_files import render_files_tab
 from ragstream.app.ui_metrics import render_metrics_tab
@@ -42,6 +43,19 @@ from ragstream.textforge.RagLog import LogALL as logger
 from ragstream.textforge.RagLog import LogDeveloper as _logger_dev
 
 DEV_LOG_ENABLED = False
+
+
+PAGE_DISPLAY_LABELS = {
+    "Main": "Workspace",
+    "Files": "Files",
+    "Hard Rules": "Hard Rules",
+    "Metrics": "Metrics",
+    "General Settings": "Settings",
+}
+
+
+def _page_display_label(page_name: str) -> str:
+    return PAGE_DISPLAY_LABELS.get(page_name, page_name)
 
 
 def logger_dev(*args, **kwargs):
@@ -409,39 +423,14 @@ def render_sidebar_navigation() -> tuple[str, Any | None]:
     sidebar_flowchart_slot: Any | None = None
 
     with st.sidebar:
-        st.markdown(
-            f"""
-            <div style="
-                padding:0.45rem 0.25rem 0.90rem 0.25rem;
-            ">
-                <div style="
-                    font-size:1.55rem;
-                    font-weight:800;
-                    letter-spacing:0.045em;
-                    color:{COLOR_PRIMARY};
-                    line-height:1.05;
-                ">
-                    GHOST
-                </div>
-                <div style="
-                    margin-top:0.32rem;
-                    font-size:0.88rem;
-                    color:{COLOR_TEXT_MUTED};
-                    line-height:1.32;
-                ">
-                    GenAI Hybrid Orchestrator<br>
-                    for Software Tooling
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        render_sidebar_brand_identity()
 
         selected_page = st.radio(
             "Navigation",
             options=options,
             index=options.index(active_page),
             key="sidebar_navigation_radio",
+            format_func=_page_display_label,
             label_visibility="collapsed",
         )
 
@@ -450,7 +439,7 @@ def render_sidebar_navigation() -> tuple[str, Any | None]:
         st.markdown("---")
 
         if selected_page == "Main":
-            st.caption("Main workflow")
+            st.caption("Workspace")
             st.caption("Memory · Prompt · Builder · LLM")
 
             st.checkbox(

@@ -19,9 +19,15 @@ GHOST is designed for engineering work where context quality, continuity, and co
 ## Visual Overview
 
 <p align="center">
-  <img src="doc/04-GUI/GHOST_MAIN.png" alt="GHOST main GUI">
+  <img src="doc/04-GUI/Ghost1.jpg" alt="GHOST prompt workspace with pipeline execution and runtime log">
   <br/>
-  <em>GHOST main workflow: prompt orchestration, memory handling, engineered prompt generation, model selection, and runtime logging.</em>
+  <em>GHOST main workspace: prompt input, model selection, Prompt Builder execution, live pipeline status, runtime logging, and project context.</em>
+</p>
+
+<p align="center">
+  <img src="doc/04-GUI/Ghost2.jpg" alt="GHOST engineered prompt and memory orchestration view">
+  <br/>
+  <em>GHOST orchestration view: engineered prompt generation, retrieved/memory context, blackboard actors, recall keys, and structured prompt assembly.</em>
 </p>
 
 ## What GHOST Enables
