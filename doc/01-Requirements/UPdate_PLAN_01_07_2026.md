@@ -1,4 +1,4 @@
-````markdown
+
 # GHOST / RAGstream StrictDoc Requirement Migration — Conversation Summary and Final Implementation Plan
 
 ## 1. Core Objective
