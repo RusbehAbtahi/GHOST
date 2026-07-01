@@ -86,6 +86,8 @@ class SuperPrompt:
             "role": None,
             "tone": "neutral",
             "depth": "high",
+            "confidence": None,
+            "evidence_policy": "normal",
             "context": None,
             "purpose": None,
             "format": None,

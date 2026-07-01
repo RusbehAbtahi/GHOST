@@ -232,6 +232,17 @@ class SuperPromptProjector:
         depth_value = (self.sp.body.get("depth") or "").strip()
         confidence_value = (self.sp.body.get("confidence") or "").strip()
 
+        extras = getattr(self.sp, "extras", {}) or {}
+        selected_ids = extras.get("a2_selected_ids", {}) or {}
+        if not isinstance(selected_ids, dict):
+            selected_ids = {}
+
+        evidence_policy_id = str(
+            selected_ids.get("evidence_policy")
+            or self.sp.body.get("evidence_policy")
+            or "normal"
+        ).strip()
+
         lines.append("## System")
         if system_value:
             lines.append(system_value)
@@ -251,11 +262,57 @@ class SuperPromptProjector:
         if confidence_value:
             config_lines.append(f"- Confidence: {confidence_value}")
 
+        evidence_policy_md = self._render_evidence_policy_md(evidence_policy_id)
+
+        if evidence_policy_md:
+            config_lines.append(f"- Evidence Policy: {evidence_policy_id}")
+
         lines.append("")
         lines.append("## Configuration")
         lines.extend(config_lines)
 
+        if evidence_policy_md:
+            lines.append("")
+            lines.append(evidence_policy_md)
+
         return "\n".join(lines).strip()
+
+    @staticmethod
+    def _render_evidence_policy_md(evidence_policy_id: str) -> str:
+        policy = str(evidence_policy_id or "").strip()
+
+        if not policy or policy == "normal":
+            return ""
+
+        if policy == "local_context_first":
+            return "\n".join(
+                [
+                    "## Evidence Policy",
+                    "Mode: local_context_first",
+                    "",
+                    "Instructions:",
+                    "- First use available project files, retrieved context, memory, and prior chat context.",
+                    "- Do not replace missing local/project/history facts with generic claims.",
+                    "- If a required local/project/history fact is missing, say what is missing instead of inventing.",
+                ]
+            ).strip()
+
+        if policy == "strict_history_and_online_fact_check":
+            return "\n".join(
+                [
+                    "## Evidence Policy",
+                    "Mode: strict_history_and_online_fact_check",
+                    "",
+                    "Instructions:",
+                    "- First use only evidence actually available in the current prompt, chat-history summary, memory context, project files, and retrieved context.",
+                    "- Do not answer generically when project/history facts are missing.",
+                    "- For external, recent, niche, unstable, salary, job-market, company, legal, financial, medical, product, or political facts, verify online before answering when web access is available.",
+                    "- Cite evidence when possible.",
+                    "- If evidence is missing or verification is unavailable, say what is missing instead of inventing.",
+                ]
+            ).strip()
+
+        return ""
 
     def _render_prompt_md(self) -> str:
         lines: List[str] = []

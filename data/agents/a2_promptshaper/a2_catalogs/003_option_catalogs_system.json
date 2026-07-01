@@ -4,108 +4,108 @@
       {
         "id": "software_architect",
         "label": "Software architect",
-        "description": "Designs overall software and system architecture, interfaces, and trade-offs."
+        "description": "Software architecture, system structure, interfaces, components, constraints, and trade-offs."
       },
       {
         "id": "embedded_software_engineer",
         "label": "Embedded software engineer",
-        "description": "Thinks in ECUs, real-time constraints, automotive/embedded systems, and low-level behavior."
+        "description": "Embedded systems, ECUs, real-time constraints, automotive software, low-level behavior, and integration."
       },
       {
         "id": "python_software_engineer",
         "label": "Python software engineer",
-        "description": "Focuses on clean, modular Python code, tooling, testing, and automation."
+        "description": "Python implementation, modularity, refactoring, scripts, tooling, debugging, and automation."
       },
       {
         "id": "data_ml_engineer",
         "label": "Data / ML engineer",
-        "description": "Builds data pipelines, features, and machine-learning training/inference flows."
+        "description": "Data pipelines, feature pipelines, ML workflows, training, inference, and evaluation."
       },
       {
         "id": "generative_ai_expert",
         "label": "Generative AI expert",
-        "description": "Works with LLMs, RAG, agents, and prompt/super-prompt design."
+        "description": "LLMs, RAG, agents, prompt shaping, SuperPrompt design, memory, retrieval, and AI orchestration."
       },
       {
         "id": "aws_cloud_architect",
         "label": "AWS cloud architect",
-        "description": "Designs AWS architectures (IAM, VPC, Lambda, API Gateway, EC2, S3, RDS, etc.)."
+        "description": "AWS services, cloud deployment, IAM, VPC, EC2, S3, Lambda, API Gateway, Bedrock, and cloud architecture."
       },
       {
         "id": "devops_platform_engineer",
         "label": "DevOps / platform engineer",
-        "description": "Handles CI/CD, infrastructure-as-code, containers, monitoring, and reliability."
+        "description": "CI/CD, infrastructure, containers, deployment, observability, reliability, and platform operations."
       },
       {
         "id": "requirements_engineer",
         "label": "Requirements engineer",
-        "description": "Structures requirements, scenarios, and acceptance criteria precisely."
+        "description": "Requirements, specifications, acceptance criteria, traceability, requirement quality, and requirement-code alignment."
       },
       {
         "id": "documentation_specialist",
         "label": "Documentation specialist",
-        "description": "Produces clear specs, READMEs, design docs, and HOWTOs."
+        "description": "Technical documentation, READMEs, design documents, process descriptions, and structured written artifacts."
       },
       {
         "id": "test_automation_engineer",
         "label": "Test automation engineer",
-        "description": "Designs unit/end-to-end tests and test frameworks; focuses on quality."
+        "description": "Testing strategy, unit tests, integration tests, regression tests, validation, quality gates, and automation."
       },
       {
         "id": "security_and_risk_advisor",
         "label": "Security and risk advisor",
-        "description": "Looks at security, permissions, risk, and mitigations in designs and workflows."
+        "description": "Security, permissions, risk analysis, privacy, access control, threat mitigation, and safe operation."
       },
       {
         "id": "legal_advisor",
         "label": "Legal-style advisor",
-        "description": "Frames problems in legal/contract language and structure (no formal legal advice)."
+        "description": "Legal-style structure, contractual reasoning, obligations, risks, and formal wording without formal legal advice."
       },
       {
         "id": "career_coach_recruiter",
         "label": "Career coach / recruiter perspective",
-        "description": "Thinks like a recruiter or coach: CV, interviews, positioning, and market fit."
+        "description": "Recruiting, CVs, interviews, job applications, salary framing, hiring-manager perspective, and market positioning."
       },
       {
         "id": "product_owner",
         "label": "Product owner",
-        "description": "Balances user value, business goals, and technical constraints; prioritises features."
+        "description": "User value, priorities, backlog, scope, trade-offs, business goals, and product decision-making."
       },
       {
         "id": "technical_project_manager",
         "label": "Technical project manager",
-        "description": "Plans milestones, estimates effort, and coordinates technical work and communication."
+        "description": "Planning, milestones, estimates, coordination, technical delivery, dependencies, and progress control."
       },
       {
         "id": "ux_for_ai_tools_designer",
         "label": "UX designer for AI tools",
-        "description": "Focuses on UX for AI tools: flows, feedback, simplicity, and usability."
+        "description": "AI-tool UX, user flows, interface clarity, feedback loops, usability, and interaction design."
       },
       {
         "id": "negotiation_coach",
         "label": "Negotiation coach",
-        "description": "Helps structure arguments and wording for salary and conflict negotiations."
+        "description": "Negotiation wording, salary discussion, conflict framing, leverage, and argument structure."
       },
       {
         "id": "financial_strategy_advisor",
         "label": "Financial strategy advisor",
-        "description": "Evaluates decisions for income, risk, and long-term financial stability."
+        "description": "Income, risk, compensation, financial trade-offs, and long-term financial stability."
       },
       {
         "id": "trusted_friend",
         "label": "Trusted friend",
-        "description": "Talks like a close friend: direct, personal, but still rational and concrete."
+        "description": "Personal, direct, loyal, practical, and human conversation mode."
       },
       {
         "id": "inventive_problem_solver",
         "label": "Inventive problem solver",
-        "description": "Pushes for unusual, creative solutions and new conceptual angles."
+        "description": "Creative solution search, alternative concepts, unconventional approaches, and new angles."
       }
     ],
     "default": [
       "software_architect",
       "generative_ai_expert",
-      "aws_cloud_architect"
+      "requirements_engineer"
     ]
   }
 }

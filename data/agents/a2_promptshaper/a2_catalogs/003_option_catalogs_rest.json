@@ -4,32 +4,32 @@
       {
         "id": "self_default_senior_engineer",
         "label": "Self – default senior engineer",
-        "description": "Embedded-systems engineer with two Master’s degrees, very strong math background, MATLAB guru and good Python developer, deep classical-music background, INTP simulating ENTJ at work, framing himself as generative-AI engineer and intermediate AWS cloud architect."
+        "description": "Default audience profile for the user: senior engineering background, strong math, MATLAB, Python, AWS, RAG, and architecture context."
       },
       {
         "id": "self_learning_new_stack",
         "label": "Self – learning a new stack",
-        "description": "Same person, but wants slower, more didactic explanations when exploring a new area (new AWS services, new ML library, etc.)."
+        "description": "Audience mode for slower explanation while learning an unfamiliar stack, service, library, or technical area."
       },
       {
         "id": "self_quick_answer_mode",
         "label": "Self – quick answer mode",
-        "description": "Same person, but currently wants short, high-signal answers with minimal explanation."
+        "description": "Audience mode for short, high-signal answers with minimal explanation."
       },
       {
         "id": "self_job_pitch_mode",
         "label": "Self – job pitch mode",
-        "description": "Same person, but answers should be phrased so parts can be reused for recruiters / hiring managers (concise, polished, achievement-focused)."
+        "description": "Audience mode for recruiter, hiring-manager, CV, interview, salary, or professional positioning content."
       },
       {
         "id": "self_brainstorming_mode",
         "label": "Self – brainstorming mode",
-        "description": "Same person, but wants exploratory, creative brainstorming with multiple options, not just one solution."
+        "description": "Audience mode for exploratory thinking, alternatives, ideas, options, or creative strategy."
       },
       {
         "id": "self_debugging_mode",
         "label": "Self – debugging mode",
-        "description": "Same person, but focused on concrete troubleshooting steps, logs, symptoms, and minimal theory."
+        "description": "Audience mode for concrete troubleshooting, logs, symptoms, failing code, and minimal theory."
       }
     ],
     "default": "self_default_senior_engineer"
@@ -40,47 +40,47 @@
       {
         "id": "balanced",
         "label": "Balanced",
-        "description": "Mix of analysis and empathy; no strong bias toward any single cognitive function, stable and moderate."
+        "description": "Moderate tone with both analysis and human readability."
       },
       {
         "id": "analytical_ti",
         "label": "Analytical (Ti – introverted thinking)",
-        "description": "Dissects logic and structure, focuses on internal consistency, low emotional coloring."
+        "description": "Logic-focused tone emphasizing structure, consistency, and precise distinctions."
       },
       {
         "id": "direct_te_si",
         "label": "Direct (Te/Si – extraverted thinking + introverted sensing)",
-        "description": "Action-oriented, result-focused, uses concrete facts and past experience, minimal sugar-coating."
+        "description": "Practical, result-focused tone grounded in concrete facts and prior evidence."
       },
       {
         "id": "encouraging_ne_fe",
         "label": "Encouraging (Ne/Fe – extraverted intuition + extraverted feeling)",
-        "description": "Optimistic, supportive, highlights possibilities and motivation, frames feedback in a socially warm way."
+        "description": "Supportive tone emphasizing possibilities, motivation, and constructive framing."
       },
       {
         "id": "critical_constructive_ti_te_se",
         "label": "Critical-Constructive (Ti/Te/Se)",
-        "description": "Very honest and sharp about problems, grounded in concrete reality, always combined with clear, practical improvements."
+        "description": "Sharp technical judgement with concrete reality-checking and practical improvement."
       },
       {
         "id": "visionary_ni_ne",
         "label": "Visionary (Ni/Ne – introverted + extraverted intuition)",
-        "description": "Focuses on patterns, long-term implications, and alternative futures; less on step-by-step detail."
+        "description": "Pattern-oriented tone focused on implications, future paths, and conceptual alternatives."
       },
       {
         "id": "concise_si_te",
         "label": "Concise (Si/Te – introverted sensing + extraverted thinking)",
-        "description": "Uses short, information-dense sentences, relies on known facts and efficient structure, minimal redundancy."
+        "description": "Short, structured, information-dense tone with minimal redundancy."
       },
       {
         "id": "empathetic_fe_fi",
         "label": "Empathetic (Fe/Fi – extraverted + introverted feeling)",
-        "description": "Attentive to emotional impact, acknowledges values and feelings, chooses wording to reduce unnecessary hurt."
+        "description": "Emotion-aware tone focused on values, sensitivity, and reduced interpersonal friction."
       },
       {
         "id": "formal_te_si",
         "label": "Formal (Te/Si – extraverted thinking + introverted sensing)",
-        "description": "Polite, structured, and professional; uses clear, conventional wording suitable for official communication."
+        "description": "Professional, polite, structured tone suitable for official communication."
       }
     ],
     "default": "critical_constructive_ti_te_se"
@@ -91,22 +91,22 @@
       {
         "id": "none",
         "label": "No explicit depth",
-        "description": "No explicit depth guidance; the model decides freely how long and detailed to be."
+        "description": "No explicit depth shaping."
       },
       {
         "id": "overview",
         "label": "Overview",
-        "description": "General understanding only: high-level picture, main ideas, minimal detail."
+        "description": "High-level depth with only the main points."
       },
       {
         "id": "detailed",
         "label": "Detailed",
-        "description": "Standard working mode: careful, structured explanation with enough technical detail."
+        "description": "Normal working depth with structured technical explanation."
       },
       {
         "id": "exhaustive",
         "label": "Exhaustive",
-        "description": "Maximum depth: extremely careful with facts, includes edge cases, alternatives, and explicit reasoning."
+        "description": "Maximum audit depth with edge cases, alternatives, missing links, and stronger evidence discipline."
       }
     ],
     "default": "detailed"
@@ -117,24 +117,45 @@
       {
         "id": "none",
         "label": "No explicit confidence",
-        "description": "No explicit confidence guidance; the model uses its default behaviour."
+        "description": "No explicit confidence shaping."
       },
       {
         "id": "low",
         "label": "Low",
-        "description": "Very cautious; frequently flags uncertainty and missing information."
+        "description": "Cautious confidence with frequent uncertainty marking."
       },
       {
         "id": "medium",
         "label": "Medium",
-        "description": "Balanced; confident on common topics, cautious on unclear points."
+        "description": "Balanced confidence with uncertainty marked when needed."
       },
       {
         "id": "high",
         "label": "High",
-        "description": "Speaks clearly and decisively; only rarely mentions uncertainty."
+        "description": "Clear and decisive confidence when selector conditions are strong."
       }
     ],
     "default": "high"
+  },
+
+  "evidence_policy": {
+    "options": [
+      {
+        "id": "normal",
+        "label": "Normal evidence handling",
+        "description": "Ordinary evidence mode."
+      },
+      {
+        "id": "local_context_first",
+        "label": "Local/project/history context first",
+        "description": "Project, file, memory, history, code, requirement, or architecture context is primary."
+      },
+      {
+        "id": "strict_history_and_online_fact_check",
+        "label": "Strict history + online fact-check",
+        "description": "Strongest grounding mode for explicit non-generic, fact-checking, verification, or external/current facts."
+      }
+    ],
+    "default": "normal"
   }
 }

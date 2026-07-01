@@ -10,7 +10,7 @@ Job:
 - Use AgentPrompt.compose(...) to build SYSTEM + USER messages.
 - Call LLMClient with those messages, using ONLY model settings coming from JSON
   (via AgentPrompt: model_name, temperature, max_output_tokens).
-- Expect a JSON object with SYSTEM / AUDIENCE / TONE / DEPTH / CONFIDENCE.
+- Expect a JSON object with SYSTEM / AUDIENCE / TONE / DEPTH / CONFIDENCE / EVIDENCE_POLICY.
 - Update the same SuperPrompt in place.
 - Rebuild sp.prompt_ready and mark stage='a2'.
 
@@ -21,14 +21,18 @@ Logging policy:
 """
 
 from __future__ import annotations
-
+import json
 from typing import Any, Dict, List, Union
 
 from ragstream.orchestration.super_prompt import SuperPrompt
 from ragstream.orchestration.agent_factory import AgentFactory
 from ragstream.orchestration.llm_client import LLMClient
 from ragstream.textforge.RagLog import LogALL as logger
+from ragstream.textforge.RagLog import LOGDeveloper as _logger_dev
 
+A2_DEV_LOGS = False
+
+logger_dev = _logger_dev if A2_DEV_LOGS else (lambda *args, **kwargs: None)
 
 JsonDict = Dict[str, Any]
 
@@ -65,8 +69,15 @@ class A2PromptShaper:
         """
         agent = self._factory.get_agent(agent_id=agent_id, version=version)
 
-        # For now, all 5 fields are active. Later we can respect user-locked ones.
-        active_fields: List[str] = ["system", "audience", "tone", "depth", "confidence"]
+        # For now, all 6 fields are active. Later we can respect user-locked ones.
+        active_fields: List[str] = [
+            "system",
+            "audience",
+            "tone",
+            "depth",
+            "confidence",
+            "evidence_policy",
+        ]
 
         logger(
             (
@@ -88,7 +99,34 @@ class A2PromptShaper:
                 input_payload=inputs,
                 active_fields=active_fields,
             )
+   ########################  TEMP 01-07-2ß26 DEBUGGING
 
+            logger_dev(
+                "A2 DEBUG | exact messages sent to LLM:\n"
+                + json.dumps(messages, ensure_ascii=False, indent=2, default=str),
+                "DEBUG",
+                "HIGHLY_CONFIDENTIAL",
+            )
+
+            logger_dev(
+                "A2 DEBUG | exact response_format sent to LLM:\n"
+                + json.dumps(response_format, ensure_ascii=False, indent=2, default=str),
+                "DEBUG",
+                "HIGHLY_CONFIDENTIAL",
+            )
+
+            logger_dev(
+                (
+                    "A2 DEBUG | exact LLM config sent:\n"
+                    f"model_name={agent.model_name}\n"
+                    f"temperature={agent.temperature}\n"
+                    f"max_output_tokens={agent.max_output_tokens}\n"
+                    f"prompt_cache_key={agent_id}_{version}"
+                ),
+                "DEBUG",
+                "CONFIDENTIAL",
+            )
+     #################################
             if not getattr(agent, "model_name", None):
                 raise RuntimeError(
                     "A2PromptShaper: AgentPrompt has no model_name configured (JSON missing?)"
@@ -117,8 +155,26 @@ class A2PromptShaper:
                 response_format=response_format,
                 prompt_cache_key=f"{agent_id}_{version}",
             )
+            raw_result_text = (
+                raw_result
+                if isinstance(raw_result, str)
+                else json.dumps(raw_result, ensure_ascii=False, indent=2, default=str)
+            )
+
+            logger_dev(
+                "A2 DEBUG | raw LLM result before parse:\n" + raw_result_text,
+                "DEBUG",
+                "HIGHLY_CONFIDENTIAL",
+            )
 
             parsed_result = agent.parse(raw_result, active_fields=active_fields)
+
+            logger_dev(
+                "A2 DEBUG | parsed result before sanitize:\n"
+                + json.dumps(parsed_result, ensure_ascii=False, indent=2, default=str),
+                "DEBUG",
+                "HIGHLY_CONFIDENTIAL",
+            )
 
         else:
             parsed_result = self._build_default_selector_result(
@@ -134,6 +190,13 @@ class A2PromptShaper:
             agent=agent,
             parsed_result=parsed_result,
             active_fields=active_fields,
+        )
+
+        logger_dev(
+            "A2 DEBUG | sanitized result after sanitize:\n"
+            + json.dumps(parsed_result, ensure_ascii=False, indent=2, default=str),
+            "DEBUG",
+            "HIGHLY_CONFIDENTIAL",
         )
 
         selected_ids: Dict[str, Any] = {}

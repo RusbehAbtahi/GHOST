@@ -835,30 +835,54 @@ def _render_manual_pipeline_buttons() -> None:
     b1c1, b1c2, b1c3, b1c4 = st.columns(4, gap="small")
 
     with b1c1:
-        if st.button("Pre-Processing", key="btn_preproc", use_container_width=True):
-            do_preprocess()
+        st.button(
+            "Pre-Processing",
+            key="btn_preproc",
+            use_container_width=True,
+            on_click=do_preprocess,
+        )
 
     with b1c2:
-        if st.button("A2-PromptShaper", key="btn_a2", use_container_width=True):
-            do_a2_promptshaper()
+        st.button(
+            "A2-PromptShaper",
+            key="btn_a2",
+            use_container_width=True,
+            on_click=do_a2_promptshaper,
+        )
 
     with b1c3:
-        if st.button("Retrieval", key="btn_retrieval", use_container_width=True):
-            do_retrieval()
+        st.button(
+            "Retrieval",
+            key="btn_retrieval",
+            use_container_width=True,
+            on_click=do_retrieval,
+        )
 
     with b1c4:
-        if st.button("ReRanker", key="btn_reranker", use_container_width=True):
-            do_reranker()
+        st.button(
+            "ReRanker",
+            key="btn_reranker",
+            use_container_width=True,
+            on_click=do_reranker,
+        )
 
     b2c1, b2c2, b2c3, b2c4 = st.columns(4, gap="small")
 
     with b2c1:
-        if st.button("A3 NLI Gate", key="btn_a3", use_container_width=True):
-            do_a3_nli_gate()
+        st.button(
+            "A3 NLI Gate",
+            key="btn_a3",
+            use_container_width=True,
+            on_click=do_a3_nli_gate,
+        )
 
     with b2c2:
-        if st.button("A4 Condenser", key="btn_a4", use_container_width=True):
-            do_a4_condenser()
+        st.button(
+            "A4 Condenser",
+            key="btn_a4",
+            use_container_width=True,
+            on_click=do_a4_condenser,
+        )
 
     with b2c3:
         st.button("A5 Format Enforcer", key="btn_a5", use_container_width=True)

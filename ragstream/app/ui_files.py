@@ -15,7 +15,15 @@ from ragstream.app.ui_actions_files import (
 )
 
 
-TABLE_STRIPE_COLOR = "#E2FBD8"
+COLOR_GHOST_DEEP_GREEN = "#004643"
+COLOR_GHOST_MINT = "#afcecc"
+COLOR_GHOST_SAND = "#edeae3"
+COLOR_FIELD_ICE_BLUE = "#DCE7EE"
+COLOR_PANEL_WHITE = "#ffffff"
+COLOR_TEXT_BLACK = "#000000"
+COLOR_BORDER_BLACK = "#000000"
+
+TABLE_STRIPE_COLOR = COLOR_FIELD_ICE_BLUE
 
 # Main FILES layout:
 # left   = memory management panel
@@ -33,7 +41,7 @@ def render_files_tab() -> None:
     """Server-side FILES tab for memory history management."""
     _inject_files_css()
 
-    st.markdown("## Files")
+    st.markdown('<div class="files-main-title">Files</div>', unsafe_allow_html=True)
 
     memory_manager = st.session_state.memory_manager
     histories = memory_manager.list_histories()
@@ -50,33 +58,118 @@ def render_files_tab() -> None:
 
 
 def _inject_files_css() -> None:
-    """Inject FILES-tab-only visual typography helpers."""
+    """Inject FILES-tab-only visual typography and color helpers."""
     st.markdown(
-        """
+        f"""
         <style>
-        .files-panel-title {
+        .files-main-title {{
+            font-size: 2.0rem;
+            font-weight: 650;
+            letter-spacing: -0.025em;
+            color: {COLOR_GHOST_DEEP_GREEN};
+            line-height: 1.15;
+            margin: 0.10rem 0 0.85rem 0;
+        }}
+
+        .files-panel-title {{
             font-size: 1.32rem;
             font-weight: 700;
             line-height: 1.25;
             margin: 0.15rem 0 0.85rem 0;
-            color: #262730;
-        }
+            color: {COLOR_TEXT_BLACK};
+        }}
 
-        .files-section-title {
+        .files-section-title {{
             font-size: 1.02rem;
             font-weight: 700;
             line-height: 1.25;
             margin: 1.05rem 0 0.50rem 0;
-            color: #262730;
-        }
+            color: {COLOR_TEXT_BLACK};
+        }}
 
-        .files-widget-label {
+        .files-widget-label {{
             font-size: 0.88rem;
             font-weight: 600;
             line-height: 1.25;
             margin: 0.62rem 0 0.28rem 0;
-            color: #262730;
-        }
+            color: {COLOR_TEXT_BLACK};
+        }}
+
+        div[data-testid="stDataFrame"] {{
+            color: {COLOR_TEXT_BLACK} !important;
+        }}
+
+        div[data-testid="stTextInput"]:has(input[aria-label="ChatGPT shared link"]) div[data-baseweb="input"],
+        div[data-testid="stTextInput"]:has(input[aria-label="Import title"]) div[data-baseweb="input"],
+        div[data-testid="stTextInput"]:has(input[aria-label="New memory name"]) div[data-baseweb="input"],
+        div[data-testid="stTextInput"]:has(input[aria-label="Rename field"]) div[data-baseweb="input"] {{
+            background-color: {COLOR_FIELD_ICE_BLUE} !important;
+            border: 1.5px solid {COLOR_BORDER_BLACK} !important;
+            box-shadow: none !important;
+        }}
+
+        input[aria-label="ChatGPT shared link"],
+        input[aria-label="Import title"],
+        input[aria-label="New memory name"],
+        input[aria-label="Rename field"],
+        textarea[aria-label="Summary / MemoryBrief (optional)"] {{
+            background-color: {COLOR_FIELD_ICE_BLUE} !important;
+            color: {COLOR_TEXT_BLACK} !important;
+        }}
+
+        div[data-testid="stTextArea"]:has(textarea[aria-label="Summary / MemoryBrief (optional)"]) textarea {{
+            background-color: {COLOR_FIELD_ICE_BLUE} !important;
+            border: 1.5px solid {COLOR_BORDER_BLACK} !important;
+            box-shadow: none !important;
+        }}
+
+        div[data-testid="stTextInput"]:has(input[aria-label="ChatGPT shared link"]) div[data-baseweb="input"]:focus-within,
+        div[data-testid="stTextInput"]:has(input[aria-label="Import title"]) div[data-baseweb="input"]:focus-within,
+        div[data-testid="stTextInput"]:has(input[aria-label="New memory name"]) div[data-baseweb="input"]:focus-within,
+        div[data-testid="stTextInput"]:has(input[aria-label="Rename field"]) div[data-baseweb="input"]:focus-within,
+        div[data-testid="stTextArea"]:has(textarea[aria-label="Summary / MemoryBrief (optional)"]) textarea:focus {{
+            border-color: {COLOR_GHOST_DEEP_GREEN} !important;
+            box-shadow: 0 0 0 1px {COLOR_GHOST_MINT} !important;
+        }}
+
+        .st-key-btn_files_import_chatgpt_conversation button,
+        .st-key-btn_files_new button,
+        div[class*="st-key-btn_files_load_"] button,
+        div[class*="st-key-btn_files_rename_"] button,
+        div[class*="st-key-btn_files_delete_request_"] button,
+        div[class*="st-key-btn_files_confirm_delete_"] button {{
+            background-color: {COLOR_GHOST_MINT} !important;
+            border: 1.5px solid {COLOR_BORDER_BLACK} !important;
+            color: {COLOR_TEXT_BLACK} !important;
+            font-weight: 700 !important;
+        }}
+
+        .st-key-btn_files_import_chatgpt_conversation button:hover,
+        .st-key-btn_files_import_chatgpt_conversation button:focus,
+        .st-key-btn_files_new button:hover,
+        .st-key-btn_files_new button:focus,
+        div[class*="st-key-btn_files_load_"] button:hover,
+        div[class*="st-key-btn_files_load_"] button:focus,
+        div[class*="st-key-btn_files_rename_"] button:hover,
+        div[class*="st-key-btn_files_rename_"] button:focus,
+        div[class*="st-key-btn_files_delete_request_"] button:hover,
+        div[class*="st-key-btn_files_delete_request_"] button:focus,
+        div[class*="st-key-btn_files_confirm_delete_"] button:hover,
+        div[class*="st-key-btn_files_confirm_delete_"] button:focus {{
+            background-color: {COLOR_GHOST_MINT} !important;
+            border-color: {COLOR_BORDER_BLACK} !important;
+            color: {COLOR_TEXT_BLACK} !important;
+        }}
+
+        .st-key-btn_files_import_chatgpt_conversation button p,
+        .st-key-btn_files_new button p,
+        div[class*="st-key-btn_files_load_"] button p,
+        div[class*="st-key-btn_files_rename_"] button p,
+        div[class*="st-key-btn_files_delete_request_"] button p,
+        div[class*="st-key-btn_files_confirm_delete_"] button p {{
+            color: {COLOR_TEXT_BLACK} !important;
+            font-weight: 700 !important;
+        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -237,16 +330,17 @@ def _render_selected_card(selected: dict) -> None:
     st.markdown(
         f"""
         <div style="
-            border:1px solid #d8d8d8;
+            border:1.5px solid {COLOR_BORDER_BLACK};
             border-radius:0.55rem;
             padding:0.65rem 0.85rem;
-            background-color:#fafafa;
+            background-color:{COLOR_GHOST_SAND};
+            color:{COLOR_TEXT_BLACK};
         ">
-            <div style="font-weight:700; font-size:1.02rem;">{filename}</div>
-            <div style="font-size:0.84rem; color:#555;">file_id: {file_id}</div>
-            <div style="font-size:0.84rem; color:#555;">created: {created}</div>
-            <div style="font-size:0.84rem; color:#555;">updated: {updated}</div>
-            <div style="font-size:0.84rem; color:#555;">records: {records}</div>
+            <div style="font-weight:700; font-size:1.02rem; color:{COLOR_TEXT_BLACK};">{filename}</div>
+            <div style="font-size:0.84rem; color:{COLOR_TEXT_BLACK};">file_id: {file_id}</div>
+            <div style="font-size:0.84rem; color:{COLOR_TEXT_BLACK};">created: {created}</div>
+            <div style="font-size:0.84rem; color:{COLOR_TEXT_BLACK};">updated: {updated}</div>
+            <div style="font-size:0.84rem; color:{COLOR_TEXT_BLACK};">records: {records}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -372,5 +466,5 @@ def _get_selected_rows(event: object) -> list[int]:
 
 def _stripe_table_rows(row: pd.Series) -> list[str]:
     """Apply soft alternating row colors."""
-    color = TABLE_STRIPE_COLOR if int(row.name) % 2 == 1 else "white"
-    return [f"background-color: {color}" for _ in row]
+    color = TABLE_STRIPE_COLOR if int(row.name) % 2 == 1 else COLOR_PANEL_WHITE
+    return [f"background-color: {color}; color: {COLOR_TEXT_BLACK}" for _ in row]
