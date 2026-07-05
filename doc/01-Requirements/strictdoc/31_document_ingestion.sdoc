@@ -1,0 +1,30 @@
+[DOCUMENT]
+TITLE: Document Ingestion Requirements
+UID: GHOST-REQ-DOCUMENT-INGESTION
+VERSION: 0.1-dummy
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: Placeholder
+
+[TEXT]
+STATEMENT: >>>
+This is a placeholder child requirements document for GHOST document ingestion.
+
+Planned scope:
+- project-scoped ingestion
+- chunking
+- metadata
+- embeddings
+- optional sparse representations
+- stable chunk IDs
+- file manifests
+- supported file-type boundary
+
+Detailed atomic requirements shall be added later after human approval.
+<<<
+
+[[/SECTION]]

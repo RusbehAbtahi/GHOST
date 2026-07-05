@@ -1,0 +1,32 @@
+[DOCUMENT]
+TITLE: Runtime Operations Requirements
+UID: GHOST-REQ-RUNTIME-OPERATIONS
+VERSION: 0.1-dummy
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: Placeholder
+
+[TEXT]
+STATEMENT: >>>
+This is a placeholder child requirements document for GHOST runtime operations.
+
+Planned scope:
+- local runtime
+- AWS runtime
+- Docker
+- EC2
+- ECR
+- nginx
+- HTTPS
+- Route53
+- SSM Parameter Store
+- persistent runtime data
+
+Detailed atomic requirements shall be added later after human approval.
+<<<
+
+[[/SECTION]]

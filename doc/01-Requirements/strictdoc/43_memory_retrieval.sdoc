@@ -1,0 +1,30 @@
+[DOCUMENT]
+TITLE: Memory Retrieval Requirements
+UID: GHOST-REQ-MEMORY-RETRIEVAL
+VERSION: 0.1-dummy
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: Placeholder
+
+[TEXT]
+STATEMENT: >>>
+This is a placeholder child requirements document for GHOST memory retrieval.
+
+Planned scope:
+- current-log automatic retrieval
+- Direct Recall Key behavior
+- working-memory candidates
+- episodic MemoryRecord candidates
+- semantic memory chunks
+- parent-level scoring
+- MemoryContextPack construction
+- composite Retrieval stage boundary
+
+Detailed atomic requirements shall be added later after human approval.
+<<<
+
+[[/SECTION]]

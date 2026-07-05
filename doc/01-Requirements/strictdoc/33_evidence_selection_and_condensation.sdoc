@@ -1,0 +1,28 @@
+[DOCUMENT]
+TITLE: Evidence Selection and Condensation Requirements
+UID: GHOST-REQ-EVIDENCE-SELECTION-CONDENSATION
+VERSION: 0.1-dummy
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: Placeholder
+
+[TEXT]
+STATEMENT: >>>
+This is a placeholder child requirements document for GHOST evidence selection and condensation.
+
+Planned scope:
+- ReRanker boundary
+- A3 usefulness gate
+- A4 condenser
+- final selection IDs
+- GUI-inspectable stage views
+- document evidence condensation
+
+Detailed atomic requirements shall be added later after human approval.
+<<<
+
+[[/SECTION]]

@@ -1,0 +1,27 @@
+[DOCUMENT]
+TITLE: Future Vision Backlog Requirements
+UID: GHOST-REQ-FUTURE-VISION-BACKLOG
+VERSION: 0.1-dummy
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: Placeholder
+
+[TEXT]
+STATEMENT: >>>
+This is a placeholder child requirements document for GHOST future vision and backlog items.
+
+Planned scope:
+- Ghost2
+- future hard-rule expansion
+- future model and tool routing
+- Blackboard Actor future boundary
+- backlog items not yet active requirements
+
+Detailed atomic requirements shall be added later only after human approval and promotion from future vision into active scope.
+<<<
+
+[[/SECTION]]

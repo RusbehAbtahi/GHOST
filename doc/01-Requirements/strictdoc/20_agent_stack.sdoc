@@ -1,0 +1,30 @@
+[DOCUMENT]
+TITLE: Agent Stack Requirements
+UID: GHOST-REQ-AGENT-STACK
+VERSION: 0.1-dummy
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: Placeholder
+
+[TEXT]
+STATEMENT: >>>
+This is a placeholder child requirements document for the GHOST Agent Stack.
+
+Planned scope:
+- AgentFactory
+- AgentPrompt
+- llm_client
+- JSON agent configuration
+- executable modes
+- aliases
+- model configuration
+- structured output parsing
+
+Detailed atomic requirements shall be added later after human approval.
+<<<
+
+[[/SECTION]]

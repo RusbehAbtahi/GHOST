@@ -1,0 +1,28 @@
+[DOCUMENT]
+TITLE: Prompt Orchestration Requirements
+UID: GHOST-REQ-PROMPT-ORCHESTRATION
+VERSION: 0.1-dummy
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: Placeholder
+
+[TEXT]
+STATEMENT: >>>
+This is a placeholder child requirements document for GHOST prompt orchestration.
+
+Planned scope:
+- A0 preprocessing
+- A2 PromptShaper
+- SuperPrompt mutation
+- SuperPromptProjector rendering
+- A5 reserved direction
+- final Prompt Builder and send-boundary gap
+
+Detailed atomic requirements shall be added later after human approval.
+<<<
+
+[[/SECTION]]
