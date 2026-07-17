@@ -1,0 +1,1800 @@
+[DOCUMENT]
+TITLE: GHOST Evidence Selection and Condensation Requirements
+UID: GHOST-EVIDENCE-SELECTION-CONDENSATION
+VERSION: 0.1
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines semantic document-evidence selection through A3 and document-evidence condensation through A4.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-ROOT
+STATUS: Draft
+TITLE: Evidence Selection and Condensation Scope
+STATEMENT: >>>
+GHOST shall classify retrieved document candidates for usefulness, retain a bounded useful subset, organize selected evidence into thematic classes, condense it into internal document context, and write the result into SuperPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST; current Python paths may remain under ragstream.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-KM-PARENT
+STATUS: Draft
+TITLE: Evidence Processing Knowledge Management Parent
+STATEMENT: >>>
+Evidence Selection and Condensation shall be governed by the capability boundaries, shared artifacts, configuration governance, and sibling ownership defined in 40_knowledge_management.sdoc.
+
+This document shall refine A3/A4 behavior without redefining document ingestion, retrieval/reranking, or Memory Management.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-TWO-STAGE
+STATUS: Draft
+TITLE: A3/A4 Functional Decomposition
+STATEMENT: >>>
+Evidence processing shall contain:
+1. A3 usefulness classification and deterministic useful-only selection.
+2. A4 thematic organization, budget selection, and final document-context condensation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-BOUNDARY
+STATUS: Draft
+TITLE: Evidence Boundary
+STATEMENT: >>>
+This document shall not own document ingestion, dense/sparse retrieval scoring, ColBERT reranking, memory-context synthesis, or final user-answer generation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AGENT-STACK
+STATUS: Draft
+TITLE: Agent Stack Reference
+STATEMENT: >>>
+A3 and A4 shall consume AgentPrompt and LLMClient according to 20_agent_stack.sdoc while this document owns their concrete functional behavior and deterministic safeguards.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. A3 Candidate Input and Preconditions
+
+[TEXT]
+STATEMENT: >>>
+A3 is a document-chunk usefulness classifier after retrieval or reranking.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A3-ROOT
+STATUS: Draft
+TITLE: A3 Usefulness Gate
+STATEMENT: >>>
+A3 shall classify each bounded document candidate as useful, borderline, or discarded relative to the current request-under-evaluation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-NOT-PROMPT-GATE
+STATUS: Draft
+TITLE: A3 Scope Exclusions
+STATEMENT: >>>
+A3 shall not act as a prompt-validity gate, garbage detector, retrieval replacement, memory merge, or final answer generator.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-SOURCE-RERANK
+STATUS: Draft
+TITLE: Preferred Candidate Source
+STATEMENT: >>>
+A3 shall read candidates from sp.views_by_stage["reranked"] when that view is non-empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-SOURCE-RETRIEVAL
+STATUS: Draft
+TITLE: Retrieval Candidate Fallback
+STATEMENT: >>>
+When the reranked view is empty, A3 shall read candidates from sp.views_by_stage["retrieval"].
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-NO-CANDIDATES
+STATUS: Draft
+TITLE: No-Candidate Failure
+STATEMENT: >>>
+When neither reranked nor retrieval candidates exist, A3 shall log the missing-candidate condition and raise an explicit runtime failure.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-CANDIDATE-CAP
+STATUS: Draft
+TITLE: A3 Candidate Cap
+STATEMENT: >>>
+A3 shall process no more than the effective max_candidates value from the selected candidate view; the current constructor baseline shall be 30.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-HYDRATED
+STATUS: Draft
+TITLE: Hydrated Candidate Dependency
+STATEMENT: >>>
+Every candidate shown to the A3 model shall map to a hydrated chunk in sp.base_context_chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-SKIP-MISSING-CHUNK
+STATUS: Draft
+TITLE: Missing Hydrated Chunk Handling
+STATEMENT: >>>
+A candidate row without a corresponding hydrated chunk shall be omitted from the evidence block and local-id mapping.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-HYDRATED
+
+[REQUIREMENT]
+UID: GHOST-A3-EVIDENCE-NONEMPTY
+STATUS: Draft
+TITLE: Evidence Block Requirement
+STATEMENT: >>>
+A3 shall fail explicitly when no evidence text can be built from the selected candidate rows.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-HYDRATED
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. A3 Prompt Construction and Identifier Isolation
+
+[TEXT]
+STATEMENT: >>>
+A3 exposes compact local identifiers and sanitized text to the model.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A3-PROMPT
+STATUS: Draft
+TITLE: A3 Prompt Under Evaluation
+STATEMENT: >>>
+A3 shall construct the request-under-evaluation from the central SuperPrompt projector rather than from raw GUI text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-PROMPT-CONTINUITY
+STATUS: Draft
+TITLE: ActiveBrief-Aware A3 Prompt
+STATEMENT: >>>
+The A3 request-under-evaluation shall include current TASK/PURPOSE/CONTEXT and only the ActiveBrief continuity material permitted by the finalized relation policy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-PROMPT
+
+[REQUIREMENT]
+UID: GHOST-A3-LOCAL-IDS
+STATUS: Draft
+TITLE: A3 Local Identifier Mapping
+STATEMENT: >>>
+A3 shall assign one-based local chunk identifiers to model-visible evidence and shall maintain a private local-to-real identifier mapping.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-NO-REAL-ID
+STATUS: Draft
+TITLE: Real Identifier Isolation
+STATEMENT: >>>
+A3 shall not require the LLM to reproduce long canonical chunk identifiers.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-LOCAL-IDS
+
+[REQUIREMENT]
+UID: GHOST-A3-EVIDENCE-ORDER
+STATUS: Draft
+TITLE: A3 Evidence Order
+STATEMENT: >>>
+Model-visible evidence chunks shall preserve the selected candidate order and shall include the local identifier and rank.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-LOCAL-IDS
+
+[REQUIREMENT]
+UID: GHOST-A3-SANITIZE
+STATUS: Draft
+TITLE: A3 Structural Sanitization
+STATEMENT: >>>
+A3 shall sanitize line-start Markdown headings, code fences, and horizontal-rule markers inside chunk text so source content cannot compete with the outer prompt structure.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-SANITIZE-MEANING
+STATUS: Draft
+TITLE: Sanitization Meaning Preservation
+STATEMENT: >>>
+A3 sanitization shall replace only structure-forming line-start markers and shall otherwise preserve the chunk meaning and text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-SANITIZE
+
+[REQUIREMENT]
+UID: GHOST-A3-REQUIRED-OUTPUT
+STATUS: Draft
+TITLE: A3 Required Output Shape
+STATEMENT: >>>
+A3 shall request exactly one item_decisions object containing one local chunk_id and one usefulness_label for every model-visible candidate.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-OUTPUT-LABELS
+STATUS: Draft
+TITLE: A3 Allowed Labels
+STATEMENT: >>>
+The only accepted A3 usefulness labels shall be useful, borderline, and discarded.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-REQUIRED-OUTPUT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. A3 Agent Configuration and LLM Invocation
+
+[TEXT]
+STATEMENT: >>>
+A3 uses ordinary AgentFactory resolution and the Responses API.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A3-CONFIG
+STATUS: Draft
+TITLE: A3 Agent Configuration
+STATEMENT: >>>
+The current A3 agent shall be resolved through AgentFactory using agent_id a3_nli_gate and version 002 unless an approved version is explicitly selected.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-CONFIG-JSON
+STATUS: Draft
+TITLE: A3 JSON Contract
+STATEMENT: >>>
+A3 model settings, static prompt instructions, dynamic bindings, decision target, and output schema shall be defined in its JSON configuration and external label catalog.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-A3-MODEL-SETTINGS
+STATUS: Draft
+TITLE: A3 Model Settings Authority
+STATEMENT: >>>
+A3 shall use the model name and maximum output tokens from the resolved AgentPrompt configuration rather than hard-coding them in A3 run logic.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-A3-COMPOSE
+STATUS: Draft
+TITLE: A3 Prompt Composition
+STATEMENT: >>>
+A3 shall pass request-under-evaluation, evidence chunks, and required-output text to AgentPrompt.compose.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-A3-RESPONSES
+STATUS: Draft
+TITLE: A3 Provider Path
+STATEMENT: >>>
+A3 shall invoke LLMClient.responses with minimal reasoning effort and a stable agent/version cache key.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-A3-PARSE
+STATUS: Draft
+TITLE: A3 Structured Parse
+STATEMENT: >>>
+A3 shall parse the provider result through AgentPrompt according to the configured item root, item identifier, and usefulness enum.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-A3-FULL-LOG-OFF
+STATUS: Draft
+TITLE: A3 Full Logging Default
+STATEMENT: >>>
+Full A3 model input and raw output logging shall remain disabled in normal mode and shall execute only under an explicit developer-debug switch.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-PARSE-FAIL
+STATUS: Draft
+TITLE: A3 Parse Failure
+STATEMENT: >>>
+A3 parse failure shall be logged with latency context and shall be raised rather than converted into fabricated successful decisions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-PARSE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. A3 Deterministic Decision Mapping and Selection
+
+[TEXT]
+STATEMENT: >>>
+Python maps local results to real identifiers and owns final selection.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A3-MAP
+STATUS: Draft
+TITLE: A3 Local-to-Real Mapping
+STATEMENT: >>>
+A parsed item shall affect a real chunk only when its local chunk_id exists in the current local-to-real mapping.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-IGNORE-UNKNOWN-ID
+STATUS: Draft
+TITLE: Unknown Local Identifier
+STATEMENT: >>>
+A parsed item with missing or unknown local chunk identifier shall not create a decision for any real chunk.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-MAP
+
+[REQUIREMENT]
+UID: GHOST-A3-INVALID-LABEL
+STATUS: Draft
+TITLE: Invalid Label Fallback
+STATEMENT: >>>
+A missing or invalid usefulness label shall be normalized to borderline.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-OUTPUT-LABELS
+
+[REQUIREMENT]
+UID: GHOST-A3-MISSING-DECISION
+STATUS: Draft
+TITLE: Missing Decision Fallback
+STATEMENT: >>>
+A candidate without a valid mapped model decision shall be represented as borderline in the ordered A3 decision map.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-INVALID-LABEL
+
+[REQUIREMENT]
+UID: GHOST-A3-ORDER-PRESERVE
+STATUS: Draft
+TITLE: A3 Candidate Order Preservation
+STATEMENT: >>>
+A3 shall preserve the incoming candidate order in its stage view and decision map regardless of returned item order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-STATUS-DISCARDED
+STATUS: Draft
+TITLE: Discarded Stage Status
+STATEMENT: >>>
+A candidate labeled discarded shall receive A3ChunkStatus.DISCARDED in the A3 stage view.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-STATUS-NONDISCARD
+STATUS: Draft
+TITLE: Useful and Borderline Stage Status
+STATEMENT: >>>
+Candidates labeled useful or borderline shall receive A3ChunkStatus.SELECTED in the complete A3 stage view, while final_selection_ids shall still contain useful candidates only.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-USEFUL-ONLY
+STATUS: Draft
+TITLE: Useful-Only Final Selection
+STATEMENT: >>>
+A3 final_selection_ids shall contain useful identifiers only, in incoming candidate order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-MAX-USEFUL
+STATUS: Draft
+TITLE: Maximum Useful Limit
+STATEMENT: >>>
+A3 shall truncate the ordered useful identifier list to the effective useful_hard_max; the current baseline shall be 12.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-USEFUL-ONLY
+
+[REQUIREMENT]
+UID: GHOST-A3-NO-MIN
+STATUS: Draft
+TITLE: No Minimum Useful Quota
+STATEMENT: >>>
+A3 shall not force a minimum useful count and the current forced minimum shall be zero.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-USEFUL-ONLY
+
+[REQUIREMENT]
+UID: GHOST-A3-NO-BORDERLINE-PROMOTION
+STATUS: Draft
+TITLE: No Borderline Promotion
+STATEMENT: >>>
+A3 shall not promote borderline candidates into final_selection_ids to satisfy a quota.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-USEFUL-ONLY
+
+[REQUIREMENT]
+UID: GHOST-A3-ZERO-USEFUL
+STATUS: Draft
+TITLE: Zero Useful Result
+STATEMENT: >>>
+A3 may validly produce an empty final_selection_ids list when no candidate is labeled useful.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-USEFUL-ONLY
+
+[REQUIREMENT]
+UID: GHOST-A3-NO-SELECTION-BAND
+STATUS: Draft
+TITLE: No Current Selection Band
+STATEMENT: >>>
+The current A3 contract shall not contain a global selection_band and shall remove stale a3_selection_band data when reusing a SuperPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-NO-DUPLICATE-LABEL
+STATUS: Draft
+TITLE: No Duplicate Classification
+STATEMENT: >>>
+The current A3 output contract shall not include duplicate markers, canonical duplicate references, or duplicate-removal decisions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. A3 SuperPrompt Write-Back and Observability
+
+[TEXT]
+STATEMENT: >>>
+A3 writes complete decisions and the useful-only working subset.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A3-VIEW
+STATUS: Draft
+TITLE: A3 Stage View
+STATEMENT: >>>
+sp.views_by_stage["a3"] shall contain every processed candidate in original order with inherited stage score and A3 status.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-DECISIONS
+STATUS: Draft
+TITLE: A3 Decision Diagnostics
+STATEMENT: >>>
+sp.extras["a3_item_decisions"] shall map each processed real chunk identifier to local identifier, rank, and normalized usefulness label.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-SELECTED-EXTRAS
+STATUS: Draft
+TITLE: A3 Selected Diagnostics
+STATEMENT: >>>
+A3 extras shall expose selected identifiers, candidate source, candidate count, parse status, maximum useful limit, and zero forced minimum.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-STAGE
+STATUS: Draft
+TITLE: A3 Lifecycle
+STATEMENT: >>>
+After successful A3 write-back, sp.stage shall equal a3 and history_of_stages shall receive a3.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-PROMPT-READY
+STATUS: Draft
+TITLE: A3 Prompt Reprojection
+STATEMENT: >>>
+A3 shall rebuild prompt_ready through the central SuperPrompt composition path after stage write-back.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-PUBLIC-LOG
+STATUS: Draft
+TITLE: A3 Public Summary
+STATEMENT: >>>
+A3 shall log a compact public summary including candidate, useful, borderline, discarded, selected, max-useful, model, and latency values.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-INTERNAL-LOG
+STATUS: Draft
+TITLE: A3 Internal Decisions
+STATEMENT: >>>
+A3 may log per-chunk decisions and selected identifiers at internal visibility without exposing them as public GUI messages by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A3-NO-CHUNK-MUTATION
+STATUS: Draft
+TITLE: A3 Chunk Integrity
+STATEMENT: >>>
+A3 shall not mutate Chunk snippets, sources, spans, or persistent metadata; it shall change only stage views, selection identifiers, diagnostics, lifecycle, and prompt projection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. A4 Preconditions and Empty-Selection Safety
+
+[TEXT]
+STATEMENT: >>>
+A4 consumes only A3-useful hydrated document chunks.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A4-ROOT
+STATUS: Draft
+TITLE: A4 Document Evidence Condenser
+STATEMENT: >>>
+A4 shall transform the bounded A3-useful document subset into one condensed internal document-context artifact.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-PRECONDITION
+STATUS: Draft
+TITLE: A4 Useful-Chunk Precondition
+STATEMENT: >>>
+A4 shall inspect the bounded A3 stage rows, A3 item decisions, and base_context_chunks to determine whether at least one useful hydrated chunk exists.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-CANDIDATE-CAP
+STATUS: Draft
+TITLE: A4 Candidate Cap
+STATEMENT: >>>
+A4 shall inspect no more than the effective max_candidates value; the current constructor baseline shall be 30.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-EMPTY
+STATUS: Draft
+TITLE: A4 Empty-Selection Finalization
+STATEMENT: >>>
+When A3 provides zero useful hydrated chunks, A4 shall complete a controlled empty-selection state without loading A4 agent JSONs or calling an LLM.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-PRECONDITION
+
+[REQUIREMENT]
+UID: GHOST-A4-EMPTY-SCTX
+STATUS: Draft
+TITLE: Empty S_CTX_MD
+STATEMENT: >>>
+A4 empty-selection finalization shall set S_CTX_MD to an empty string and final_selection_ids to an empty list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-EMPTY
+
+[REQUIREMENT]
+UID: GHOST-A4-EMPTY-VIEW
+STATUS: Draft
+TITLE: Empty A4 Stage View
+STATEMENT: >>>
+A4 empty-selection finalization shall create an a4 stage view that marks the available A3 rows discarded with zero score.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-EMPTY
+
+[REQUIREMENT]
+UID: GHOST-A4-EMPTY-DIAG
+STATUS: Draft
+TITLE: Empty A4 Diagnostics
+STATEMENT: >>>
+A4 empty-selection finalization shall record skipped status, skip reason, empty-selection budget profile, empty classes/groups, and zero effective output-token limit.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-EMPTY
+
+[REQUIREMENT]
+UID: GHOST-A4-EMPTY-STAGE
+STATUS: Draft
+TITLE: Empty A4 Lifecycle
+STATEMENT: >>>
+A4 empty-selection finalization shall set stage a4, append a4 history, and recompose prompt_ready.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-EMPTY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. A4 Configuration Loading and Seven-Step Workflow
+
+[TEXT]
+STATEMENT: >>>
+The current A4 implementation is a fixed three-AgentPrompt workflow with deterministic steps between calls.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A4-JSON-PATHS
+STATUS: Draft
+TITLE: Exact A4 JSON Paths
+STATEMENT: >>>
+A4Condenser shall resolve the exact current JSON paths:
+- data/agents/a4_condenser/chunk_phraser/a4_1_001.json;
+- data/agents/a4_condenser/chunk_classifier/a4_2_001.json;
+- data/agents/a4_condenser/final_condenser/a4_3_001.json.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-JSON-EXISTS
+STATUS: Draft
+TITLE: A4 Configuration Existence
+STATEMENT: >>>
+A4 shall fail explicitly when any required A4 JSON file is missing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-JSON-PATHS
+
+[REQUIREMENT]
+UID: GHOST-A4-JSON-VALID
+STATUS: Draft
+TITLE: A4 Configuration Parse
+STATEMENT: >>>
+A4 shall fail explicitly when a required A4 JSON file cannot be read or parsed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-JSON-PATHS
+
+[REQUIREMENT]
+UID: GHOST-A4-FRESH-PROMPTS
+STATUS: Draft
+TITLE: Fresh A4 AgentPrompts
+STATEMENT: >>>
+A4 shall construct fresh AgentPrompt objects from all three exact configurations at the beginning of each non-empty run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-JSON-PATHS
+
+[REQUIREMENT]
+UID: GHOST-A4-RUN-LOCAL-MUTATION
+STATUS: Draft
+TITLE: Run-Local Classifier Mutation
+STATEMENT: >>>
+A4 classifier option mutation shall apply only to the fresh classifier AgentPrompt for the current A4 run and shall not modify a shared factory-cached prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FRESH-PROMPTS
+
+[REQUIREMENT]
+UID: GHOST-A4-SEQUENCE
+STATUS: Draft
+TITLE: A4 Seven-Step Sequence
+STATEMENT: >>>
+A4 shall execute in this order:
+1. deterministic selected-chunk preparation;
+2. Chunk Phraser call;
+3. deterministic active-class validation and classifier restriction;
+4. Chunk Classifier call;
+5. deterministic regrouping and budget preparation;
+6. Final Condenser call;
+7. deterministic SuperPrompt write-back.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-HELPER
+STATUS: Draft
+TITLE: A4 LLM Helper Boundary
+STATEMENT: >>>
+A4LLMHelper shall own shared A4 message composition, provider invocation, provider metadata logging, and AgentPrompt parsing for the three calls.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-SEQUENCE
+
+[REQUIREMENT]
+UID: GHOST-A4-DET-BOUNDARY
+STATUS: Draft
+TITLE: A4 Deterministic Helper Boundary
+STATEMENT: >>>
+A4 deterministic helpers shall own chunk selection, local identifiers, sanitization, class validation, class mapping, grouping, budget profile, fallback package, and final write-back.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-SEQUENCE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. A4 Selected-Chunk Preparation
+
+[TEXT]
+STATEMENT: >>>
+A4 creates a new local evidence set from A3 useful decisions.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A4-SELECT
+STATUS: Draft
+TITLE: A4 Useful Selection
+STATEMENT: >>>
+A4 selected-chunk preparation shall retain only A3 rows whose a3_item_decisions usefulness_label equals useful and whose real identifier maps to a hydrated chunk.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-ORDER
+STATUS: Draft
+TITLE: A4 Evidence Order
+STATEMENT: >>>
+A4 shall preserve A3 row order for the retained useful chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-SELECT
+
+[REQUIREMENT]
+UID: GHOST-A4-LOCAL-IDS
+STATUS: Draft
+TITLE: A4 Local Identifiers
+STATEMENT: >>>
+A4 shall assign fresh contiguous local identifiers 1..N to retained chunks and maintain local-to-real and real-to-local mappings.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-SELECT
+
+[REQUIREMENT]
+UID: GHOST-A4-SOURCE
+STATUS: Draft
+TITLE: A4 Evidence Provenance
+STATEMENT: >>>
+Each A4 selected item shall retain its real identifier, A3 rank, source path, sanitized snippet, and hydrated chunk object.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-SELECT
+
+[REQUIREMENT]
+UID: GHOST-A4-SANITIZE
+STATUS: Draft
+TITLE: A4 Structural Sanitization
+STATEMENT: >>>
+A4 shall replace line-start Markdown headings, code fences, and horizontal rules inside prompt-visible snippets with non-structural markers.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-SELECT
+
+[REQUIREMENT]
+UID: GHOST-A4-NO-SELECTED
+STATUS: Draft
+TITLE: No Useful Preparation Failure
+STATEMENT: >>>
+The normal selected-chunk preparation helper shall fail explicitly when invoked without A3 rows or without any useful hydrated chunk; the outer A4 precheck shall normally route this case to empty-selection safety.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-SELECT
+
+[REQUIREMENT]
+UID: GHOST-A4-PROMPT-EVAL
+STATUS: Draft
+TITLE: A4 Request Under Evaluation
+STATEMENT: >>>
+A4 shall build its request-under-evaluation from available purpose, task, and context values and shall fail when all are empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-SELECT
+
+[REQUIREMENT]
+UID: GHOST-A4-EVIDENCE-BLOCK
+STATUS: Draft
+TITLE: A4 Evidence Block
+STATEMENT: >>>
+A4 shall build one ordered evidence block containing local identifier, A3 rank, source, and sanitized chunk text for each selected item.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-SELECT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. A4 Chunk Phraser and Active Class Validation
+
+[TEXT]
+STATEMENT: >>>
+The first A4 model call proposes a bounded ordered thematic class set.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A4-PHRASER
+STATUS: Draft
+TITLE: Chunk Phraser Call
+STATEMENT: >>>
+The Chunk Phraser shall receive the current request-under-evaluation and selected evidence block.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-PHRASER-OUTPUT
+STATUS: Draft
+TITLE: Chunk Phraser Output
+STATEMENT: >>>
+The Chunk Phraser shall return class_definitions containing class_id, class_phrase, and class_context_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-PHRASER
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASS-COUNT
+STATUS: Draft
+TITLE: Active Class Count
+STATEMENT: >>>
+The A4 phraser contract shall permit one to four active classes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-PHRASER
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASS-IDS
+STATUS: Draft
+TITLE: Allowed Internal Class IDs
+STATEMENT: >>>
+Deterministic validation shall accept only internal class identifiers ID1, ID2, ID3, and ID4.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-PHRASER
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASS-FIELDS
+STATUS: Draft
+TITLE: Non-Empty Class Fields
+STATEMENT: >>>
+A valid active class shall contain a non-empty class phrase and non-empty class context text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-PHRASER
+
+[REQUIREMENT]
+UID: GHOST-A4-NO-CLASS
+STATUS: Draft
+TITLE: No Valid Class Failure
+STATEMENT: >>>
+A4 shall fail explicitly when the phraser returns no valid active class.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-PHRASER
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASS-ORDER
+STATUS: Draft
+TITLE: Class Priority Order
+STATEMENT: >>>
+The order of validated active classes shall define their priority rank for later grouping and budget selection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-PHRASER
+
+[REQUIREMENT]
+UID: GHOST-A4-PHRASE-MAP
+STATUS: Draft
+TITLE: Phrase-to-ID Mapping
+STATEMENT: >>>
+Deterministic processing shall build exact and normalized phrase-to-internal-ID mappings for the current active classes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-PHRASER
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASSIFIER-OPTIONS
+STATUS: Draft
+TITLE: Run-Local Classifier Options
+STATEMENT: >>>
+The fresh classifier AgentPrompt shall be restricted to the active class phrases for the current run, with exactly one class selection per item.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-RUN-LOCAL-MUTATION
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASSIFIER-DEFAULT
+STATUS: Draft
+TITLE: Run-Local Classifier Default
+STATEMENT: >>>
+The fresh classifier AgentPrompt default may be set to the first active class phrase for the current run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-RUN-LOCAL-MUTATION
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASSIFIER-LIGHT
+STATUS: Draft
+TITLE: Classifier Prompt Simplification
+STATEMENT: >>>
+After run-local enum preparation, the generic classifier decision-target block may be suppressed to reduce repeated prompt content while preserving parse enums.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-RUN-LOCAL-MUTATION
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. A4 Chunk Classifier and Deterministic Mapping
+
+[TEXT]
+STATEMENT: >>>
+The second A4 call assigns every selected local chunk to one visible active class phrase.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASSIFIER
+STATUS: Draft
+TITLE: Chunk Classifier Call
+STATEMENT: >>>
+The Chunk Classifier shall receive the current request, selected evidence block, and active class definitions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASSIFIER-OUTPUT
+STATUS: Draft
+TITLE: Chunk Classifier Output
+STATEMENT: >>>
+The classifier shall return item_decisions containing local chunk_id and one class_id value represented by an active class phrase or a supported legacy active internal ID.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-CLASSIFIER
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASS-RESOLVE
+STATUS: Draft
+TITLE: Classifier Class Resolution
+STATEMENT: >>>
+Deterministic processing shall resolve classifier values by exact active internal ID, exact active phrase, or normalized active phrase.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-CLASSIFIER
+
+[REQUIREMENT]
+UID: GHOST-A4-IGNORE-INVALID
+STATUS: Draft
+TITLE: Invalid Class Decision
+STATEMENT: >>>
+A classifier item with missing local identifier, missing class value, or unresolved class value shall not become a valid assignment.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-CLASSIFIER
+
+[REQUIREMENT]
+UID: GHOST-A4-ASSIGN-COMPLETE
+STATUS: Draft
+TITLE: Complete Assignment Requirement
+STATEMENT: >>>
+Normal grouped mode shall require a valid class assignment for every selected local chunk.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-CLASSIFIER
+
+[REQUIREMENT]
+UID: GHOST-A4-NO-MULTI-CLASS
+STATUS: Draft
+TITLE: Single Class per Chunk
+STATEMENT: >>>
+Each selected local chunk shall belong to exactly one active class in normal grouped mode.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-CLASSIFIER
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 12. A4 Grouping, Budget Profiles, and Fallback
+
+[TEXT]
+STATEMENT: >>>
+Deterministic processing groups assigned chunks in class-priority order and selects groups according to output allowance.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A4-GROUPS
+STATUS: Draft
+TITLE: Class Group Construction
+STATEMENT: >>>
+A4 shall construct one group per active class in active-class priority order and shall append assigned selected items to the corresponding group in original evidence order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-NONEMPTY-GROUPS
+STATUS: Draft
+TITLE: Non-Empty Group Selection
+STATEMENT: >>>
+Normal grouped mode shall discard empty class groups before budget selection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-GROUPS
+
+[REQUIREMENT]
+UID: GHOST-A4-TOKEN-LIMIT
+STATUS: Draft
+TITLE: Effective A4 Output Limit
+STATEMENT: >>>
+A4 shall use the caller-supplied positive effective_output_token_limit or the configured/default A4 output allowance when none is supplied or the deterministic package receives a non-positive value.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-TIGHT
+STATUS: Draft
+TITLE: Tight Budget Profile
+STATEMENT: >>>
+When the effective output limit is below 1200 tokens, A4 shall retain at most the highest-priority non-empty class group and mark the profile tight.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-TOKEN-LIMIT
+
+[REQUIREMENT]
+UID: GHOST-A4-NARROW
+STATUS: Draft
+TITLE: Narrow Budget Profile
+STATEMENT: >>>
+When the effective output limit is at least 1200 and below 1800 tokens, A4 shall retain at most the two highest-priority non-empty groups and mark the profile narrow.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-TOKEN-LIMIT
+
+[REQUIREMENT]
+UID: GHOST-A4-MEDIUM
+STATUS: Draft
+TITLE: Medium Budget Profile
+STATEMENT: >>>
+When the effective output limit is at least 1800 and below 2600 tokens, A4 shall retain at most the three highest-priority non-empty groups and mark the profile medium.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-TOKEN-LIMIT
+
+[REQUIREMENT]
+UID: GHOST-A4-BROAD
+STATUS: Draft
+TITLE: Broad Budget Profile
+STATEMENT: >>>
+When the effective output limit is at least 2600 tokens, A4 shall retain all non-empty groups and mark the profile broad.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-TOKEN-LIMIT
+
+[REQUIREMENT]
+UID: GHOST-A4-BUDGET-IDS
+STATUS: Draft
+TITLE: Budget-Retained Real Identifiers
+STATEMENT: >>>
+The ordered final document identifiers for normal A4 condensation shall be the real chunk identifiers belonging to retained groups in group-priority and item order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-GROUPS
+
+[REQUIREMENT]
+UID: GHOST-A4-FALLBACK-TRIGGER
+STATUS: Draft
+TITLE: Fallback No-Grouping Trigger
+STATEMENT: >>>
+A4 shall enter fallback_no_grouping when classifier output is missing, incomplete, unusable, references an inactive class, leaves a selected chunk unassigned, or produces only empty groups.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-FALLBACK-CONTINUE
+STATUS: Draft
+TITLE: Fallback Continuation
+STATEMENT: >>>
+Fallback no-grouping shall continue to Final Condenser rather than failing the A4 run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FALLBACK-TRIGGER
+
+[REQUIREMENT]
+UID: GHOST-A4-FALLBACK-EVIDENCE
+STATUS: Draft
+TITLE: Fallback Evidence Preservation
+STATEMENT: >>>
+Fallback no-grouping shall retain all selected useful chunks in their current order and shall not assume per-chunk class assignments.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FALLBACK-TRIGGER
+
+[REQUIREMENT]
+UID: GHOST-A4-FALLBACK-LENSES
+STATUS: Draft
+TITLE: Fallback Class Overview
+STATEMENT: >>>
+Fallback no-grouping shall provide the active class phrases and contexts only as collective high-level lenses over the full selected evidence set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FALLBACK-TRIGGER
+
+[REQUIREMENT]
+UID: GHOST-A4-FALLBACK-DIAG
+STATUS: Draft
+TITLE: Fallback Observability
+STATEMENT: >>>
+Fallback no-grouping shall be marked by budget profile and warning diagnostics and shall not insert an error message into S_CTX_MD.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FALLBACK-TRIGGER
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 13. A4 Final Condenser
+
+[TEXT]
+STATEMENT: >>>
+The third A4 call produces one evidence-loyal internal document context block.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A4-FINAL
+STATUS: Draft
+TITLE: Final Condenser Call
+STATEMENT: >>>
+The Final Condenser shall receive request-under-evaluation, selected evidence, class-group package, decision targets, and required output shape.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-FINAL-OUTPUT
+STATUS: Draft
+TITLE: Final Condenser Output
+STATEMENT: >>>
+The Final Condenser shall return exactly the configured s_ctx_md text field through structured JSON.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FINAL
+
+[REQUIREMENT]
+UID: GHOST-A4-INTERNAL-CONTEXT
+STATUS: Draft
+TITLE: Internal Context Nature
+STATEMENT: >>>
+s_ctx_md shall be neutral internal supporting context and shall not address the user, answer the current task, or imitate a final response.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FINAL
+
+[REQUIREMENT]
+UID: GHOST-A4-EVIDENCE-LOYAL
+STATUS: Draft
+TITLE: Evidence Loyalty
+STATEMENT: >>>
+The final condenser shall stay close to the selected chunks, remove repetition and formatting noise, and shall not invent facts, requirements, recommendations, examples, or outside knowledge.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FINAL
+
+[REQUIREMENT]
+UID: GHOST-A4-CLASS-PRIORITY
+STATUS: Draft
+TITLE: Class Priority Compression
+STATEMENT: >>>
+When compression is necessary, the final condenser shall preserve higher-priority class content before lower-priority class content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FINAL
+
+[REQUIREMENT]
+UID: GHOST-A4-NO-INTRO-CONCLUSION
+STATUS: Draft
+TITLE: No Decorative Framing
+STATEMENT: >>>
+The final condenser shall not add an introduction, conclusion, motivational framing, evaluation, or decorative essay structure.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FINAL
+
+[REQUIREMENT]
+UID: GHOST-A4-TOKEN-GUIDANCE
+STATUS: Draft
+TITLE: Output Allowance Guidance
+STATEMENT: >>>
+The required-output text shall instruct the final condenser to keep s_ctx_md at or below approximately the effective output-token allowance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FINAL
+
+[REQUIREMENT]
+UID: GHOST-A4-CACHE
+STATUS: Draft
+TITLE: Shared A4 Prompt Cache Key
+STATEMENT: >>>
+All three A4 provider calls shall use the stable prompt cache key a4_condenser_shared_prefix.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-RESPONSES
+STATUS: Draft
+TITLE: A4 Provider Path
+STATEMENT: >>>
+A4LLMHelper shall use LLMClient.responses with minimal reasoning effort and metadata return enabled.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-USAGE-LOG
+STATUS: Draft
+TITLE: A4 Usage Logging
+STATEMENT: >>>
+A4LLMHelper shall log available model, status, input, cached-input, uncached-input, output, reasoning-token, and incomplete-reason data for each A4 call.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-PARSE
+STATUS: Draft
+TITLE: A4 Structured Parse
+STATEMENT: >>>
+Each A4 call result shall be parsed by its fresh AgentPrompt before deterministic downstream processing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 14. A4 SuperPrompt Write-Back and Rendering
+
+[TEXT]
+STATEMENT: >>>
+Final deterministic processing writes the condensed document context and retained identifiers.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-A4-NONEMPTY-SCTX
+STATUS: Draft
+TITLE: Non-Empty Final Context
+STATEMENT: >>>
+Normal A4 finalization shall fail explicitly when the Final Condenser returns empty s_ctx_md.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FINAL-OUTPUT
+
+[REQUIREMENT]
+UID: GHOST-A4-WRITE-SCTX
+STATUS: Draft
+TITLE: S_CTX_MD Write-Back
+STATEMENT: >>>
+Normal A4 finalization shall write the parsed s_ctx_md into sp.S_CTX_MD.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-WRITE-IDS
+STATUS: Draft
+TITLE: A4 Final Selection IDs
+STATEMENT: >>>
+sp.final_selection_ids shall equal selected_real_ids_after_budget in deterministic order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-VIEW
+STATUS: Draft
+TITLE: A4 Stage View
+STATEMENT: >>>
+sp.views_by_stage["a4"] shall include the ordered union of budget-retained identifiers and prior final-selection identifiers, marking retained identifiers SELECTED with descending synthetic rank scores and others DISCARDED with zero score.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-STAGE
+STATUS: Draft
+TITLE: A4 Lifecycle
+STATEMENT: >>>
+After normal finalization, sp.stage shall equal a4 and history_of_stages shall receive a4.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-EXTRAS
+STATUS: Draft
+TITLE: A4 Diagnostics
+STATEMENT: >>>
+A4 extras shall record budget profile, active classes, retained groups, and effective output-token limit.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-PROMPT-READY
+STATUS: Draft
+TITLE: A4 Prompt Reprojection
+STATEMENT: >>>
+A4 finalization shall attempt to rebuild prompt_ready through SuperPrompt.compose_prompt_ready.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-PROJECTOR
+STATUS: Draft
+TITLE: Condensed Evidence Rendering
+STATEMENT: >>>
+After A4, the central projector shall render S_CTX_MD as Retrieved Project Evidence Summary under Supporting Context and shall hide raw document chunks from the normal preview.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-NO-MEMORY
+STATUS: Draft
+TITLE: A4 Memory Boundary
+STATEMENT: >>>
+A4 shall not read or condense raw memory candidates, MemoryContextPack, or synthesized memory context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[REQUIREMENT]
+UID: GHOST-A4-NO-FINAL-ANSWER
+STATUS: Draft
+TITLE: A4 Final-Answer Boundary
+STATEMENT: >>>
+A4 completion shall not constitute final user-answer generation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 15. Configuration, Error Handling, Traceability, and Acceptance
+
+[TEXT]
+STATEMENT: >>>
+A3/A4 operational limits and model selections shall migrate to JSON while current exact behavior remains traceable.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-CONFIG-JSON
+STATUS: Draft
+TITLE: Evidence Configuration Target
+STATEMENT: >>>
+A3/A4 operational tuning parameters shall be migrated to versioned JSON runtime configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-CONFIG-FIELDS
+STATUS: Draft
+TITLE: Evidence Configuration Fields
+STATEMENT: >>>
+The configuration target shall include A3 candidate cap, useful maximum, A3 agent version, A3 model/token settings, A4 candidate cap, A4 output allowance, A4 budget thresholds, A4 agent versions, prompt cache key, and optional-stage enablement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-CONFIG-BASELINE
+STATUS: Draft
+TITLE: Current Evidence Defaults
+STATEMENT: >>>
+Until migration is complete, current constructor and deterministic baselines shall remain observable, including A3 max_candidates 30, A3 useful_hard_max 12, A4 max_candidates 30, A4 default output allowance 3000, and the implemented A4 budget thresholds.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-CONFIG-RUNTIME-MISMATCH
+STATUS: Draft
+TITLE: Runtime-Config Wiring Truth
+STATEMENT: >>>
+A runtime_config value such as max_document_chunks_for_a3 or a4_condenser.max_output_tokens shall not be described as enforced unless controller/component construction or call arguments actually consume it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-NO-FABRICATION
+STATUS: Draft
+TITLE: No Fabricated Evidence Result
+STATEMENT: >>>
+A3/A4 provider failure, parse failure, missing configuration, invalid class output, or empty final context shall not be converted into invented successful evidence content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-CODE-OWNERSHIP
+STATUS: Draft
+TITLE: Evidence Code Ownership
+STATEMENT: >>>
+A3NLIGate, A4Condenser, A4 deterministic processing, A4LLMHelper, and their concrete JSON configurations shall map to the deepest applicable UIDs in this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-SIBLING
+STATUS: Draft
+TITLE: Sibling Ownership Boundary
+STATEMENT: >>>
+Retrieval/reranking scores and candidate generation shall remain owned by 42; memory filtering/synthesis shall remain outside this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-A3-LABELS
+STATUS: Draft
+TITLE: AC: A3 Labels
+STATEMENT: >>>
+Given a valid A3 call, every processed candidate shall receive normalized useful, borderline, or discarded classification, with missing/invalid results represented as borderline.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-OUTPUT-LABELS
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-A3-SELECT
+STATUS: Draft
+TITLE: AC: A3 Useful-Only Selection
+STATEMENT: >>>
+A3 final_selection_ids shall contain at most the configured maximum of useful candidates and shall contain no borderline or discarded identifier.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-USEFUL-ONLY
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-A3-ZERO
+STATUS: Draft
+TITLE: AC: A3 Zero Useful
+STATEMENT: >>>
+Given zero useful classifications, A3 shall complete with empty final_selection_ids and A4 shall complete through empty-selection safety without an LLM call.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-ZERO-USEFUL
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-LOCAL-IDS
+STATUS: Draft
+TITLE: AC: Local Identifier Isolation
+STATEMENT: >>>
+A3 and A4 model-visible chunk identifiers shall be compact local identifiers and final stage artifacts shall map back to real stable chunk identifiers.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A3-LOCAL-IDS
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-A4-CLASSES
+STATUS: Draft
+TITLE: AC: A4 Active Classes
+STATEMENT: >>>
+A valid phraser result shall yield one to four active classes using allowed internal IDs with non-empty phrase and context fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-CLASS-COUNT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-A4-GROUP
+STATUS: Draft
+TITLE: AC: A4 Complete Grouping
+STATEMENT: >>>
+When every selected local chunk has a valid active-class assignment, A4 shall build non-empty priority-ordered groups and apply the effective budget profile.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-GROUPS
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-A4-FALLBACK
+STATUS: Draft
+TITLE: AC: A4 Fallback
+STATEMENT: >>>
+When classifier grouping is incomplete or unusable, A4 shall retain all selected chunks in original order, mark fallback_no_grouping, and continue to final condensation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-FALLBACK-CONTINUE
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-A4-CONTEXT
+STATUS: Draft
+TITLE: AC: A4 Internal Context
+STATEMENT: >>>
+A successful normal A4 run shall produce non-empty S_CTX_MD that is evidence-loyal internal context and shall not be a direct user answer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-INTERNAL-CONTEXT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-A4-BUDGET
+STATUS: Draft
+TITLE: AC: A4 Budget Profiles
+STATEMENT: >>>
+For token limits below 1200, below 1800, below 2600, and at least 2600, the retained group counts and profile names shall match tight, narrow, medium, and broad rules respectively.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-TOKEN-LIMIT
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-NO-MEMORY
+STATUS: Draft
+TITLE: AC: Document-Only Evidence
+STATEMENT: >>>
+A3/A4 outputs shall be unchanged by the presence of raw memory candidates except through separately approved current-request/ActiveBrief input already projected before Knowledge Management.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-A4-NO-MEMORY
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-CONFIG
+STATUS: Draft
+TITLE: AC: JSON Parameter Migration
+STATEMENT: >>>
+After configuration migration, evidence-stage limits, thresholds, models, and agent versions shall change through validated JSON and shall be observable without hidden Python edits.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-EVIDENCE-AC-SYNC
+STATUS: Draft
+TITLE: AC: Requirement-Code Synchronization
+STATEMENT: >>>
+An evidence-processing baseline shall not be accepted when A3 selection semantics, A4 sequence, class validation, fallback behavior, budget rules, S_CTX_MD meaning, or configuration authority contradicts this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-EVIDENCE-CODE-OWNERSHIP
+
+[[/SECTION]]

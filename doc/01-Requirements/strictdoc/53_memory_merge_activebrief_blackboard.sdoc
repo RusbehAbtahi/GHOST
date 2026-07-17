@@ -1,0 +1,2552 @@
+[DOCUMENT]
+TITLE: GHOST Memory Merge, ActiveBrief, and Blackboard Boundary Requirements
+UID: GHOST-MEMORY-MERGE-ACTIVEBRIEF-BLACKBOARD
+VERSION: 0.1
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines the current Memory ActiveRetrievalBrief, deterministic memory reduction, query-time episodic compression, Memory Context synthesis, SuperPrompt handoff, and the explicit current boundary toward a future Blackboard capability.
+
+It owns current runtime transformation and continuity behavior after durable recording and candidate retrieval. It does not redefine durable MemoryRecord truth, vector ingestion, or document A3/A4 behavior.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-ROOT
+STATUS: Draft
+TITLE: Memory Merge, ActiveBrief, and Blackboard Boundary Scope
+STATEMENT: >>>
+GHOST shall provide current memory-continuity and memory-synthesis functions that:
+1. build or propagate an ActiveRetrievalBrief during MemoryRecord capture;
+2. reduce Q/A text deterministically for continuity decisions;
+3. gate ActiveBrief updates using embedding similarity and a RAM-only pending-topic buffer;
+4. compress selected episodic memory against the effective retrieval query;
+5. synthesize episodic and semantic memory evidence into one runtime memory_context string; and
+6. expose an explicit boundary toward, but not implement, a future Blackboard capability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-PARENT-CAPABILITY
+STATUS: Draft
+TITLE: Parent Memory Capability
+STATEMENT: >>>
+This document shall refine the Memory Management capability defined by 50_memory_management.sdoc and shall preserve the authority boundaries defined by 51_memory_recording_and_files.sdoc and 52_memory_ingestion_and_retrieval.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-ACTIVEBRIEF-SCOPE
+STATUS: Draft
+TITLE: ActiveBrief Scope
+STATEMENT: >>>
+ActiveRetrievalBrief requirements in this document shall cover creation, update, propagation, contributor tracking, relevance gating, and pending-topic handling performed during memory recording.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-COMPRESSION-SCOPE
+STATUS: Draft
+TITLE: Runtime Compression Scope
+STATEMENT: >>>
+Runtime compression requirements in this document shall cover query reduction and query-anchored reduction of selected episodic Q/A candidates without modifying durable source records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-SYNTHESIS-SCOPE
+STATUS: Draft
+TITLE: Memory Synthesis Scope
+STATEMENT: >>>
+Memory synthesis requirements in this document shall cover evidence formatting, Agent Stack invocation, structured output parsing, diagnostics, and write-back of synthesized Memory Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-NO-DURABLE-OWNERSHIP
+STATUS: Draft
+TITLE: No Durable Truth Ownership
+STATEMENT: >>>
+MemorySentenceReducer, MemoryCompressor, MemoryMergeSynthesizer, and the relevance gate shall not own .ragmem, .ragmeta.json, SQLite, or memory-vector truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-NO-DOCUMENT-EVIDENCE
+STATUS: Draft
+TITLE: No Document Evidence Ownership
+STATEMENT: >>>
+This document shall not assign document retrieval, reranking, A3 usefulness selection, A4 condensation, or S_CTX_MD ownership to Memory Management.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-NO-FINAL-ANSWER
+STATUS: Draft
+TITLE: No Final User Answer
+STATEMENT: >>>
+ActiveBrief and Memory Context agents shall produce backend context artifacts and shall not answer the current user request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Implementation Location Map and Functional Decomposition
+
+[TEXT]
+STATEMENT: >>>
+The current implementation is distributed across recording-time continuity components, retrieval-time compression and synthesis components, agent definitions, and SuperPrompt projection.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-LOCATION-MAP
+STATUS: Draft
+TITLE: Implementation Location Map
+STATEMENT: >>>
+The current implementation shall be traceable through these locations:
+- ragstream/memory/compression/memory_sentence_reducer.py: shared deterministic Q/A window reduction;
+- ragstream/memory/compression/memory_activebrief_relevance_gate.py: non-LLM ActiveBrief routing gate;
+- ragstream/memory/compression/memory_active_retrieval_brief.py: recording-time ActiveBrief orchestration;
+- ragstream/memory/compression/memory_compressor.py: query-time episodic compression;
+- ragstream/memory/memory_merge_synthesizer.py: runtime Memory Context synthesis;
+- data/agents/memory_activebrief_qa_summarizer/: ActiveBrief init/update agent definitions;
+- data/agents/memory_synthesizer/memory_synthesizer_001.json: Memory Context agent definition;
+- ragstream/memory/memory_manager.py: recording-time invocation and durable write authority;
+- ragstream/retrieval/retriever_mem.py: retrieval-time invocation and SuperPrompt write-back;
+- ragstream/orchestration/super_prompt.py and superprompt_projector.py: runtime fields and rendering.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-RECORDING-TIME
+STATUS: Draft
+TITLE: Recording-Time Functional Group
+STATEMENT: >>>
+ActiveBrief reduction, relevance gating, init/update agent execution, pending-topic maintenance, and stable ActiveBrief assignment shall execute as part of MemoryRecord capture before the new stable body is appended.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-RETRIEVAL-TIME
+STATUS: Draft
+TITLE: Retrieval-Time Functional Group
+STATEMENT: >>>
+Query anchoring, episodic compression, evidence assembly, Memory Context synthesis, and MemoryContextPack update shall execute as runtime retrieval functions after memory candidates have been selected.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-SHARED-REDUCER
+STATUS: Draft
+TITLE: Shared Reducer Boundary
+STATEMENT: >>>
+MemorySentenceReducer shall be the shared deterministic reduction component for recording-time centroid reduction and retrieval-time external-query-anchor reduction.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AGENT-STACK-USE
+STATUS: Draft
+TITLE: Agent Stack Use
+STATEMENT: >>>
+ActiveBrief and Memory Context LLM calls shall resolve versioned AgentPrompt definitions through AgentFactory and shall invoke the provider through LLMClient as defined by 20_agent_stack.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-STATE-OWNERS
+STATUS: Draft
+TITLE: State Ownership Map
+STATEMENT: >>>
+MemoryManager shall own pending-topic RAM state and durable ActiveBrief assignment; MemoryContextPack shall own run-local candidate and synthesis results; SuperPrompt shall own run-local final memory fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-NO-UI-ALGORITHM
+STATUS: Draft
+TITLE: No UI Algorithm Ownership
+STATEMENT: >>>
+Streamlit callbacks and views may trigger or display these functions but shall not own ActiveBrief routing, reduction, synthesis, or state-authority rules.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. ActiveRetrievalBrief Recording Position and Authority
+
+[TEXT]
+STATEMENT: >>>
+ActiveRetrievalBrief is a query-independent continuity artifact created or propagated when a new MemoryRecord is captured.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+STATUS: Draft
+TITLE: ActiveRetrievalBrief Definition
+STATEMENT: >>>
+ActiveRetrievalBrief shall be a compact, query-independent representation of the current working-conversation center for one memory history.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-TITLE
+STATUS: Draft
+TITLE: ActiveBrief Operational Title
+STATEMENT: >>>
+Each non-empty ActiveRetrievalBrief produced by the current summarizer contract shall be accompanied by active_retrieval_brief_title as an operational backend title.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-RECORDING-POSITION
+STATUS: Draft
+TITLE: ActiveBrief Before Durable Append
+STATEMENT: >>>
+MemoryManager.capture_pair shall attempt to build the new record ActiveBrief before appending that MemoryRecord stable body to .ragmem.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-MANAGER-AUTHORITY
+STATUS: Draft
+TITLE: MemoryManager Write Authority
+STATEMENT: >>>
+MemoryActiveRetrievalBriefBuilder shall return its result to MemoryManager and shall not write files, SQLite rows, or vectors directly.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-STABLE-BODY
+STATUS: Draft
+TITLE: ActiveBrief Stable Body Fields
+STATEMENT: >>>
+MemoryManager shall assign ActiveBrief title, body, and contributor IDs to the new MemoryRecord before persistence so those fields become part of the append-only .ragmem stable body.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-QUERY-INDEPENDENCE
+STATUS: Draft
+TITLE: Query Independence
+STATEMENT: >>>
+Recording-time ActiveBrief generation shall use the current record, prior clean ActiveBrief, record metadata, and pending-topic state and shall not use the later user retrieval query or document evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-NO-RECORD-REWRITE
+STATUS: Draft
+TITLE: No Prior Record Rewrite
+STATEMENT: >>>
+Creating the ActiveBrief for record K shall not rewrite the stable body of earlier MemoryRecords.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-CAPTURE-FAILURE
+STATUS: Draft
+TITLE: ActiveBrief Failure Isolation
+STATEMENT: >>>
+If ActiveBrief generation raises an exception inside MemoryManager, MemoryManager shall log the developer failure when enabled and shall continue the durable MemoryRecord capture path without fabricating a brief.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-IMPORTED-BRIEF
+STATUS: Draft
+TITLE: Imported Shared Brief Assignment
+STATEMENT: >>>
+ChatGPT shared-link import may assign one user-supplied MemoryBrief title and body to every imported record; that assignment shall be distinguished from per-record ActiveBrief generation by the recording-time builder.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-IMPORT-NO-AUTO
+STATUS: Draft
+TITLE: Imported Records Without Supplied Brief
+STATEMENT: >>>
+When a ChatGPT shared-link import contains no supplied MemoryBrief, the current import path shall persist imported records with empty ActiveBrief fields rather than silently running the normal per-record ActiveBrief builder.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. MemorySentenceReducer Contract
+
+[TEXT]
+STATEMENT: >>>
+MemorySentenceReducer performs deterministic sentence-window reduction while retaining vector evidence required by the ActiveBrief gate.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-INPUT
+STATUS: Draft
+TITLE: Reducer Input Contract
+STATEMENT: >>>
+MemorySentenceReducer shall accept input_text and output_text and shall return ReducedQA containing reduced_question, reduced_answer, question_vectors, answer_vectors, and diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-CONFIG
+STATUS: Draft
+TITLE: Reducer Configuration Fields
+STATEMENT: >>>
+The reducer shall expose max_tokens_total, question_max_tokens, window_size_sentences, window_overlap_sentences, redundancy_threshold, and embedding_model as construction parameters.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-SENTENCE-SPLIT
+STATUS: Draft
+TITLE: Sentence Segmentation
+STATEMENT: >>>
+The reducer shall split text using sentence-ending punctuation and line breaks and shall omit empty sentence units.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-WINDOWS
+STATUS: Draft
+TITLE: Sentence Windows
+STATEMENT: >>>
+The reducer shall form ordered sentence windows with window size at least one, overlap clamped below window size, and positive step equal to window size minus overlap.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-ALWAYS-EMBED
+STATUS: Draft
+TITLE: Always Vectorize Prepared Windows
+STATEMENT: >>>
+The reducer shall embed prepared question and answer windows even when the original side is already within its token budget so the resulting vectors remain available to the relevance gate.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-CENTROID-MODE
+STATUS: Draft
+TITLE: Centroid Reduction Mode
+STATEMENT: >>>
+reduce_with_centroid shall compute an anchor from the centroid of all compatible question and answer vectors and shall use that anchor for query-independent reduction.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-EXTERNAL-ANCHOR
+STATUS: Draft
+TITLE: External Anchor Reduction Mode
+STATEMENT: >>>
+reduce_with_anchor shall reduce the prepared Q/A against a caller-supplied anchor vector and shall identify the diagnostic mode as external_anchor.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-NO-VECTORS
+STATUS: Draft
+TITLE: No-Vector Centroid Result
+STATEMENT: >>>
+When centroid mode has no Q/A vectors, the reducer shall return empty reduced text and vectors with a no_vectors diagnostic rather than fabricate content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-CENTROID-MODE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-BUDGET
+STATUS: Draft
+TITLE: Q/A Budget Allocation
+STATEMENT: >>>
+The reducer shall allocate the question share proportionally to original Q/A token estimates, cap it by question_max_tokens, provide a positive fallback for a non-empty question, and allocate the remaining total budget to the answer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-BELOW-BUDGET
+STATUS: Draft
+TITLE: Below-Budget Preservation
+STATEMENT: >>>
+When one side is already within its allocated budget, the reducer shall preserve that side text and all of its prepared vectors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-SCORE
+STATUS: Draft
+TITLE: Window Relevance Score
+STATEMENT: >>>
+For a side requiring reduction, the reducer shall rank each compatible window by cosine similarity to the active anchor vector.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-REDUNDANCY
+STATUS: Draft
+TITLE: Window Redundancy Exclusion
+STATEMENT: >>>
+The reducer shall skip a candidate window when its cosine similarity to any already selected window is greater than or equal to redundancy_threshold.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-TOKEN-FIT
+STATUS: Draft
+TITLE: Window Token Fit
+STATEMENT: >>>
+The reducer shall skip a candidate window whose estimated tokens would cause selected window tokens to exceed the side budget.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-TOP-FALLBACK
+STATUS: Draft
+TITLE: Top-Window Fallback
+STATEMENT: >>>
+If no ranked window can be selected but scored windows exist, the reducer shall retain the highest-scoring window as the selection fallback.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-ORDER
+STATUS: Draft
+TITLE: Original Sentence Order Restoration
+STATEMENT: >>>
+The reducer shall reconstruct reduced text from selected sentence indexes in their original source order rather than relevance-rank order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-VECTOR-OUTPUT
+STATUS: Draft
+TITLE: Surviving Vector Output
+STATEMENT: >>>
+When reduction occurs, returned question_vectors and answer_vectors shall correspond to the selected windows rather than all discarded windows.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-FALLBACK-SLICE
+STATUS: Draft
+TITLE: Bounded Text Slice Fallback
+STATEMENT: >>>
+When over-budget text cannot be reconstructed from valid windows, the reducer shall use the current bounded character-slice fallback and shall not create new semantic content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-TOKEN-COUNT
+STATUS: Draft
+TITLE: Token Estimation
+STATEMENT: >>>
+The reducer shall use cl100k_base through tiktoken when available and shall otherwise estimate tokens as the ceiling of character count divided by four.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-COSINE-SAFETY
+STATUS: Draft
+TITLE: Cosine Safety
+STATEMENT: >>>
+Cosine comparison shall return zero for empty vectors, dimensional mismatch, or zero vector norms.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REDUCER-NO-DURABLE-MUTATION
+STATUS: Draft
+TITLE: Reducer Runtime Output Only
+STATEMENT: >>>
+Reducer output shall not modify the original MemoryRecord input_text or output_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-INPUT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. ActiveBrief Previous-State Selection
+
+[TEXT]
+STATEMENT: >>>
+The ActiveBrief builder selects one previous clean brief from the active in-memory history before deciding how the new record affects continuity.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-PREVIOUS-SCAN
+STATUS: Draft
+TITLE: Newest-to-Oldest Previous Brief Scan
+STATEMENT: >>>
+The builder shall scan previous records from newest to oldest and shall select the first eligible non-empty ActiveBrief.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-SKIP-BLACK-RECORD
+STATUS: Draft
+TITLE: Skip Black Source Record
+STATEMENT: >>>
+A previous record whose current tag is Black shall not supply the previous clean ActiveBrief to the builder.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-PREVIOUS-SCAN
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-SKIP-EMPTY
+STATUS: Draft
+TITLE: Skip Empty Previous Brief
+STATEMENT: >>>
+A previous record with an empty active_retrieval_brief shall not be selected as the previous clean brief.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-PREVIOUS-SCAN
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-BLACK-CONTRIBUTOR
+STATUS: Draft
+TITLE: Reject Brief with Black Contributor
+STATEMENT: >>>
+The builder shall reject a previous ActiveBrief when any listed contributor ID belongs to a previous record currently tagged Black.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-PREVIOUS-SCAN
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-CONTRIBUTOR-FALLBACK
+STATUS: Draft
+TITLE: Contributor Fallback
+STATEMENT: >>>
+When an otherwise eligible previous brief has no contributor IDs, the builder shall use the selected previous record ID as its contributor list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-PREVIOUS-SCAN
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-NO-PREVIOUS
+STATUS: Draft
+TITLE: No Previous Clean Brief
+STATEMENT: >>>
+When no eligible previous clean ActiveBrief exists, the builder shall route the new record through initial ActiveBrief creation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-PREVIOUS-SCAN
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEBRIEF-CURRENT-METADATA
+STATUS: Draft
+TITLE: Current Record Metadata Payload
+STATEMENT: >>>
+The ActiveBrief agent metadata payload shall include record_id, parent_id, creation time, source, tag, retrieval source mode, active project, automatic keywords, user keywords, and embedded-file snapshot from the current MemoryRecord.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. ActiveBrief Relevance Gate
+
+[TEXT]
+STATEMENT: >>>
+The non-LLM gate determines whether to update the current ActiveBrief, confirm a topic shift, or propagate the existing brief without an LLM call.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-ROOT
+STATUS: Draft
+TITLE: ActiveBrief Relevance Gate
+STATEMENT: >>>
+When enabled and a previous clean ActiveBrief exists, MemoryActiveBriefRelevanceGate shall evaluate reduced current Q/A vectors against the previous ActiveBrief and optional pending-topic center before an ActiveBrief update agent is called.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-QA-VECTORS
+STATUS: Draft
+TITLE: Reused Q/A Vectors
+STATEMENT: >>>
+The gate shall reuse question_vectors and answer_vectors produced by MemorySentenceReducer and shall not re-embed the current Q/A solely for gating.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-BRIEF-CENTER
+STATUS: Draft
+TITLE: ActiveBrief Center
+STATEMENT: >>>
+The gate shall split the previous ActiveBrief into sentence windows, embed those windows, and calculate their compatible-vector centroid as the ActiveBrief comparison center.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-NO-PREVIOUS
+STATUS: Draft
+TITLE: No-Previous Pass Route
+STATEMENT: >>>
+When no previous ActiveBrief is supplied, the gate shall return a pass decision with route init_no_previous_activebrief.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-NO-QA
+STATUS: Draft
+TITLE: No-Q/A-Vector Skip Route
+STATEMENT: >>>
+When a previous brief exists but current Q/A vectors are empty, the gate shall return should_update_activebrief false with route skip_no_qa_vectors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-SAFE-PASS
+STATUS: Draft
+TITLE: Missing ActiveBrief Center Safe Pass
+STATEMENT: >>>
+When the gate cannot construct an ActiveBrief center, it shall return a safe pass with route activebrief_safe_pass rather than block the update.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-COSINE-SCORES
+STATUS: Draft
+TITLE: Q/A-to-Center Scores
+STATEMENT: >>>
+The gate shall calculate cosine similarity between each current question/answer vector and the active comparison center.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-TOP-SELECTION-SMALL
+STATUS: Draft
+TITLE: Top-Score Selection for Four or Fewer
+STATEMENT: >>>
+For one through four Q/A scores, the gate shall use all scores in its top-score mean.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-TOP-SELECTION-MEDIUM
+STATUS: Draft
+TITLE: Top-Score Selection for Five through Twenty
+STATEMENT: >>>
+For five through twenty Q/A scores, the gate shall use the top four scores in its top-score mean.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-TOP-SELECTION-LARGE
+STATUS: Draft
+TITLE: Top-Score Selection Above Twenty
+STATEMENT: >>>
+For more than twenty Q/A scores, the gate shall use floor(n divided by five), with at least one score, in its top-score mean.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-ACTIVE-PASS
+STATUS: Draft
+TITLE: ActiveBrief Update Threshold
+STATEMENT: >>>
+When the ActiveBrief comparison top-score mean is greater than or equal to activebrief_threshold, the gate shall route activebrief_update.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-PENDING-CENTER
+STATUS: Draft
+TITLE: Pending Topic Center
+STATEMENT: >>>
+If the current Q/A fails the ActiveBrief threshold and a pending center exists, the gate shall evaluate current Q/A vectors against that pending-topic center using the same top-score rule.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-TOPIC-SHIFT
+STATUS: Draft
+TITLE: Pending Topic Shift Threshold
+STATEMENT: >>>
+When the pending-topic comparison top-score mean is greater than or equal to pending_topic_threshold, the gate shall route pending_topic_shift.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-SKIP
+STATUS: Draft
+TITLE: Skip and Update Pending Topic Route
+STATEMENT: >>>
+When current Q/A fails both applicable thresholds, the gate shall route skip_and_update_pending_topic and shall not authorize the normal ActiveBrief update call.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-DIAGNOSTICS
+STATUS: Draft
+TITLE: Gate Diagnostics
+STATEMENT: >>>
+Gate diagnostics shall preserve route, reason, threshold values, score counts, selected top scores, and score summaries without requiring full vector logging.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEGATE-NO-LLM
+STATUS: Draft
+TITLE: Gate Is Non-LLM
+STATEMENT: >>>
+The relevance gate shall make its route deterministically from embeddings, thresholds, and pending state and shall not call an LLM.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. ActiveBrief Init, Update, Skip, and Topic-Shift Routing
+
+[TEXT]
+STATEMENT: >>>
+MemoryActiveRetrievalBriefBuilder maps previous-state and gate results to one of the current recording-time routes.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-INIT
+STATUS: Draft
+TITLE: Initial Brief Route
+STATEMENT: >>>
+If no previous clean ActiveBrief exists, the builder shall invoke the configured init agent using reduced current question, reduced current answer, current record metadata, and required-output text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-INIT-CONTRIBUTOR
+STATUS: Draft
+TITLE: Initial Contributor
+STATEMENT: >>>
+The initial ActiveBrief contributor list shall contain the current record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-INIT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-INIT-BUFFER
+STATUS: Draft
+TITLE: Initial Route Clears Pending Buffer
+STATEMENT: >>>
+The initial ActiveBrief route shall return an empty pending-topic buffer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-INIT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-GATE-DISABLED
+STATUS: Draft
+TITLE: Gate Disabled Route
+STATEMENT: >>>
+When a previous clean brief exists and the relevance gate is disabled, the builder shall invoke the update agent using the previous brief and current reduced Q/A and shall report route gate_disabled.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-NORMAL-UPDATE
+STATUS: Draft
+TITLE: Related ActiveBrief Update Route
+STATEMENT: >>>
+For gate route activebrief_update, the builder shall invoke the update agent with the previous brief and current reduced Q/A.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-SAFE-PASS
+STATUS: Draft
+TITLE: Safe-Pass Update Route
+STATEMENT: >>>
+A gate safe-pass result authorizing update shall follow the builder update path and shall not be treated as a skipped Q/A.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-UPDATE-CONTRIBUTORS
+STATUS: Draft
+TITLE: Update Contributor Merge
+STATEMENT: >>>
+For a normal or gate-disabled update, contributor IDs shall be the ordered de-duplicated merge of prior contributor IDs and the current record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-UPDATE-BUFFER
+STATUS: Draft
+TITLE: Update Clears Pending Buffer
+STATEMENT: >>>
+A successful normal, safe-pass, or gate-disabled update route shall return an empty pending-topic buffer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-TOPIC-SHIFT
+STATUS: Draft
+TITLE: Confirmed Topic-Shift Route
+STATEMENT: >>>
+For gate route pending_topic_shift, the builder shall combine pending reduced Q/A and current reduced Q/A and shall invoke the configured update agent with the previous ActiveBrief plus that combined reduced content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-TOPIC-LABELS
+STATUS: Draft
+TITLE: Topic-Shift Payload Labels
+STATEMENT: >>>
+The combined topic-shift payload shall distinguish pending question, current question, pending answer, and current answer with the current explicit labels.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-TOPIC-SHIFT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-TOPIC-CONTRIBUTORS
+STATUS: Draft
+TITLE: Topic-Shift Contributor Merge
+STATEMENT: >>>
+The topic-shift contributor list shall be the ordered de-duplicated merge of prior contributors, the pending record_id, and the current record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-TOPIC-SHIFT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-TOPIC-BUFFER
+STATUS: Draft
+TITLE: Topic Shift Clears Pending Buffer
+STATEMENT: >>>
+A confirmed topic-shift route shall return an empty pending-topic buffer after the agent call.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-TOPIC-SHIFT
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-SKIP
+STATUS: Draft
+TITLE: Unrelated Q/A Skip Route
+STATEMENT: >>>
+For a non-update gate route, the builder shall skip the ActiveBrief LLM call, copy the previous ActiveBrief title/body/contributor IDs into the new record result, and create a new pending-topic buffer from the current reduced Q/A.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-SKIP-LLM-FLAG
+STATUS: Draft
+TITLE: Skipped LLM Diagnostic
+STATEMENT: >>>
+The skip route shall report activebrief_llm_skipped true and shall preserve the gate route in activebrief_gate_route.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-SKIP
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEROUTE-NO-FABRICATION
+STATUS: Draft
+TITLE: No Fabricated ActiveBrief Fallback
+STATEMENT: >>>
+If an init or update agent invocation or parse fails, the builder shall propagate the failure to MemoryManager and shall not invent an ActiveBrief result.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Pending Topic Buffer and Contributor Traceability
+
+[TEXT]
+STATEMENT: >>>
+The pending-topic buffer supports detection of a stable new topic across consecutive skipped Q/A pairs and is not durable memory truth.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-PENDING-RAM
+STATUS: Draft
+TITLE: RAM-Only Pending Topic State
+STATEMENT: >>>
+MemoryManager.pending_activebrief_topic_buffer shall remain RAM-only and shall not be written to .ragmem, .ragmeta.json, SQLite, or the memory vector store.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-PENDING-CONTENT
+STATUS: Draft
+TITLE: Pending Buffer Content
+STATEMENT: >>>
+The pending buffer shall contain current record_id, creation time, reduced question, reduced answer, question vectors, answer vectors, centroid center_vector, and vector_count.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-PENDING-RAM
+
+[REQUIREMENT]
+UID: GHOST-MEM-PENDING-CENTER
+STATUS: Draft
+TITLE: Pending Center Calculation
+STATEMENT: >>>
+The pending center_vector shall be the centroid of compatible current reduced question and answer vectors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-PENDING-RAM
+
+[REQUIREMENT]
+UID: GHOST-MEM-PENDING-REPLACEMENT
+STATUS: Draft
+TITLE: Pending Buffer Replacement
+STATEMENT: >>>
+Each skip route shall replace the prior pending-topic buffer with the current skipped Q/A buffer returned by the builder.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-PENDING-RAM
+
+[REQUIREMENT]
+UID: GHOST-MEM-PENDING-CLEAR-NEW
+STATUS: Draft
+TITLE: Clear on New History
+STATEMENT: >>>
+Starting a new memory history shall reset pending_activebrief_topic_buffer to an empty dictionary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-PENDING-RAM
+
+[REQUIREMENT]
+UID: GHOST-MEM-PENDING-CLEAR-LOAD
+STATUS: Draft
+TITLE: Clear on History Load
+STATEMENT: >>>
+Loading a memory history shall reset pending_activebrief_topic_buffer and shall not reconstruct it from persisted files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-PENDING-RAM
+
+[REQUIREMENT]
+UID: GHOST-MEM-PENDING-CLEAR-IMPORT
+STATUS: Draft
+TITLE: Clear on Imported History
+STATEMENT: >>>
+Persisting an imported ChatGPT history shall set pending_activebrief_topic_buffer to an empty dictionary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-PENDING-RAM
+
+[REQUIREMENT]
+UID: GHOST-MEM-PENDING-NOT-BLACKBOARD
+STATUS: Draft
+TITLE: Pending Buffer Is Not Blackboard
+STATEMENT: >>>
+The pending-topic buffer shall not be described as a Blackboard because it is a single-purpose, active-history, RAM-only continuity aid without shared task coordination or multi-component posting semantics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-PENDING-RAM
+
+[REQUIREMENT]
+UID: GHOST-MEM-CONTRIBUTOR-STABLE
+STATUS: Draft
+TITLE: Contributor IDs as Stable Brief Trace
+STATEMENT: >>>
+ActiveBrief contributor IDs shall identify the MemoryRecords whose accepted content contributed to the current stable brief.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-CONTRIBUTOR-UNIQUE
+STATUS: Draft
+TITLE: Contributor De-Duplication
+STATEMENT: >>>
+Contributor merge shall preserve first occurrence order and shall omit blank and duplicate record IDs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-CONTRIBUTOR-STABLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-CONTRIBUTOR-NO-SEMANTIC-PROOF
+STATUS: Draft
+TITLE: Contributor Meaning Boundary
+STATEMENT: >>>
+Contributor membership shall record builder traceability and shall not by itself assert sentence-level provenance for every phrase in an LLM-produced ActiveBrief.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-CONTRIBUTOR-STABLE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. ActiveBrief Agent Definitions and Output Contract
+
+[TEXT]
+STATEMENT: >>>
+The current init and update agents are versioned JSON synthesizers with distinct inputs and the same two-field output schema.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-ID
+STATUS: Draft
+TITLE: ActiveBrief Agent Identity
+STATEMENT: >>>
+The current ActiveBrief builder shall resolve agent_id memory_activebrief_qa_summarizer with distinct configured init and update version identifiers.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-INIT-BINDINGS
+STATUS: Draft
+TITLE: Init Agent Bindings
+STATEMENT: >>>
+The init agent shall bind reduced_question, reduced_answer, memory_record_metadata, and required_output and shall not require a previous ActiveBrief.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-UPDATE-BINDINGS
+STATUS: Draft
+TITLE: Update Agent Bindings
+STATEMENT: >>>
+The update agent shall bind previous_active_retrieval_brief, reduced_question, reduced_answer, memory_record_metadata, and required_output.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-OUTPUT
+STATUS: Draft
+TITLE: ActiveBrief Output Schema
+STATEMENT: >>>
+Both ActiveBrief agent definitions shall return JSON containing only active_retrieval_brief_title and active_retrieval_brief as declared output fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-NO-QA-SUMMARY
+STATUS: Draft
+TITLE: No Separate Q/A Summary
+STATEMENT: >>>
+The ActiveBrief agent contract shall not create a separate qa_summary field.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-NO-ANSWER
+STATUS: Draft
+TITLE: No User-Facing Answer
+STATEMENT: >>>
+The ActiveBrief agents shall not answer the original request, speak to the user, or produce final answer text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-FACT-BOUNDARY
+STATUS: Draft
+TITLE: Provided-Evidence Boundary
+STATEMENT: >>>
+The ActiveBrief agents shall use only the supplied reduced Q/A, current metadata, and, for update, previous clean ActiveBrief and shall not import outside knowledge.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-CORRECTIONS
+STATUS: Draft
+TITLE: Correction and Rejection Preservation
+STATEMENT: >>>
+The agent instructions shall treat explicit corrections as high-importance constraints and explicit rejected interpretations as negative constraints when present in supplied evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-EMOTION
+STATUS: Draft
+TITLE: Emotional Wording Boundary
+STATEMENT: >>>
+The agent instructions shall treat insults, frustration, short rejection, or emotional wording as feedback signals rather than automatically converting them into new topic content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-TITLE-RULE
+STATUS: Draft
+TITLE: Operational Title Rule
+STATEMENT: >>>
+The current agent definitions shall request a neutral factual operational title of ten to twenty words describing the stable working-conversation center.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-MODEL
+STATUS: Draft
+TITLE: Current ActiveBrief Model Configuration
+STATEMENT: >>>
+The current init and update JSON definitions shall configure provider openai, model gpt-5-mini, temperature zero, JSON response format, and max_tokens 600.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-CALL
+STATUS: Draft
+TITLE: ActiveBrief LLM Invocation
+STATEMENT: >>>
+The builder shall compose the selected AgentPrompt, call LLMClient.responses with the agent model and maximum output tokens, minimal reasoning effort, metadata return enabled, and the configured prompt cache key, then parse through AgentPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-ACTIVEAGENT-LIMIT-CONFLICT
+STATUS: Draft
+TITLE: Current ActiveBrief Limit Inconsistency
+STATEMENT: >>>
+The current baseline shall record that runtime_config target_brief_tokens and builder required-output text use about 700 tokens while the current init/update agent hard rules specify an absolute maximum of 500 tokens.
+
+The implementation and requirements shall not claim one unified effective limit until this inconsistency is resolved in the versioned configuration and agent definitions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEAGENT-ID
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Runtime Memory Compression
+
+[TEXT]
+STATEMENT: >>>
+MemoryCompressor performs query-dependent reduction of selected episodic Q/A candidates before Memory Context synthesis.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-ROOT
+STATUS: Draft
+TITLE: Runtime Memory Compressor
+STATEMENT: >>>
+MemoryCompressor shall receive runtime configuration and shall produce query-dependent compressed fields without modifying durable MemoryRecord truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-CONFIG
+STATUS: Draft
+TITLE: Compression Configuration
+STATEMENT: >>>
+MemoryCompressor shall consume the memory_compression section, including global enabled, effective-query maximum tokens and embedding model, and episodic reduction enablement, total budget, question budget, windowing, and redundancy threshold.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-CURRENT-SCOPE
+STATUS: Draft
+TITLE: Current Episodic-Only Compression
+STATEMENT: >>>
+The current compressor shall operate on selected episodic candidates only and shall not compress working-memory candidates, Direct Recall candidates, or semantic memory chunks in the current retrieval flow.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-DISABLED
+STATUS: Draft
+TITLE: Compression Disabled Passthrough
+STATEMENT: >>>
+When global or episodic compression is disabled, compress_episodic_candidates shall return the candidate list without adding compressed fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-QUERY-CLEAN
+STATUS: Draft
+TITLE: Effective Query Normalization
+STATEMENT: >>>
+The compressor shall strip the effective retrieval query before reducing or embedding it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-QUERY-BELOW
+STATUS: Draft
+TITLE: Below-Budget Query Preservation
+STATEMENT: >>>
+When the effective query is within query_max_tokens, query reduction shall preserve it unchanged.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-QUERY-ORDER
+STATUS: Draft
+TITLE: Query Sentence Order
+STATEMENT: >>>
+When the effective query exceeds its budget, deterministic query reduction shall inspect sentences in original order and append each sentence that fits the remaining budget.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-QUERY-SKIP
+STATUS: Draft
+TITLE: Oversized Query Sentence Skip
+STATEMENT: >>>
+A query sentence that would exceed the configured query budget shall be skipped rather than partially included in the normal sentence-selection path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-QUERY-FALLBACK
+STATUS: Draft
+TITLE: Query Fallback Slice
+STATEMENT: >>>
+If no complete sentence fits, query reduction shall use the current bounded first-sentence character slice without generating new content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-QUERY-EMBED-ONCE
+STATUS: Draft
+TITLE: Single Query Anchor Embedding
+STATEMENT: >>>
+After deterministic query reduction, the compressor shall embed the reduced query once and shall use that vector as the external anchor for all selected episodic candidates in the run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-NO-ANCHOR
+STATUS: Draft
+TITLE: Missing Query Anchor Passthrough
+STATEMENT: >>>
+When no query anchor vector can be produced, the compressor shall return episodic candidates unchanged rather than fabricate compressed evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-PRESERVE-ORIGINAL
+STATUS: Draft
+TITLE: Original Episodic Text Preservation
+STATEMENT: >>>
+Compressed candidates shall retain original input_text and output_text and shall add compressed_input_text and compressed_output_text as runtime fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-MODE
+STATUS: Draft
+TITLE: Compression Mode Metadata
+STATEMENT: >>>
+Each compressed episodic candidate shall identify memory_compression_mode as query_anchor_episode and shall include query and reducer diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-COMPRESSOR-NO-STORE-WRITE
+STATUS: Draft
+TITLE: No Compression Persistence
+STATEMENT: >>>
+MemoryCompressor shall not update .ragmem, .ragmeta.json, SQLite, or memory vectors with query-dependent compressed text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. MemoryMergeSynthesizer Inputs and Evidence Construction
+
+[TEXT]
+STATEMENT: >>>
+MemoryMergeSynthesizer receives bounded runtime evidence and constructs one explicit agent payload.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-ROOT
+STATUS: Draft
+TITLE: Memory Context Synthesizer
+STATEMENT: >>>
+MemoryMergeSynthesizer shall synthesize one query-relevant memory_context string from current episodic candidates and semantic memory chunks using the effective retrieval query and ActiveRetrievalBrief as an orientation and anti-duplication reference.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-CONFIG
+STATUS: Draft
+TITLE: Synthesis Configuration
+STATEMENT: >>>
+The synthesizer shall consume memory_merge_synthesizer enabled, agent_id, agent_version, target_context_tokens, max_episodic_records, max_semantic_chunks, and prompt_cache_key.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-EXPLICIT-CONFIG
+STATUS: Draft
+TITLE: Current Runtime Configuration Injection
+STATEMENT: >>>
+The current MemoryRetriever shall construct MemoryMergeSynthesizer with the active runtime_config dictionary so the normal retrieval path does not depend on the synthesizer fallback configuration loader.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-DISABLED
+STATUS: Draft
+TITLE: Disabled Synthesis
+STATEMENT: >>>
+When synthesis is disabled, the synthesizer shall skip the LLM and return empty memory_context with a disabled diagnostic.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-EPISODIC-CAP
+STATUS: Draft
+TITLE: Episodic Input Cap
+STATEMENT: >>>
+Before evidence formatting, the synthesizer shall retain at most the first max_episodic_records candidates in their existing order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-SEMANTIC-CAP
+STATUS: Draft
+TITLE: Semantic Chunk Input Cap
+STATEMENT: >>>
+Before evidence formatting, the synthesizer shall retain at most the first max_semantic_chunks in their existing order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-CURRENT-EVIDENCE-CLASSES
+STATUS: Draft
+TITLE: Current Synthesized Evidence Classes
+STATEMENT: >>>
+The current synthesizer evidence source shall include reduced episodic episodes and semantic memory chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-NO-WORKING
+STATUS: Draft
+TITLE: Working Memory Not Synthesizer Input
+STATEMENT: >>>
+The current synthesizer shall not receive MemoryContextPack.working_memory_candidates as memory_evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-CURRENT-EVIDENCE-CLASSES
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-NO-DIRECT
+STATUS: Draft
+TITLE: Direct Recall Not Synthesizer Input
+STATEMENT: >>>
+The current synthesizer shall not receive MemoryContextPack.direct_recall_candidate as memory_evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-CURRENT-EVIDENCE-CLASSES
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-EPISODIC-FORMAT
+STATUS: Draft
+TITLE: Episodic Evidence Format
+STATEMENT: >>>
+For each episodic candidate, evidence text shall identify episode index, record_id, optional tag/source/score, and available QUESTION and ANSWER blocks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-COMPRESSED-FIRST
+STATUS: Draft
+TITLE: Compressed Episodic Text Priority
+STATEMENT: >>>
+Episodic evidence formatting shall use compressed_input_text and compressed_output_text when present and shall otherwise fall back to original input_text and output_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-EPISODIC-FORMAT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-SEMANTIC-FORMAT
+STATUS: Draft
+TITLE: Semantic Evidence Format
+STATEMENT: >>>
+For each semantic chunk, evidence text shall identify available vector_id, record_id, role, score, and TEXT content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-NO-EVIDENCE
+STATUS: Draft
+TITLE: No Evidence Skip
+STATEMENT: >>>
+When the formatted episodic and semantic evidence text is empty, the synthesizer shall skip the LLM and return empty memory_context with reason no_memory_evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-PAYLOAD
+STATUS: Draft
+TITLE: Synthesis Payload
+STATEMENT: >>>
+The synthesis payload shall contain effective_retrieval_query_text, active_retrieval_brief_title, active_retrieval_brief, memory_evidence, and required_output.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-ACTIVEBRIEF-REFERENCE
+STATUS: Draft
+TITLE: ActiveBrief Reference Boundary
+STATEMENT: >>>
+ActiveRetrievalBrief shall be passed as orientation and anti-duplication reference and shall not be treated as a substitute for missing episodic or semantic evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTH-ANTI-DUP-NATURE
+STATUS: Draft
+TITLE: Anti-Duplication Instruction Nature
+STATEMENT: >>>
+ActiveBrief anti-duplication is currently an instruction to the synthesizer agent and shall not be represented as a deterministic overlap detector.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ACTIVEBRIEF-REFERENCE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 12. Memory Synthesizer Agent Contract and Output
+
+[TEXT]
+STATEMENT: >>>
+The current memory_synthesizer_001 agent produces one structured backend field and is constrained to provided evidence.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-ID
+STATUS: Draft
+TITLE: Memory Synthesizer Agent Identity
+STATEMENT: >>>
+The current synthesizer shall resolve agent_id memory_synthesizer and agent version memory_synthesizer_001.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-TYPE
+STATUS: Draft
+TITLE: Memory Synthesizer Agent Type
+STATEMENT: >>>
+The current agent definition shall identify the agent as a Synthesizer named Memory Context Synthesizer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-MODEL
+STATUS: Draft
+TITLE: Current Memory Synthesizer Model
+STATEMENT: >>>
+The current agent definition shall configure provider openai, model gpt-5-mini, temperature zero, max_tokens 1200, and JSON response format.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-BINDINGS
+STATUS: Draft
+TITLE: Memory Synthesizer Bindings
+STATEMENT: >>>
+The agent definition shall bind effective retrieval query, optional ActiveBrief title, optional ActiveBrief body, memory evidence, and required-output instructions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-OUTPUT
+STATUS: Draft
+TITLE: Memory Context Output Schema
+STATEMENT: >>>
+The agent output schema shall declare one result field named memory_context and shall not declare a final answer field.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-QUERY-RELEVANCE
+STATUS: Draft
+TITLE: Query-Relevant Context
+STATEMENT: >>>
+The agent instructions shall retain only memory evidence connected to the effective retrieval query and shall return an empty memory_context when no useful evidence exists.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-PRESERVE-FACTS
+STATUS: Draft
+TITLE: Concrete Memory Fact Preservation
+STATEMENT: >>>
+When relevant, the agent instructions shall preserve concrete names, technical entities, decisions, constraints, corrections, and rejected interpretations from supplied memory evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-DEDUPE
+STATUS: Draft
+TITLE: Evidence De-Duplication Instruction
+STATEMENT: >>>
+The agent instructions shall combine duplicate episodic and semantic evidence instead of repeating the same point.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-NO-INVENTION
+STATUS: Draft
+TITLE: No Invented Memory
+STATEMENT: >>>
+The agent shall not invent facts, preferences, project decisions, files, or implementation status and shall not import outside knowledge.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-NO-ANSWER
+STATUS: Draft
+TITLE: Backend Context Only
+STATEMENT: >>>
+The agent shall not answer the original request, address the user, or produce a final user-facing response.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-CALL
+STATUS: Draft
+TITLE: Memory Synthesis Invocation
+STATEMENT: >>>
+MemoryMergeSynthesizer shall compose the configured AgentPrompt, call LLMClient.responses with minimal reasoning effort, metadata return enabled, and the configured prompt-cache key, and shall parse the returned content through AgentPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-SUCCESS
+STATUS: Draft
+TITLE: Successful Synthesis Result
+STATEMENT: >>>
+On successful parse, the synthesizer shall return stripped memory_context, synthesis diagnostics, and memory_synthesis_llm_skipped false.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-DIAGNOSTICS
+STATUS: Draft
+TITLE: Successful Synthesis Diagnostics
+STATEMENT: >>>
+Successful synthesis diagnostics shall include reason synthesized, configured target, selected input counts, output character count, provider usage, model name, status, and incomplete reason when available.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-FAILURE
+STATUS: Draft
+TITLE: Synthesis Failure Result
+STATEMENT: >>>
+If composition, provider call, or parse raises an exception, the synthesizer shall return empty memory_context, a synthesis_failed diagnostic containing the error and input counts, and memory_synthesis_llm_skipped true.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-SYNTHAGENT-NO-FABRICATION
+STATUS: Draft
+TITLE: No Fabricated Context Fallback
+STATEMENT: >>>
+A failed or skipped synthesis shall not be replaced with an invented deterministic Memory Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-ID
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 13. MemoryContextPack and SuperPrompt Handoff
+
+[TEXT]
+STATEMENT: >>>
+MemoryRetriever stores raw candidate classes and synthesis output separately and projects only the synthesized context into the normal prompt view.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-PACK
+STATUS: Draft
+TITLE: Pack Synthesis Assignment
+STATEMENT: >>>
+After synthesis, MemoryRetriever shall store the returned memory_context and synthesis diagnostics through MemoryContextPack.set_synthesized_memory_context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-SP-TEXT
+STATUS: Draft
+TITLE: SuperPrompt Memory Context Text
+STATEMENT: >>>
+MemoryRetriever shall assign MemoryContextPack.synthesized_memory_context to SuperPrompt.memory_context_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-SP-PACK
+STATUS: Draft
+TITLE: SuperPrompt Raw Memory Pack
+STATEMENT: >>>
+MemoryRetriever shall retain the full MemoryContextPack object and its dictionary/debug representations separately from memory_context_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-ACTIVEBRIEF
+STATUS: Draft
+TITLE: SuperPrompt ActiveBrief Snapshot
+STATEMENT: >>>
+MemoryRetriever shall store the latest current eligible ActiveBrief title and body in the dedicated SuperPrompt fields and extras independently of synthesized Memory Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-RENDER
+STATUS: Draft
+TITLE: Normal Memory Context Rendering
+STATEMENT: >>>
+SuperPromptProjector normal rendering shall use memory_context_text under the Memory Context section and shall not render raw MemoryContextPack debug Markdown by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-SUPPORTING
+STATUS: Draft
+TITLE: Supporting Context Semantics
+STATEMENT: >>>
+Rendered Memory Context shall be identified as supporting context and shall not override the current user task or explicit current constraints.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-HANDOFF-RENDER
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-ACTIVEBRIEF-MODE
+STATUS: Draft
+TITLE: ActiveBrief Projection Mode Dependency
+STATEMENT: >>>
+Final ActiveBrief inclusion shall follow the deterministic final_prompt_mode and relation decision prepared by 30_preprocessing_prompt_functions.sdoc rather than being independently reclassified by MemoryMerge.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-PERMISSION
+STATUS: Draft
+TITLE: Memory Context Permission Dependency
+STATEMENT: >>>
+Memory synthesis and final projection shall honor PreProcessing allow_memory_context and memory_context_policy; a request with memory context disabled shall not receive synthesized memory_context_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-NO-DOC-MUTATION
+STATUS: Draft
+TITLE: No Document Context Mutation
+STATEMENT: >>>
+Memory synthesis and handoff shall not overwrite document S_CTX_MD, document stage views, or document selection IDs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-NO-STAGE-CLAIM
+STATUS: Draft
+TITLE: No Independent Pipeline Stage Claim
+STATEMENT: >>>
+Current MemoryMerge write-back shall not claim a separate top-level document pipeline stage solely because compression and synthesis occur inside MemoryRetriever.run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-HANDOFF-NO-PERSIST
+STATUS: Draft
+TITLE: No Runtime Context Persistence
+STATEMENT: >>>
+memory_context_text, synthesis diagnostics, compressed episodic fields, and MemoryContextPack shall remain run-local artifacts and shall not be appended to .ragmem as new durable truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 14. Configuration Governance and Current Consumption
+
+[TEXT]
+STATEMENT: >>>
+Current memory transformation behavior combines versioned runtime JSON, versioned agent JSON, and some Python defaults; requirements distinguish consumed settings from merely present values.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-RUNTIME
+STATUS: Draft
+TITLE: Runtime Configuration Source
+STATEMENT: >>>
+Normal application startup shall load ragstream/config/runtime_config.json and shall pass the resulting dictionary into MemoryRetriever and its retrieval-time compressor and synthesizer components.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-ACTIVE-LOAD
+STATUS: Draft
+TITLE: Recording-Time ActiveBrief Configuration Load
+STATEMENT: >>>
+The current recording-time ActiveBrief builder, when created by MemoryManager without explicit configuration, shall load ragstream/config/runtime_config.json through its own configuration loader.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-ACTIVE-REDUCER
+STATUS: Draft
+TITLE: Consumed ActiveBrief Reducer Settings
+STATEMENT: >>>
+Current ActiveBrief generation shall consume reducer max_tokens_total, question_max_tokens, window size, window overlap, redundancy threshold, and embedding model.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-ACTIVE-GATE
+STATUS: Draft
+TITLE: Consumed ActiveBrief Gate Settings
+STATEMENT: >>>
+Current ActiveBrief generation shall consume gate enabled, activebrief_threshold, and pending_topic_threshold.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-ACTIVE-LLM
+STATUS: Draft
+TITLE: Consumed ActiveBrief LLM Settings
+STATEMENT: >>>
+Current ActiveBrief generation shall consume agent_id, init agent version, update agent version, target_brief_tokens, and prompt_cache_key from the ActiveBrief LLM configuration section.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-COMPRESS
+STATUS: Draft
+TITLE: Consumed Compression Settings
+STATEMENT: >>>
+Current runtime compression shall consume effective-query token limit and embedding model plus episodic enablement, total budget, question budget, window size, overlap, and redundancy threshold.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-SYNTH
+STATUS: Draft
+TITLE: Consumed Synthesis Settings
+STATEMENT: >>>
+Current MemoryMergeSynthesizer shall consume enabled, agent identity/version, target context tokens, episodic cap, semantic chunk cap, and prompt-cache key.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-AGENT-AUTHORITY
+STATUS: Draft
+TITLE: Agent Definition Authority
+STATEMENT: >>>
+Provider, model, temperature, provider maximum output tokens, dynamic bindings, static rules, and structured output schema shall remain owned by the corresponding versioned agent JSON definitions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-NO-HIDDEN-OVERRIDE
+STATUS: Draft
+TITLE: No Hidden Configuration Override
+STATEMENT: >>>
+A Python fallback value shall not be represented as JSON-controlled when the active runtime does not read the corresponding JSON field.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-MIGRATION
+STATUS: Draft
+TITLE: Operational Parameter Migration
+STATEMENT: >>>
+Remaining tunable thresholds, token budgets, model identifiers, window parameters, and evidence caps shall be kept or migrated into validated versioned JSON rather than multiplied as unrelated hard-coded runtime values.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGECFG-VALIDATION
+STATUS: Draft
+TITLE: Configuration Validation Requirement
+STATEMENT: >>>
+Configuration loading shall reject or explicitly normalize invalid negative budgets, invalid window relationships, invalid threshold ranges, and missing required agent identities before those values silently alter memory behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 15. Error Handling, Logging, and Quality Requirements
+
+[TEXT]
+STATEMENT: >>>
+The memory transformation path must preserve durable truth and expose decisions without leaking full memory content by default.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-ERROR-DURABLE
+STATUS: Draft
+TITLE: Transformation Failure Does Not Rewrite Truth
+STATEMENT: >>>
+A reducer, relevance-gate, ActiveBrief agent, compressor, or synthesis failure shall not rewrite prior .ragmem records, .ragmeta.json metadata, SQLite rows, or stored vectors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-ERROR-EMPTY
+STATUS: Draft
+TITLE: Empty Runtime Result Is Explicit
+STATEMENT: >>>
+A skipped or failed synthesis shall return empty memory_context with diagnostics rather than an ambiguous fabricated success.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-ERROR-ACTIVE
+STATUS: Draft
+TITLE: ActiveBrief Error Visibility
+STATEMENT: >>>
+ActiveBrief builder failures shall be available to explicitly enabled developer logging even though current MemoryManager capture continues.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-LOG-PUBLIC
+STATUS: Draft
+TITLE: Public Logging Boundary
+STATEMENT: >>>
+Public logs shall not expose complete memory Q/A bodies, ActiveBrief bodies, synthesis evidence, provider messages, raw model output, or embedding vectors by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-LOG-DEVELOPER
+STATUS: Draft
+TITLE: Developer Diagnostic Boundary
+STATEMENT: >>>
+Complete reduction, gate, agent payload, raw response, and synthesis snapshots shall remain behind explicitly enabled confidential developer logging.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-LOG-GATE
+STATUS: Draft
+TITLE: Gate Log Summaries
+STATEMENT: >>>
+The gate log view shall report score summaries, counts, routes, and bounded text previews and shall not require full vector values.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-DETERMINISTIC-TEST
+STATUS: Draft
+TITLE: Deterministic Component Testability
+STATEMENT: >>>
+Sentence splitting, window formation, token allocation, centroid, cosine, redundancy filtering, top-score count, threshold routing, contributor merging, query reduction, and evidence formatting shall be independently testable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AGENT-TEST
+STATUS: Draft
+TITLE: Agent Contract Testability
+STATEMENT: >>>
+ActiveBrief and Memory Context agent definitions shall be testable for declared bindings, output fields, no-answer behavior, and rejection of undeclared output structure.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-REPRODUCIBILITY
+STATUS: Draft
+TITLE: Decision Reproducibility
+STATEMENT: >>>
+Diagnostics shall preserve configuration version or effective values, route, thresholds, selected counts, contributor IDs, and agent identity sufficiently to reproduce a transformation decision.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-NO-OUTSIDE-KNOWLEDGE
+STATUS: Draft
+TITLE: No Outside Knowledge in Memory Artifacts
+STATEMENT: >>>
+ActiveBrief and Memory Context outputs shall be grounded in supplied memory evidence and shall not add external facts solely from model knowledge.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-NO-SEMANTIC-GUARANTEE
+STATUS: Draft
+TITLE: LLM Compression Nature
+STATEMENT: >>>
+An LLM-produced ActiveBrief or memory_context shall be treated as a compressed runtime artifact and shall not be represented as a verbatim or complete copy of all source evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 16. Blackboard and Future Development Boundary
+
+[TEXT]
+STATEMENT: >>>
+The filename reserves an architectural boundary for future coordination, but the current implementation does not contain a Blackboard subsystem.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+STATUS: Draft
+TITLE: No Current Blackboard Subsystem
+STATEMENT: >>>
+The current Memory Management implementation shall not be described as providing a Blackboard coordinator, shared Blackboard schema, posting protocol, task queue, subscription mechanism, or conflict-resolution engine.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-PACK-NOT
+STATUS: Draft
+TITLE: MemoryContextPack Is Not Blackboard
+STATEMENT: >>>
+MemoryContextPack shall be described as a run-local typed candidate container and not as a Blackboard implementation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-EXTRAS-NOT
+STATUS: Draft
+TITLE: SuperPrompt Extras Are Not Blackboard
+STATEMENT: >>>
+SuperPrompt.extras shall be described as runtime auxiliary state and not as a Blackboard merely because multiple components write namespaced values into it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-PENDING-NOT
+STATUS: Draft
+TITLE: Pending Topic State Is Not Blackboard
+STATEMENT: >>>
+The ActiveBrief pending-topic buffer shall remain a private continuity state and shall not imply a general shared-agent workspace.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-NO-BACKGROUND
+STATUS: Draft
+TITLE: No Background Coordination Agents
+STATEMENT: >>>
+This document shall not claim current background agents that monitor, reconcile, or update memory, knowledge, requirements, architecture, code, or tests.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-NO-KNOWLEDGE-GRAPH
+STATUS: Draft
+TITLE: No Current Knowledge Graph
+STATEMENT: >>>
+This document shall not claim a current knowledge graph, graph traversal memory retrieval, graph persistence, or graph-based conflict resolution.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-NO-CROSS-CONTEXT-DEDUPE
+STATUS: Draft
+TITLE: No Knowledge-Memory Overlap Resolver
+STATEMENT: >>>
+The current implementation shall not be described as deterministically comparing final Knowledge Context and Memory Context and removing cross-path overlap.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-ACTIVEBRIEF-ANTI-DUP
+STATUS: Draft
+TITLE: Current Anti-Duplication Limit
+STATEMENT: >>>
+The current ActiveBrief reference to MemoryMerge may guide the LLM away from repetition inside Memory Context; it shall not be treated as the future cross-path overlap-removal capability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-FUTURE-OWNERSHIP
+STATUS: Draft
+TITLE: Future Blackboard Ownership
+STATEMENT: >>>
+Any future Blackboard, cross-context reconciliation, knowledge graph, background synchronization, or autonomous coordination capability shall require separately approved requirements and architecture, expected under the future-vision requirement family rather than inferred from this current document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[REQUIREMENT]
+UID: GHOST-MEM-BLACKBOARD-CURRENT-ACCEPTANCE
+STATUS: Draft
+TITLE: Current Baseline Independence
+STATEMENT: >>>
+Acceptance of the current 50–53 Memory Management baseline shall not depend on implementation of a Blackboard, knowledge graph, background agent, or cross-path overlap resolver.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 17. Traceability and Acceptance Criteria
+
+[TEXT]
+STATEMENT: >>>
+These criteria verify ActiveBrief continuity, deterministic reduction and routing, query-dependent compression, evidence-limited synthesis, and current Blackboard exclusion.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-CODE-OWNERSHIP
+STATUS: Draft
+TITLE: Memory Merge Code Ownership
+STATEMENT: >>>
+MemorySentenceReducer, MemoryActiveBriefRelevanceGate, MemoryActiveRetrievalBriefBuilder, MemoryCompressor, MemoryMergeSynthesizer, and the associated memory agent JSON definitions shall map to the deepest applicable UIDs in this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-SIBLING-BOUNDARY
+STATUS: Draft
+TITLE: Sibling Ownership Boundary
+STATEMENT: >>>
+MemoryRecord and file persistence shall remain owned by 51; vector ingestion, candidate retrieval, scoring, and MemoryContextPack construction shall remain owned by 52.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-INIT
+STATUS: Draft
+TITLE: AC: Initial ActiveBrief
+STATEMENT: >>>
+Given a first captured record with reducible Q/A and a successful init agent response, the new record shall contain the returned title/body and contributor list containing only its record_id before .ragmem append.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-INIT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-RELATED
+STATUS: Draft
+TITLE: AC: Related ActiveBrief Update
+STATEMENT: >>>
+Given a previous clean brief and current Q/A whose ActiveBrief top-score mean meets threshold, the update agent shall run, contributor IDs shall include the current record, and pending state shall clear.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-NORMAL-UPDATE
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-SKIP
+STATUS: Draft
+TITLE: AC: Unrelated Q/A Skip
+STATEMENT: >>>
+Given current Q/A that fails ActiveBrief and pending-topic thresholds, no ActiveBrief LLM call shall run, the previous brief shall be copied, and the current Q/A shall replace pending-topic state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-SKIP
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-TOPIC
+STATUS: Draft
+TITLE: AC: Confirmed Topic Shift
+STATEMENT: >>>
+Given a pending skipped Q/A and a current Q/A meeting pending_topic_threshold while failing the old ActiveBrief threshold, the update agent payload shall include both labeled Q/A pairs and contributors shall include pending and current record IDs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEROUTE-TOPIC-SHIFT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-BLACK
+STATUS: Draft
+TITLE: AC: Black Contributor Exclusion
+STATEMENT: >>>
+Given a previous brief whose contributor is currently Black, the builder shall skip that brief when selecting previous clean continuity state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEBRIEF-BLACK-CONTRIBUTOR
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-REDUCER
+STATUS: Draft
+TITLE: AC: Reducer Order and Budget
+STATEMENT: >>>
+Given over-budget Q/A with multiple windows, selected text shall remain within allocated budgets, redundant windows shall be excluded at threshold, and reconstructed sentences shall follow source order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REDUCER-ORDER
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-TOPCOUNT
+STATUS: Draft
+TITLE: AC: Gate Top-Score Counts
+STATEMENT: >>>
+Gate tests at n equal to 4, 5, 20, 21, and 25 shall use 4, 4, 4, 4, and 5 top scores respectively.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-ACTIVEGATE-TOP-SELECTION-LARGE
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-COMPRESS
+STATUS: Draft
+TITLE: AC: Query-Anchored Episodic Compression
+STATEMENT: >>>
+Given enabled compression, a non-empty query anchor, and selected episodic candidates, each result shall preserve original Q/A and add query_anchor_episode compressed fields and diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-COMPRESSOR-PRESERVE-ORIGINAL
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-SYNTH-INPUT
+STATUS: Draft
+TITLE: AC: Current Synthesis Evidence Classes
+STATEMENT: >>>
+A synthesis payload shall include bounded episodic and semantic evidence but shall not include working-memory or Direct Recall candidates in memory_evidence under the current implementation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-CURRENT-EVIDENCE-CLASSES
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-NO-EVIDENCE
+STATUS: Draft
+TITLE: AC: Empty Evidence
+STATEMENT: >>>
+With no formatted episodic or semantic evidence, no synthesis LLM call shall run and returned memory_context shall be empty with no_memory_evidence diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTH-NO-EVIDENCE
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-FAILURE
+STATUS: Draft
+TITLE: AC: Synthesis Failure
+STATEMENT: >>>
+When the Memory Context provider call or parse fails, the result shall contain empty memory_context, synthesis_failed diagnostics, and memory_synthesis_llm_skipped true.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-SYNTHAGENT-FAILURE
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-HANDOFF
+STATUS: Draft
+TITLE: AC: SuperPrompt Memory Handoff
+STATEMENT: >>>
+After successful memory synthesis, SuperPrompt.memory_context_text shall equal MemoryContextPack.synthesized_memory_context while document stage artifacts remain unchanged.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-HANDOFF-SP-TEXT
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-PERMISSION
+STATUS: Draft
+TITLE: AC: Memory Permission
+STATEMENT: >>>
+When PreProcessing disables memory context, no synthesized memory context shall be rendered in the final SuperPrompt for that request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-HANDOFF-PERMISSION
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-RUNTIME-ONLY
+STATUS: Draft
+TITLE: AC: Runtime Artifact Non-Persistence
+STATEMENT: >>>
+After a retrieval run, compressed candidate fields and synthesized memory_context shall not appear as rewritten content in existing .ragmem records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-HANDOFF-NO-PERSIST
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-NO-BLACKBOARD
+STATUS: Draft
+TITLE: AC: Blackboard Boundary
+STATEMENT: >>>
+Inspection of the current baseline shall not identify MemoryContextPack, SuperPrompt.extras, or pending-topic state as satisfying a Blackboard protocol or shared coordination subsystem.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-CONFIG
+STATUS: Draft
+TITLE: AC: Configuration Consumption Truth
+STATEMENT: >>>
+Changing a consumed memory transformation setting shall be observable in reduction, route, cap, or diagnostics; an unconsumed or contradictory field shall not be represented as effective without code evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGECFG-NO-HIDDEN-OVERRIDE
+
+[REQUIREMENT]
+UID: GHOST-MEM-MERGE-AC-SYNC
+STATUS: Draft
+TITLE: AC: Requirement-Code Synchronization
+STATEMENT: >>>
+The 53 baseline shall not be accepted when recording position, reduction behavior, gate route, pending-state lifecycle, contributor trace, synthesis evidence classes, output schema, persistence boundary, or Blackboard status contradicts this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-MERGE-CODE-OWNERSHIP
+
+[[/SECTION]]

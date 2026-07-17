@@ -1,0 +1,212 @@
+[DOCUMENT]
+TITLE: GHOST TextForge and RagLog Logging Requirements
+UID: GHOST-LOG
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose
+
+[TEXT]
+STATEMENT: >>>
+Defines the TextForge/RagLog functional logging subsystem and its observability role, including TextForge facade, TextSink base, FileSink, CliSink, GUISink, RagLog public functions, sink routing, type/sensitivity filtering, developer diagnostics, runtime log display, and future hardening.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Scope and Boundary
+
+[REQUIREMENT]
+UID: GHOST-LOG-ROOT
+TITLE: GHOST TextForge and RagLog Logging Scope
+STATEMENT: >>>
+This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+
+It defines ownership, scope, and placeholder headings for this capability area. Detailed atomic requirements shall be migrated here from legacy requirements, implementation status, architecture notes, UML files, and code evidence after human approval.
+
+This file shall not duplicate detailed requirements owned by sibling files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-QGO-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Initial Topic Headings
+
+[[SECTION]]
+TITLE: 3.1. TextForge / RagLog Functional Logging Subsystem
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2. TextForge Facade
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.3. TextSink Base
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.4. FileSink
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.5. CliSink
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.6. GUISink
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.7. RagLog Public Functions
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.8. LogALL
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.9. LogNoGUI
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.10. LogConf
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.11. LogDeveloper
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.12. GUI / CLI / File / Archive Sink Routing
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.13. Type and Sensitivity Filtering
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.14. Developer Diagnostics
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.15. Runtime Log Display Support
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.16. Retention / Rotation Future Hardening
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.17. AWS Persistence Future Hardening
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]

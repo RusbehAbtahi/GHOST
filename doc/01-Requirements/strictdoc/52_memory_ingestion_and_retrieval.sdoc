@@ -1,0 +1,2571 @@
+[DOCUMENT]
+TITLE: GHOST Memory Ingestion and Retrieval Requirements
+UID: GHOST-MEMORY-INGESTION-RETRIEVAL
+VERSION: 0.1
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines derivative vector ingestion and query-time memory candidate retrieval for the current Memory Management subsystem.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ROOT
+STATUS: Draft
+TITLE: Memory Ingestion and Retrieval Scope
+STATEMENT: >>>
+GHOST shall derive traceable memory vector entries from durable MemoryRecords, persist them in a dedicated memory vector store, retrieve current-history semantic candidates, perform deterministic metadata lookups, score parent records and chunks, build a MemoryContextPack, and hand selected evidence to runtime compression and synthesis.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST; current Python implementation paths may remain under ragstream.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-MEMORY-PARENT
+STATUS: Draft
+TITLE: Memory Management Parent
+STATEMENT: >>>
+Memory Ingestion and Retrieval shall be governed by the authority model, capability boundaries, configuration governance, and sibling ownership defined in 50_memory_management.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RECORDING-DEPENDENCY
+STATUS: Draft
+TITLE: Durable Recording Dependency
+STATEMENT: >>>
+Memory ingestion shall consume MemoryRecords owned by 51_memory_recording_and_files.sdoc and shall not replace their durable truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-MERGE-HANDOFF
+STATUS: Draft
+TITLE: Compression and Synthesis Handoff
+STATEMENT: >>>
+Runtime episodic compression, ActiveBrief behavior, and final Memory Context synthesis shall be refined by 53_memory_merge_activebrief_blackboard.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-BOUNDARY
+STATUS: Draft
+TITLE: Ingestion and Retrieval Boundary
+STATEMENT: >>>
+This document shall own memory vector-entry construction, memory vector persistence, ingestion orchestration, semantic vector search, deterministic index lookup, scoring, candidate selection, MemoryContextPack construction, and SuperPrompt memory-artifact write-back.
+
+It shall not own document retrieval, document A3/A4, durable MemoryRecord body changes, or final user-answer generation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Implementation Location Map and Startup Wiring
+
+[TEXT]
+STATEMENT: >>>
+The current implementation separates ingestion, retrieval support, orchestration, and session wiring.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PATH-CHUNKER
+STATUS: Draft
+TITLE: MemoryChunker Path
+STATEMENT: >>>
+Memory vector-entry construction shall be traceable to ragstream/memory/ingestion/memory_chunker.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PATH-INGEST-MANAGER
+STATUS: Draft
+TITLE: MemoryIngestionManager Path
+STATEMENT: >>>
+Memory ingestion orchestration shall be traceable to ragstream/memory/ingestion/memory_ingestion_manager.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PATH-STORE
+STATUS: Draft
+TITLE: MemoryVectorStore Path
+STATEMENT: >>>
+Dedicated memory-vector persistence shall be traceable to ragstream/memory/ingestion/memory_vector_store.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PATH-RETRIEVER
+STATUS: Draft
+TITLE: MemoryRetriever Path
+STATEMENT: >>>
+Memory retrieval orchestration shall be traceable to ragstream/retrieval/retriever_mem.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PATH-LOOKUP
+STATUS: Draft
+TITLE: MemoryIndexLookup Path
+STATEMENT: >>>
+Deterministic SQLite/.ragmem lookup shall be traceable to ragstream/memory/retrieval/memory_index_lookup.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PATH-SCORER
+STATUS: Draft
+TITLE: MemoryScorer Path
+STATEMENT: >>>
+Semantic hit normalization, parent aggregation, tag policy, recency, and semantic-chunk selection shall be traceable to ragstream/memory/retrieval/memory_scoring.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PATH-PACK
+STATUS: Draft
+TITLE: MemoryContextPack Path
+STATEMENT: >>>
+The runtime memory candidate container shall be traceable to ragstream/memory/retrieval/memory_context_pack.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PATH-CONTROLLER
+STATUS: Draft
+TITLE: Controller Wiring Path
+STATEMENT: >>>
+MemoryRetriever configuration and invocation shall be traceable to ragstream/app/controller.py and ragstream/app/ui_streamlit.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-DIR
+STATUS: Draft
+TITLE: Current Memory Vector Directory
+STATEMENT: >>>
+Current startup shall persist memory vectors under data/memory/vector_db/.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-COLLECTION
+STATUS: Draft
+TITLE: Current Memory Collection
+STATEMENT: >>>
+Current startup shall use the Chroma collection name memory_vectors for memory vector entries.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EMBEDDER
+STATUS: Draft
+TITLE: Current Memory Vector Embedding Model
+STATEMENT: >>>
+Current Streamlit startup shall initialize the memory vector store with OpenAI text-embedding-3-large.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEPARATE-STORE
+STATUS: Draft
+TITLE: Document Store Separation
+STATEMENT: >>>
+The memory vector store shall remain physically and logically separate from project document Chroma stores and SPLADE stores.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Memory Vector Entry Model
+
+[TEXT]
+STATEMENT: >>>
+MemoryChunker creates one discovery handle and zero or more question and answer blocks for each MemoryRecord.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ENTRY-ROLES
+STATUS: Draft
+TITLE: Vector Entry Roles
+STATEMENT: >>>
+MemoryChunker shall produce vector entries with role record_handle, question, or answer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ONE-HANDLE
+STATUS: Draft
+TITLE: One Record Handle
+STATEMENT: >>>
+Each record ingestion shall attempt to create one record_handle entry with block_id 0000 and position zero.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ENTRY-ROLES
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-QUESTION-BLOCKS
+STATUS: Draft
+TITLE: Question Entries
+STATEMENT: >>>
+MemoryChunker shall create ordered question entries from input_text, beginning with block_id 0001 and position one.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ENTRY-ROLES
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ANSWER-BLOCKS
+STATUS: Draft
+TITLE: Answer Entries
+STATEMENT: >>>
+MemoryChunker shall create ordered answer entries from output_text, beginning with block_id 0001 and position one.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ENTRY-ROLES
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EMPTY-ENTRY-FILTER
+STATUS: Draft
+TITLE: Empty Entry Filter
+STATEMENT: >>>
+A generated vector entry whose document text is empty after trimming shall be omitted from the returned entry list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ENTRY-ROLES
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ID-FORMAT
+STATUS: Draft
+TITLE: Vector Entry Identifier
+STATEMENT: >>>
+The current vector identifier shall follow mem::<file_id>::<record_id>::<role>::<block_id>.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ENTRY-ROLES
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ID-TRACEABILITY
+STATUS: Draft
+TITLE: Vector Parent Traceability
+STATEMENT: >>>
+Every vector entry identifier and metadata shall link to file_id and record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ID-FORMAT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-HANDLE-PROJECT
+STATUS: Draft
+TITLE: Record Handle Project Text
+STATEMENT: >>>
+The current record-handle embedded text shall include PROJECT derived from active_project_name.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ONE-HANDLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-HANDLE-YAKE
+STATUS: Draft
+TITLE: Record Handle Automatic Keywords
+STATEMENT: >>>
+The current record-handle embedded text shall include YAKE_KEYWORDS derived from automatic keywords.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ONE-HANDLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-HANDLE-QUESTION
+STATUS: Draft
+TITLE: Record Handle Question Anchor
+STATEMENT: >>>
+The current record-handle embedded text shall include a QUESTION_ANCHOR derived from the first question block and bounded by question_anchor_tokens.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ONE-HANDLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-HANDLE-NO-TAG-TEXT
+STATUS: Draft
+TITLE: Current Handle Text Exclusions
+STATEMENT: >>>
+The current record-handle embedded text shall not include tag or user_keywords, although those values may remain present in vector metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ONE-HANDLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ENTRY-METADATA
+STATUS: Draft
+TITLE: Vector Entry Metadata Contract
+STATEMENT: >>>
+Each vector entry shall carry current file and record identifiers, paired filenames, parent_id, role, block identity and position, character offsets, approximate token count, tag, project, source, creation time, hashes, keyword text, embedded-file snapshot text, chunking configuration version, and ingestion hash.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ENTRY-ROLES
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-METADATA-SNAPSHOT
+STATUS: Draft
+TITLE: Vector Metadata Snapshot
+STATEMENT: >>>
+Vector metadata shall represent values at ingestion time and shall remain derivative rather than current metadata authority.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ENTRY-METADATA
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-LIVE-METADATA-OVERLAY
+STATUS: Draft
+TITLE: Live Metadata during Retrieval
+STATEMENT: >>>
+When live MemoryRecords are available, retrieval scoring and candidate enrichment shall overlay live record metadata onto vector-derived metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-METADATA-SNAPSHOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Memory Chunking and Ingestion Hash
+
+[TEXT]
+STATEMENT: >>>
+The current chunker uses approximate whitespace-token counts and paragraph/sentence-aware grouping rather than a provider tokenizer.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CHUNKER-CONFIG
+STATUS: Draft
+TITLE: Current Chunker Configuration
+STATEMENT: >>>
+MemoryChunker shall maintain current defaults config_version memory_chunker_001, target_tokens 500, max_tokens 800, and question_anchor_tokens 220, with optional constructor overrides.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-TOKEN-APPROX
+STATUS: Draft
+TITLE: Approximate Token Counting
+STATEMENT: >>>
+Current MemoryChunker token counts shall be the number of non-whitespace word matches and shall not be described as exact provider-token counts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CHUNKER-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PARAGRAPH-UNITS
+STATUS: Draft
+TITLE: Paragraph Unit Selection
+STATEMENT: >>>
+Paragraphs not exceeding max_tokens shall be used as semantic units.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CHUNKER-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SENTENCE-UNITS
+STATUS: Draft
+TITLE: Oversized Paragraph Sentence Units
+STATEMENT: >>>
+An oversized paragraph shall be split into current sentence-like units based on punctuation or line endings.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CHUNKER-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-HARD-SPLIT
+STATUS: Draft
+TITLE: Oversized Unit Hard Split
+STATEMENT: >>>
+A semantic unit exceeding max_tokens shall be hard-split by non-whitespace word groups of at most max_tokens approximate tokens.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CHUNKER-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-BLOCK-TARGET
+STATUS: Draft
+TITLE: Target Block Completion
+STATEMENT: >>>
+Current units shall accumulate until target_tokens is reached or the next unit would exceed max_tokens.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CHUNKER-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-BLOCK-OFFSETS
+STATUS: Draft
+TITLE: Block Offsets
+STATEMENT: >>>
+Every question or answer block shall retain start_offset and end_offset relative to its source side.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CHUNKER-CONFIG
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-QUESTION-ANCHOR-TRUNCATE
+STATUS: Draft
+TITLE: Question Anchor Truncation
+STATEMENT: >>>
+Question-anchor truncation shall retain the first configured number of whitespace-delimited words.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-HANDLE-QUESTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGESTION-HASH
+STATUS: Draft
+TITLE: Ingestion Hash
+STATEMENT: >>>
+MemoryChunker shall compute SHA-256 over a deterministic JSON payload describing file_id, record_id, input/output hashes, tag, automatic/user keywords, active project, and chunking configuration version.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGESTION-HASH-NOT-TRUTH
+STATUS: Draft
+TITLE: Ingestion Hash Status
+STATEMENT: >>>
+The ingestion hash shall identify the derivative ingestion representation and shall not replace input_hash, output_hash, record_id, or file_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-INGESTION-HASH
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CHUNK-CONFIG-JSON-DIRECTION
+STATUS: Draft
+TITLE: Chunker JSON Migration Direction
+STATEMENT: >>>
+Memory chunk sizes, anchor limit, and chunker version are operational tuning values and shall migrate to validated versioned JSON configuration before being claimed as centrally configured.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CHUNKER-CONFIG
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Dedicated Memory Vector Store
+
+[TEXT]
+STATEMENT: >>>
+MemoryVectorStore owns persistent memory embeddings and record/file-level vector replacement or deletion.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-PERSISTENT
+STATUS: Draft
+TITLE: Persistent Chroma Store
+STATEMENT: >>>
+MemoryVectorStore shall create its persistence directory and open or create one named Chroma collection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-NO-TRUTH
+STATUS: Draft
+TITLE: Vector Store Non-Authority
+STATEMENT: >>>
+MemoryVectorStore shall not own MemoryRecord truth, SQLite metadata authority, memory scoring, or MemoryContextPack construction.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-REPLACE-ID
+STATUS: Draft
+TITLE: Record Replacement Identifier Validation
+STATEMENT: >>>
+replace_record_entries shall reject an empty record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-REPLACE-DELETE-FIRST
+STATUS: Draft
+TITLE: Current Record Replacement Order
+STATEMENT: >>>
+Current record replacement shall count and delete all existing vectors for record_id before embedding and adding the new entry set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-REPLACE-EMPTY
+STATUS: Draft
+TITLE: Empty Replacement Entry Set
+STATEMENT: >>>
+When replacement receives no entries, it shall leave the record with zero vectors and return a successful zero-write report after deleting prior vectors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-DOCUMENTS
+STATUS: Draft
+TITLE: Embedded Documents
+STATEMENT: >>>
+The memory vector collection shall persist the vector entry document text together with embeddings and sanitized metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-METADATA-SANITIZE
+STATUS: Draft
+TITLE: Metadata Sanitization
+STATEMENT: >>>
+Vector metadata shall be converted to Chroma-compatible scalar values; non-scalar values shall be JSON-serialized and None shall become an empty string.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-EMBED
+STATUS: Draft
+TITLE: Document Embedding
+STATEMENT: >>>
+MemoryVectorStore shall obtain one embedding per vector-entry document through its configured embedder and normalize returned vectors to lists of floats.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-ADD
+STATUS: Draft
+TITLE: Vector Add Contract
+STATEMENT: >>>
+After prior record vectors are deleted, current replacement shall add aligned IDs, documents, embeddings, and metadata to the collection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-REPLACE-REPORT
+STATUS: Draft
+TITLE: Replacement Report
+STATEMENT: >>>
+Record replacement shall report success, record_id, deleted prior vector count, vectors written, resulting record vector count, collection name, and persistence directory.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-QUERY-EMPTY
+STATUS: Draft
+TITLE: Empty Store Query
+STATEMENT: >>>
+MemoryVectorStore.query shall return an empty hit list when query_text is empty after trimming.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-QUERY
+STATUS: Draft
+TITLE: Store Query Contract
+STATEMENT: >>>
+MemoryVectorStore.query shall embed query_text, query the collection with optional sanitized flat metadata filter, and return ordered flat hits containing id, document, metadata, distance, and one-based rank.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-DELETE-RECORD
+STATUS: Draft
+TITLE: Delete Record Vectors
+STATEMENT: >>>
+MemoryVectorStore.delete_record shall delete vectors by record_id and report deleted and remaining counts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-DELETE-FILE
+STATUS: Draft
+TITLE: Delete History Vectors
+STATEMENT: >>>
+MemoryVectorStore.delete_file shall delete vectors by file_id and report deleted and remaining file-level counts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-COUNT-SAFE
+STATUS: Draft
+TITLE: Vector Count Failure Behavior
+STATEMENT: >>>
+Current count_record and count_file helpers shall return zero when collection counting raises an exception.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-STORE-PERSISTENT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-STORE-REPLACEMENT-ATOMICITY
+STATUS: Draft
+TITLE: Current Replacement Transaction Boundary
+STATEMENT: >>>
+Current delete-then-add replacement shall not be described as one atomic storage transaction; durable MemoryRecord truth shall provide failure isolation when vector replacement is interrupted.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-REPLACE-DELETE-FIRST
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Memory Ingestion Orchestration
+
+[TEXT]
+STATEMENT: >>>
+MemoryIngestionManager coordinates record lookup, vector-entry construction, replacement, reporting, bulk ingestion, and optional daemon-thread scheduling.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-DEPS
+STATUS: Draft
+TITLE: Ingestion Dependencies
+STATEMENT: >>>
+MemoryIngestionManager shall receive the active MemoryManager, MemoryChunker, and MemoryVectorStore.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-ID
+STATUS: Draft
+TITLE: Ingest Record Identifier Validation
+STATEMENT: >>>
+ingest_record shall return an unsuccessful result when record_id is empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-LOOKUP
+STATUS: Draft
+TITLE: Live Record Lookup
+STATEMENT: >>>
+ingest_record shall resolve record_id from the active MemoryManager.records list and shall report unsuccessful status when not found.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-BUILD
+STATUS: Draft
+TITLE: Vector Entry Construction
+STATEMENT: >>>
+For a found record, ingestion shall call MemoryChunker.build_vector_entries with current file_id and paired filenames.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-ROLE-COUNTS
+STATUS: Draft
+TITLE: Ingestion Role Counts
+STATEMENT: >>>
+Ingestion shall count returned entries by metadata role for diagnostics and result reporting.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-REPLACE
+STATUS: Draft
+TITLE: Record Vector Replacement
+STATEMENT: >>>
+Ingestion shall replace all vectors for the record_id using the newly generated entry set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-RESULT
+STATUS: Draft
+TITLE: Ingestion Result Enrichment
+STATEMENT: >>>
+The ingestion result shall include role counts, current file_id, and active .ragmem filename in addition to store replacement data.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-EXCEPTION
+STATUS: Draft
+TITLE: Ingestion Exception Handling
+STATEMENT: >>>
+An exception during vector-entry construction or store replacement shall return an unsuccessful record-level result and shall not modify durable MemoryRecord files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-ALL
+STATUS: Draft
+TITLE: Loaded History Bulk Ingestion
+STATEMENT: >>>
+ingest_all shall iterate the current active MemoryManager record list in order, invoke ingest_record for each record, and report total, success, failure, and individual results.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-ALL-STATUS
+STATUS: Draft
+TITLE: Bulk Ingestion Success Status
+STATEMENT: >>>
+The bulk ingestion success field shall be true only when failure_count is zero.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-INGEST-ALL
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ASYNC-SCHEDULE
+STATUS: Draft
+TITLE: Asynchronous Record Ingestion
+STATEMENT: >>>
+ingest_record_async shall schedule one daemon thread for a valid active record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ASYNC-DUPLICATE
+STATUS: Draft
+TITLE: Duplicate Async Suppression
+STATEMENT: >>>
+A process-local lock and active-record identifier set shall prevent concurrent duplicate scheduling for the same record_id within one MemoryIngestionManager instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ASYNC-SCHEDULE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ASYNC-CLEANUP
+STATUS: Draft
+TITLE: Async Active-Set Cleanup
+STATEMENT: >>>
+The asynchronous worker shall remove record_id from the active set in a finally block.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ASYNC-SCHEDULE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ASYNC-STREAMLIT-CONTEXT
+STATUS: Draft
+TITLE: Optional Streamlit Thread Context
+STATEMENT: >>>
+When available, current scheduling shall attach the active Streamlit script context to the ingestion thread; absence of that support shall not block thread start.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ASYNC-SCHEDULE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ASYNC-NO-DURABLE-QUEUE
+STATUS: Draft
+TITLE: No Durable Ingestion Queue Claim
+STATEMENT: >>>
+The current daemon-thread scheduler shall not be described as a durable queue, retry service, or cross-process ingestion coordinator.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ASYNC-SCHEDULE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-IDEMPOTENT-REPRESENTATION
+STATUS: Draft
+TITLE: Record-Level Re-Ingestion Idempotency
+STATEMENT: >>>
+Re-ingesting a record shall replace its prior record_id vectors rather than intentionally append duplicate representations.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-INGEST-REPLACE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Memory Retrieval Input and Routing Preconditions
+
+[TEXT]
+STATEMENT: >>>
+MemoryRetriever receives the active SuperPrompt, current MemoryManager, dedicated vector store, SQLite path, and runtime configuration.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RETRIEVER-DEPS
+STATUS: Draft
+TITLE: MemoryRetriever Dependencies
+STATEMENT: >>>
+MemoryRetriever shall construct MemoryIndexLookup, MemoryScorer, MemoryCompressor, and MemoryMergeSynthesizer from its supplied dependencies and configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-SHAPE
+STATUS: Draft
+TITLE: Full or Section Configuration Input
+STATEMENT: >>>
+MemoryRetriever shall accept either the full runtime configuration containing memory_retrieval or the memory_retrieval section itself.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RETRIEVER-DEPS
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ENABLED
+STATUS: Draft
+TITLE: Memory Retrieval Enable Switch
+STATEMENT: >>>
+When memory_retrieval.enabled is false, MemoryRetriever.run shall skip its processing and return the SuperPrompt unchanged.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RETRIEVER-DEPS
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-MEMORY-PERMISSION
+STATUS: Draft
+TITLE: PreProcessing Memory Permission
+STATEMENT: >>>
+Memory retrieval and Memory Context synthesis shall honor the deterministic allow_memory_context and memory_context_policy prepared by PreProcessing.
+
+A disabled memory-context policy shall suppress memory context creation rather than allow unrelated memory to enter the final prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RETRIEVER-DEPS
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-MISSING-FILE-ID
+STATUS: Draft
+TITLE: Missing Active file_id
+STATEMENT: >>>
+When active file_id is empty, MemoryRetriever shall write an empty MemoryContextPack with reason no_active_memory_file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RETRIEVER-DEPS
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-QUERY-PRIMARY
+STATUS: Draft
+TITLE: Primary Memory Query
+STATEMENT: >>>
+MemoryRetriever shall use non-empty SuperPrompt.effective_retrieval_query_text as its primary query source.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RETRIEVER-DEPS
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-QUERY-PROJECTOR
+STATUS: Draft
+TITLE: Projected Query Fallback
+STATEMENT: >>>
+When the effective query is empty, MemoryRetriever shall attempt SuperPromptProjector.build_query_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-QUERY-PRIMARY
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-QUERY-BODY-FALLBACK
+STATUS: Draft
+TITLE: Body Query Fallback
+STATEMENT: >>>
+If projector query construction fails, current fallback shall concatenate non-empty task, purpose, context, and text body fields in that order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-QUERY-PRIMARY
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-QUERY-PROMPT-FALLBACK
+STATUS: Draft
+TITLE: Prompt-Ready Final Fallback
+STATEMENT: >>>
+If no fallback body fields are available, current query construction may use non-empty prompt_ready.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-QUERY-PRIMARY
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EMPTY-QUERY
+STATUS: Draft
+TITLE: Empty Query Result
+STATEMENT: >>>
+When no query text can be built, MemoryRetriever shall write an empty pack with reason empty_query_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RETRIEVER-DEPS
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DIRECT-KEY-INPUT
+STATUS: Draft
+TITLE: Direct Recall Key Input
+STATEMENT: >>>
+Current MemoryRetriever shall inspect SuperPrompt extras and body for direct_recall_key or memory_direct_recall_key and shall use the first non-empty trimmed value.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RETRIEVER-DEPS
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DIRECT-KEY-NO-UI
+STATUS: Draft
+TITLE: Current Direct Recall Query UI Boundary
+STATEMENT: >>>
+The current GUI does not require a separate Direct Recall query field; an absent key shall produce no Direct Recall lookup.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-DIRECT-KEY-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-LATEST-BRIEF
+STATUS: Draft
+TITLE: Latest Eligible ActiveBrief Snapshot
+STATEMENT: >>>
+MemoryRetriever shall scan active records newest-to-oldest and select the latest non-Black record with a non-empty ActiveRetrievalBrief as the runtime brief snapshot.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RETRIEVER-DEPS
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Semantic Memory Vector Pass
+
+[TEXT]
+STATEMENT: >>>
+The semantic pass uses one active-history query to produce raw vector hits, parent-record scores, semantic chunks, and episodic candidates.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-ENABLE
+STATUS: Draft
+TITLE: Semantic Memory Enable Switch
+STATEMENT: >>>
+When semantic_memory_chunks.enabled is false, the semantic pass shall return empty raw hits, scored hits, parent scores, semantic chunks, and semantic episodic candidates.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-MAX
+STATUS: Draft
+TITLE: Semantic Chunk Limit
+STATEMENT: >>>
+The final semantic memory chunk list shall be capped by semantic_memory_chunks.max_memory_chunks whose current JSON baseline is 5.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RAW-HIT-LIMIT
+STATUS: Draft
+TITLE: Current Raw Hit Expansion
+STATEMENT: >>>
+The current raw vector hit request shall use max(max_memory_chunks multiplied by 6, 20) to provide additional evidence for parent aggregation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RAW-HIT-CONFIG-DIRECTION
+STATUS: Draft
+TITLE: Raw Hit Expansion Configuration Direction
+STATEMENT: >>>
+The raw-hit expansion multiplier and minimum are tuning parameters and shall migrate to validated versioned JSON before being claimed as centrally configured.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RAW-HIT-LIMIT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-FILE-FILTER
+STATUS: Draft
+TITLE: Automatic Semantic History Scope
+STATEMENT: >>>
+Automatic semantic memory retrieval shall be restricted to the active file_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-FILTER-FAILURE
+STATUS: Draft
+TITLE: Filtered Query Failure Integrity
+STATEMENT: >>>
+Failure of the active-file metadata filter shall not authorize automatic unfiltered retrieval across all histories.
+
+Cross-history semantic fallback shall be treated as non-conforming unless separately approved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-SEMANTIC-FILE-FILTER
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-QUERY-EMBED
+STATUS: Draft
+TITLE: Memory Query Embedding
+STATEMENT: >>>
+The memory query shall be embedded once through the memory vector store embedder for the raw semantic query.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RAW-HIT-SHAPE
+STATUS: Draft
+TITLE: Raw Hit Shape
+STATEMENT: >>>
+Normalized raw vector hits shall contain id, document, metadata, distance, and one-based rank.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-LIVE-EPISODE-METADATA
+STATUS: Draft
+TITLE: Episode Distance Metadata
+STATEMENT: >>>
+Live MemoryRecords shall be assigned episode_index and episode_distance_k where the latest record has k zero and each older record increments k by one.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-K-NOT-CLOCK
+STATUS: Draft
+TITLE: Episode Distance Not Clock Time
+STATEMENT: >>>
+Current recency shall be based on record distance k in the active history rather than elapsed wall-clock time.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-LIVE-EPISODE-METADATA
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-PARENT
+STATUS: Draft
+TITLE: Semantic Parent Candidate Conversion
+STATEMENT: >>>
+Ranked parent scores shall be converted into episodic candidates with live Q/A body when available and SQLite/.ragmem fallback when not available in RAM.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. Raw Hit Normalization and Parent Aggregation
+
+[TEXT]
+STATEMENT: >>>
+MemoryScorer separates question, answer, and record-handle evidence before applying retrieval-source and recency policy.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DISTANCE-SCORE
+STATUS: Draft
+TITLE: Distance-to-Score Conversion
+STATEMENT: >>>
+When a raw hit has no explicit score, current scoring shall convert Chroma distance d to 1 divided by 1 plus d after clamping negative d to zero.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DISTANCE-INVALID
+STATUS: Draft
+TITLE: Invalid Distance Handling
+STATEMENT: >>>
+Missing, non-numeric, NaN, or infinite distance shall produce score zero.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-DISTANCE-SCORE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SCORED-HIT
+STATUS: Draft
+TITLE: Scored Hit Contract
+STATEMENT: >>>
+Each scored hit shall preserve rank, vector_id, record_id, role, score, semantic_score, distance, document, metadata, and raw hit.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-GROUP-BY-RECORD
+STATUS: Draft
+TITLE: Parent Grouping
+STATEMENT: >>>
+Parent aggregation shall group scored hits by non-empty record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-ROLE-MAX
+STATUS: Draft
+TITLE: Current Per-Role Aggregation
+STATEMENT: >>>
+For each parent MemoryRecord, current aggregation shall use the maximum question hit score, maximum answer hit score, and maximum other-role meta score.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-GROUP-BY-RECORD
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-NO-PNORM-PARENT
+STATUS: Draft
+TITLE: No Current Parent p-Norm Claim
+STATEMENT: >>>
+The current parent aggregation shall not be described as p-norm averaging across multiple hits within a role.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROLE-MAX
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PARENT-DIAGNOSTICS
+STATUS: Draft
+TITLE: Parent Hit Diagnostics
+STATEMENT: >>>
+Each parent score record shall retain hit_count and the contributing hit list for diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-GROUP-BY-RECORD
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SOURCE-MODE-QA
+STATUS: Draft
+TITLE: QA Parent Weighting
+STATEMENT: >>>
+For retrieval_source_mode QA, current configured parent scoring shall apply answer, question, and meta weights from runtime_config; the current baseline is 0.55, 0.35, and 0.10.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-GROUP-BY-RECORD
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SOURCE-MODE-A
+STATUS: Draft
+TITLE: A Parent Weighting
+STATEMENT: >>>
+For retrieval_source_mode A, current baseline parent weights shall be answer 0.85, question 0.0, and meta 0.15.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-GROUP-BY-RECORD
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SOURCE-MODE-Q
+STATUS: Draft
+TITLE: Q Parent Weighting
+STATEMENT: >>>
+For retrieval_source_mode Q, current baseline parent weights shall be answer 0.0, question 0.85, and meta 0.15.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-GROUP-BY-RECORD
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SOURCE-MODE-FALLBACK
+STATUS: Draft
+TITLE: Invalid Source Mode Fallback
+STATEMENT: >>>
+An invalid parent retrieval_source_mode shall be normalized to QA for scoring.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-GROUP-BY-RECORD
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-PARENT-SCORE
+STATUS: Draft
+TITLE: Semantic Parent Score
+STATEMENT: >>>
+semantic_parent_score shall be the weighted sum of answer_score, question_score, and meta_score under the applied source-mode weights.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-GROUP-BY-RECORD
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EXCLUDED-TAGS
+STATUS: Draft
+TITLE: Automatic Retrieval Excluded Tags
+STATEMENT: >>>
+Parent and semantic-chunk automatic selection shall exclude tags collected from configured memory retrieval exclude_tags; current configuration excludes Black.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-GOLD-FLAG
+STATUS: Draft
+TITLE: Gold Recency Bypass Flag
+STATEMENT: >>>
+A non-excluded Gold parent shall be marked as bypassing normal recency scoring.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Episodic Recency and Semantic Chunk Selection
+
+[TEXT]
+STATEMENT: >>>
+Current recency adds a bounded episode-distance signal for Green candidates while Gold bypasses normal decay.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EPISODIC-RECENCY-ENABLE
+STATUS: Draft
+TITLE: Episodic Recency Enable Switch
+STATEMENT: >>>
+When episodic_memory.recency_enabled is false, final parent score shall equal semantic_parent_score for non-Gold candidates.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EPISODIC-WEIGHTS
+STATUS: Draft
+TITLE: Current Episodic Semantic and Recency Weights
+STATEMENT: >>>
+Current Green episodic scoring shall use configured semantic and recency weights whose baselines are 0.75 and 0.25.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-WEIGHT-NORMALIZATION
+STATUS: Draft
+TITLE: Two-Weight Normalization
+STATEMENT: >>>
+Semantic and recency weights shall be clamped non-negative and normalized to sum one; when their total is non-positive, the effective weights shall become 1.0 semantic and 0.0 recency.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RECENCY-HALF-LIFE
+STATUS: Draft
+TITLE: Episode-Distance Half-Life
+STATEMENT: >>>
+Current recency score shall use 2 raised to negative k divided by half_life_k; the current episodic baseline half-life is 10 records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RECENCY-MISSING
+STATUS: Draft
+TITLE: Missing Episode Distance
+STATEMENT: >>>
+Missing, invalid, NaN, or infinite episode distance shall produce recency score 1.0 so otherwise relevant memory is not discarded solely by absent metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RECENCY-NEGATIVE
+STATUS: Draft
+TITLE: Negative Episode Distance
+STATEMENT: >>>
+Negative episode distance shall be treated as zero.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RECENCY-HALF-LIFE-FALLBACK
+STATUS: Draft
+TITLE: Invalid Half-Life Fallback
+STATEMENT: >>>
+Invalid, non-positive, NaN, or infinite half-life shall use the current fallback 10.0.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-GOLD-RECENCY
+STATUS: Draft
+TITLE: Gold Parent Recency Bypass
+STATEMENT: >>>
+Gold parent final score shall equal semantic_parent_score and shall carry no recency score in the current scoring path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PARENT-RANK
+STATUS: Draft
+TITLE: Parent Deterministic Ranking
+STATEMENT: >>>
+Parent candidates shall be sorted by final_parent_score descending.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-ROLES
+STATUS: Draft
+TITLE: Semantic Chunk Evidence Roles
+STATEMENT: >>>
+Final semantic memory chunks shall be selected only from question and answer hits; record_handle hits shall remain discovery evidence and shall not be returned as semantic evidence chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-WEIGHTS
+STATUS: Draft
+TITLE: Current Semantic Chunk Weights
+STATEMENT: >>>
+Current non-Gold semantic chunk scoring shall use configured semantic and recency weights whose baselines are 0.90 and 0.10.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-HALF-LIFE
+STATUS: Draft
+TITLE: Semantic Chunk Half-Life
+STATEMENT: >>>
+Current semantic chunk recency shall use configured half_life_k whose baseline is 10 records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-GOLD
+STATUS: Draft
+TITLE: Gold Semantic Chunk Recency Bypass
+STATEMENT: >>>
+A Gold semantic chunk shall use semantic_score directly without recency contribution.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-SORT
+STATUS: Draft
+TITLE: Semantic Chunk Ranking
+STATEMENT: >>>
+Semantic chunk candidates shall be sorted by final score descending and truncated to max_memory_chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SEMANTIC-TRACE
+STATUS: Draft
+TITLE: Semantic Chunk Trace Fields
+STATEMENT: >>>
+Selected semantic chunks shall preserve vector_id, record_id, role, final and semantic scores, recency data, distance, document text, merged metadata, and raw rank.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. Deterministic SQLite and .ragmem Candidate Lookups
+
+[TEXT]
+STATEMENT: >>>
+MemoryIndexLookup selects recent, Gold, and exact-key candidates from metadata and attaches full Q/A body from .ragmem.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-LOOKUP-NO-SQLITE
+STATUS: Draft
+TITLE: Missing SQLite Behavior
+STATEMENT: >>>
+When memory_index.sqlite3 does not exist, deterministic lookup shall return no rows and log the missing-index condition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-WORKING-ENABLE
+STATUS: Draft
+TITLE: Working Memory Enable Switch
+STATEMENT: >>>
+When working_memory.enabled is false, working-memory lookup shall return an empty list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-WORKING-CURRENT-FILE
+STATUS: Draft
+TITLE: Working Memory History Scope
+STATEMENT: >>>
+Working-memory lookup shall be restricted to the active file_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-WORKING-LATEST
+STATUS: Draft
+TITLE: Working Memory Ordering and Limit
+STATEMENT: >>>
+Working-memory lookup shall select latest non-excluded records ordered by created_at_utc descending and limited by max_pairs; the current baseline is 2.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-GOLD-ENABLE
+STATUS: Draft
+TITLE: Gold Lookup Enable Dependency
+STATEMENT: >>>
+When episodic_memory.enabled is false, current Gold lookup shall return an empty list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-GOLD-CURRENT-FILE
+STATUS: Draft
+TITLE: Gold History Scope
+STATEMENT: >>>
+Gold lookup shall be restricted to the active file_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-GOLD-LATEST
+STATUS: Draft
+TITLE: Gold Ordering and Limit
+STATEMENT: >>>
+Gold lookup shall select latest Gold records ordered by created_at_utc descending and limited by max_gold_records; the current baseline is 1.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DIRECT-ENABLE
+STATUS: Draft
+TITLE: Direct Recall Enable Switch
+STATEMENT: >>>
+When direct_recall.enabled is false or the key is empty, Direct Recall lookup shall return no candidate.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DIRECT-EXACT
+STATUS: Draft
+TITLE: Exact Direct Recall Match
+STATEMENT: >>>
+Direct Recall shall match direct_recall_key by exact SQLite equality rather than semantic similarity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DIRECT-CROSS-FILE
+STATUS: Draft
+TITLE: Direct Recall Cross-History Scope
+STATEMENT: >>>
+Direct Recall may search all indexed memory histories and is the current explicit cross-history retrieval path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-DIRECT-EXACT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DIRECT-EXCLUDE
+STATUS: Draft
+TITLE: Direct Recall Tag Exclusion
+STATEMENT: >>>
+Direct Recall shall exclude configured tags; the current baseline excludes Black.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-DIRECT-EXACT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DIRECT-PRIORITY
+STATUS: Draft
+TITLE: Direct Recall Result Priority
+STATEMENT: >>>
+When multiple exact matches exist, current ordering shall prefer Gold, then Green, then other tags, and then latest created_at_utc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-DIRECT-EXACT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DIRECT-ONE
+STATUS: Draft
+TITLE: One Direct Recall Candidate
+STATEMENT: >>>
+Current Direct Recall lookup shall return at most one candidate.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-DIRECT-EXACT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-LOOKUP-FILE-ROW
+STATUS: Draft
+TITLE: File Metadata Attachment
+STATEMENT: >>>
+Deterministic candidates shall attach the corresponding memory_files row and paired history title and filenames.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-LOOKUP-BODY
+STATUS: Draft
+TITLE: .ragmem Body Attachment
+STATEMENT: >>>
+Because SQLite stores metadata only, deterministic candidates shall obtain input_text and output_text by scanning the paired .ragmem file for matching record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-LOOKUP-MISSING-BODY
+STATUS: Draft
+TITLE: Missing Body Behavior
+STATEMENT: >>>
+When the paired filename, record_id, file, or matching block is unavailable, current body attachment shall return empty body fields rather than fabricate Q/A.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-LOOKUP-BODY
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-LOOKUP-JSON-LIST
+STATUS: Draft
+TITLE: Indexed JSON List Parsing
+STATEMENT: >>>
+Keyword and file-snapshot SQLite JSON fields shall parse to lists when valid and shall become empty lists when invalid.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 12. Episodic Candidate Merge and Candidate Enrichment
+
+[TEXT]
+STATEMENT: >>>
+MemoryRetriever merges deterministic Gold priority with semantic parent candidates before runtime compression.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EPISODIC-ENABLE
+STATUS: Draft
+TITLE: Episodic Memory Enable Switch
+STATEMENT: >>>
+When episodic_memory.enabled is false, semantic parent scores shall not be converted into episodic candidates.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EPISODIC-CAP
+STATUS: Draft
+TITLE: Episodic Candidate Cap
+STATEMENT: >>>
+Semantic parent conversion and final episodic merge shall be bounded by episodic_memory.max_total_records; the current baseline is 3.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EPISODIC-LIVE-BODY
+STATUS: Draft
+TITLE: Live Record Candidate Enrichment
+STATEMENT: >>>
+When a selected parent record is present in MemoryManager.records, candidate content shall be enriched from the live MemoryRecord full view.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EPISODIC-FILE-BODY
+STATUS: Draft
+TITLE: Indexed Record Candidate Fallback
+STATEMENT: >>>
+When a selected parent is absent from live RAM, MemoryRetriever shall attempt SQLite/.ragmem reconstruction for that record_id within the active file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EPISODIC-MERGE-ORDER
+STATUS: Draft
+TITLE: Gold-First Episodic Merge
+STATEMENT: >>>
+Final episodic merging shall process deterministic Gold candidates before semantic episodic candidates.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EPISODIC-DEDUPE
+STATUS: Draft
+TITLE: Episodic Record Deduplication
+STATEMENT: >>>
+Final episodic merging shall remove duplicate record_id values while preserving the Gold-first source order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EPISODIC-SOURCE
+STATUS: Draft
+TITLE: Episodic Source Annotation
+STATEMENT: >>>
+Merged episodic candidates shall carry episodic_source equal to gold or semantic according to the selected path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-WORKING-ENRICH
+STATUS: Draft
+TITLE: Working Candidate Live Enrichment
+STATEMENT: >>>
+Working-memory candidates shall be overlaid with current live MemoryRecord content and episode-distance metadata when matching live records exist.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-GOLD-ENRICH
+STATUS: Draft
+TITLE: Gold Candidate Live Enrichment
+STATEMENT: >>>
+Gold candidates shall be overlaid with current live MemoryRecord content and episode-distance metadata when matching live records exist.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DIRECT-ENRICH
+STATUS: Draft
+TITLE: Direct Recall Live Enrichment
+STATEMENT: >>>
+A Direct Recall candidate shall be overlaid with current live MemoryRecord content when the selected record belongs to the active in-memory record set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 13. MemoryContextPack Contract
+
+[TEXT]
+STATEMENT: >>>
+MemoryContextPack preserves raw candidate classes, final synthesis, and diagnostics in one run-local object.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK
+STATUS: Draft
+TITLE: MemoryContextPack Runtime Container
+STATEMENT: >>>
+MemoryRetriever shall construct one MemoryContextPack for each non-skipped or explicit-empty memory retrieval result.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-WORKING
+STATUS: Draft
+TITLE: Working Candidate List
+STATEMENT: >>>
+MemoryContextPack shall maintain working_memory_candidates as an ordered list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-EPISODIC
+STATUS: Draft
+TITLE: Episodic Candidate List
+STATEMENT: >>>
+MemoryContextPack shall maintain episodic_candidates as an ordered list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-SEMANTIC
+STATUS: Draft
+TITLE: Semantic Chunk List
+STATEMENT: >>>
+MemoryContextPack shall maintain semantic_memory_chunks as an ordered list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-DIRECT
+STATUS: Draft
+TITLE: Direct Recall Candidate
+STATEMENT: >>>
+MemoryContextPack shall maintain zero or one direct_recall_candidate.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-CONTEXT
+STATUS: Draft
+TITLE: Synthesized Memory Context
+STATEMENT: >>>
+MemoryContextPack shall maintain synthesized_memory_context and memory_synthesis_diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-SELECTION-DIAG
+STATUS: Draft
+TITLE: Selection Diagnostics
+STATEMENT: >>>
+MemoryContextPack shall maintain selection_diagnostics explaining query, counts, and scoring policy or explicit empty reason.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-TOKEN-REPORT
+STATUS: Draft
+TITLE: Token Budget Report
+STATEMENT: >>>
+MemoryContextPack shall maintain a token_budget_report whose current raw-memory estimate is max(1, len(serialized pack) divided by 4).
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-TOKEN-APPROX
+STATUS: Draft
+TITLE: Approximate Token Report
+STATEMENT: >>>
+The current len(json)//4 estimate shall be identified as rough diagnostics rather than exact provider tokenization.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK-TOKEN-REPORT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-COUNTS
+STATUS: Draft
+TITLE: Candidate Counts
+STATEMENT: >>>
+MemoryContextPack.counts shall report list lengths and binary presence of Direct Recall and synthesized context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-DICT
+STATUS: Draft
+TITLE: Pack Dictionary Projection
+STATEMENT: >>>
+MemoryContextPack.to_dict shall project all candidate groups, synthesis fields, diagnostics, token report, and counts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-DEBUG
+STATUS: Draft
+TITLE: Raw Debug Markdown
+STATEMENT: >>>
+MemoryContextPack may render raw candidates and diagnostics as developer debug Markdown, explicitly labeled as not final prompt context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PACK-NO-DURABLE
+STATUS: Draft
+TITLE: Pack Non-Persistence
+STATEMENT: >>>
+MemoryContextPack shall remain run-local and shall not be written into durable MemoryRecord files or SQLite truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 14. SuperPrompt Write-Back and Controller Integration
+
+[TEXT]
+STATEMENT: >>>
+The current controller calls document retrieval first and then the memory path; memory artifacts remain separate from document artifacts.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONTROLLER-CONFIG
+STATUS: Draft
+TITLE: MemoryRetriever Configuration
+STATEMENT: >>>
+AppController.configure_memory_retrieval shall construct MemoryRetriever after MemoryManager and MemoryVectorStore exist and shall pass the controller memory SQLite path and runtime configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONTROLLER-ORDER
+STATUS: Draft
+TITLE: Current Retrieval Call Order
+STATEMENT: >>>
+AppController.run_retrieval shall run document Retriever first and then call MemoryRetriever when configured.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONTROLLER-FAILURE
+STATUS: Draft
+TITLE: Controller Memory Retrieval Failure Isolation
+STATEMENT: >>>
+An exception from MemoryRetriever during AppController.run_retrieval shall be logged and shall not erase the already produced document retrieval result.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONTROLLER-NOT-CONFIGURED
+STATUS: Draft
+TITLE: Unconfigured MemoryRetriever
+STATEMENT: >>>
+When MemoryRetriever is not configured, the controller shall skip memory retrieval and return the SuperPrompt after document retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SP-PACK
+STATUS: Draft
+TITLE: SuperPrompt Memory Pack
+STATEMENT: >>>
+MemoryRetriever shall assign the MemoryContextPack object to SuperPrompt.memory_context_pack.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SP-CONTEXT
+STATUS: Draft
+TITLE: SuperPrompt Memory Context
+STATEMENT: >>>
+MemoryRetriever shall assign synthesized_memory_context to SuperPrompt.memory_context_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SP-BRIEF
+STATUS: Draft
+TITLE: SuperPrompt Active Memory Brief
+STATEMENT: >>>
+MemoryRetriever shall assign the latest eligible ActiveBrief title and body to SuperPrompt.active_memory_brief_title and active_memory_brief.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SP-EXTRAS
+STATUS: Draft
+TITLE: SuperPrompt Memory Extras
+STATEMENT: >>>
+MemoryRetriever shall store pack dictionary, memory context text, debug Markdown, counts, and ActiveBrief title/body in SuperPrompt.extras under current memory keys.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SP-NO-DOCUMENT-OVERWRITE
+STATUS: Draft
+TITLE: Document Artifact Preservation
+STATEMENT: >>>
+Memory write-back shall not overwrite base_context_chunks, document retrieval/reranking/A3/A4 views, final_selection_ids, or S_CTX_MD.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SP-NO-STAGE
+STATUS: Draft
+TITLE: Current Stage Ownership
+STATEMENT: >>>
+Current MemoryRetriever write-back shall not independently replace the SuperPrompt document-stage lifecycle label or document stage history.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-EMPTY-PACK-WRITE
+STATUS: Draft
+TITLE: Empty Pack Write-Back
+STATEMENT: >>>
+For missing file_id or empty query, MemoryRetriever shall write an empty pack and latest eligible ActiveBrief snapshot into SuperPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-NORMAL-PREVIEW
+STATUS: Draft
+TITLE: Normal Preview Uses Synthesized Context
+STATEMENT: >>>
+The normal SuperPrompt projector shall render memory_context_text and shall not render raw memory candidate debug Markdown by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 15. Configuration Governance and Current Consumption
+
+[TEXT]
+STATEMENT: >>>
+The memory_retrieval JSON section defines multiple policies, but only fields read by the current implementation shall be treated as effective.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-ROOT
+STATUS: Draft
+TITLE: Memory Retrieval Configuration
+STATEMENT: >>>
+Memory retrieval settings shall be loaded from the versioned runtime_config.json memory_retrieval section.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-PARENT-WEIGHTS
+STATUS: Draft
+TITLE: Consumed Parent Score Weights
+STATEMENT: >>>
+Current MemoryScorer shall consume parent_score_weights for QA, Q, and A modes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-WORKING
+STATUS: Draft
+TITLE: Consumed Working Settings
+STATEMENT: >>>
+Current working-memory lookup shall consume enabled, max_pairs, and exclude_tags.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-EPISODIC
+STATUS: Draft
+TITLE: Consumed Episodic Settings
+STATEMENT: >>>
+Current episodic processing shall consume enabled, max_total_records, max_gold_records, Green semantic/recency weights, Green half-life, recency_enabled, and exclude_tags.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-DIRECT
+STATUS: Draft
+TITLE: Consumed Direct Recall Settings
+STATEMENT: >>>
+Current Direct Recall shall consume enabled and exclude_tags; its current interface inherently returns at most one key match.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-SEMANTIC
+STATUS: Draft
+TITLE: Consumed Semantic Chunk Settings
+STATEMENT: >>>
+Current semantic processing shall consume enabled, max_memory_chunks, semantic/recency weights, half-life, recency_enabled, and exclude_tags.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-TOKEN-LIMITS-NOT-ENFORCED
+STATUS: Draft
+TITLE: Current Retrieval Token Fields Not Enforced Here
+STATEMENT: >>>
+The current retrieval path shall not claim enforcement of working-memory, Gold, Green, or Direct Recall max-token fields merely because they exist in runtime_config.json.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-GOLD-BOOLEAN
+STATUS: Draft
+TITLE: Gold Bypass Configuration Truth
+STATEMENT: >>>
+Current Gold recency bypass is implemented by scoring logic; the separate gold_bypass_recency JSON fields shall not be claimed as dynamically controlling that behavior unless the implementation reads them.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-TAG-CATALOG
+STATUS: Draft
+TITLE: Tag Catalog Configuration Truth
+STATEMENT: >>>
+MemoryManager currently defines its tag catalog in Python; runtime_config.memory_retrieval.tag_catalog shall not be claimed as the active catalog source until it is consumed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIG-MIGRATION
+STATUS: Draft
+TITLE: Operational Parameter Migration
+STATEMENT: >>>
+Chunking values, raw-hit expansion, collection/model startup values, and remaining retrieval limits shall migrate to validated versioned JSON before being reported as centrally configured.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 16. Error Handling, Security, and Quality Boundaries
+
+[TEXT]
+STATEMENT: >>>
+Memory retrieval must fail or empty safely without fabricating context or weakening history scope.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-NO-FABRICATED-HIT
+STATUS: Draft
+TITLE: No Fabricated Vector Hit
+STATEMENT: >>>
+Missing vector collection, embedder, SQLite row, .ragmem body, or live record shall produce missing/empty candidate data rather than invented content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-RETRIEVAL-FAIL-TRUTH
+STATUS: Draft
+TITLE: Retrieval Failure and Durable Truth
+STATEMENT: >>>
+A memory retrieval failure shall not modify .ragmem, .ragmeta.json, SQLite record truth, or stored memory vectors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-INGEST-FAIL-TRUTH
+STATUS: Draft
+TITLE: Ingestion Failure and Durable Truth
+STATEMENT: >>>
+A memory ingestion failure shall leave the durable MemoryRecord body and current metadata intact.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-NO-CROSS-HISTORY-AUTO
+STATUS: Draft
+TITLE: No Unapproved Automatic Cross-History Retrieval
+STATEMENT: >>>
+Automatic working, Gold, semantic parent, and semantic chunk retrieval shall remain active-history scoped; only exact Direct Recall may cross histories in the current design.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-NO-SECRET
+STATUS: Draft
+TITLE: No Secret Vector Metadata
+STATEMENT: >>>
+Memory vector documents and metadata shall not intentionally include provider API keys or browser credentials.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-PUBLIC-LOG
+STATUS: Draft
+TITLE: Public Retrieval Logging
+STATEMENT: >>>
+Public logs shall report compact counts and statuses and shall not expose complete memory bodies, query embeddings, or vector values by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CONFIDENTIAL-LOG
+STATUS: Draft
+TITLE: Confidential Retrieval Diagnostics
+STATEMENT: >>>
+Complete raw hits, candidates, scoring snapshots, and pack payloads shall remain behind explicitly enabled confidential developer logging.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SCORE-REPRODUCIBILITY
+STATUS: Draft
+TITLE: Scoring Reproducibility
+STATEMENT: >>>
+Diagnostics shall preserve effective scoring policy, candidate counts, query text, and active file identity sufficiently to reproduce selection decisions without exposing credentials.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-DETERMINISTIC-TESTS
+STATUS: Draft
+TITLE: Deterministic Retrieval Testability
+STATEMENT: >>>
+Vector ID generation, chunk splitting, metadata sanitation, distance conversion, role aggregation, recency decay, tag filtering, deterministic lookups, candidate merge, and pack projection shall be independently testable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-NO-DOC-A3
+STATUS: Draft
+TITLE: No Memory-to-Document A3 Claim
+STATEMENT: >>>
+Memory semantic chunks shall not be marked with document A3ChunkStatus or inserted into document A3/A4 stage views in the current implementation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 17. Traceability and Acceptance Criteria
+
+[TEXT]
+STATEMENT: >>>
+These criteria verify derivative memory ingestion, retrieval, candidate selection, and SuperPrompt handoff.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-CODE-OWNERSHIP
+STATUS: Draft
+TITLE: Ingestion and Retrieval Code Ownership
+STATEMENT: >>>
+MemoryChunker, MemoryIngestionManager, MemoryVectorStore, MemoryRetriever, MemoryIndexLookup, MemoryScorer, and MemoryContextPack shall map to the deepest applicable UIDs in this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-SIBLING-BOUNDARY
+STATUS: Draft
+TITLE: Sibling Ownership Boundary
+STATEMENT: >>>
+Durable recording/files shall remain owned by 51; ActiveBrief algorithms, runtime compression, and synthesis shall remain owned by 53.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-ENTRIES
+STATUS: Draft
+TITLE: AC: Vector Entry Roles
+STATEMENT: >>>
+Given one non-empty MemoryRecord, ingestion shall create one non-empty record handle and the expected ordered non-empty question and answer entries with stable traceable IDs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ENTRY-ROLES
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-IDEMPOTENT
+STATUS: Draft
+TITLE: AC: Record Re-Ingestion
+STATEMENT: >>>
+Re-ingesting the same record_id shall replace prior vectors and shall not increase the number of duplicate IDs for that record.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-IDEMPOTENT-REPRESENTATION
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-ASYNC-FAIL
+STATUS: Draft
+TITLE: AC: Ingestion Failure Isolation
+STATEMENT: >>>
+If vector embedding or replacement fails, the corresponding .ragmem block and metadata shall remain available as durable truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-INGEST-FAIL-TRUTH
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-WORKING
+STATUS: Draft
+TITLE: AC: Working Memory
+STATEMENT: >>>
+Given an active history with more records than max_pairs, working lookup shall return only the latest configured non-excluded records from that history.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-WORKING-LATEST
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-DIRECT
+STATUS: Draft
+TITLE: AC: Exact Direct Recall
+STATEMENT: >>>
+Given the same Direct Recall Key in multiple histories, lookup shall return at most one non-excluded result using tag priority and recency ordering.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-DIRECT-PRIORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-PARENT-SCORE
+STATUS: Draft
+TITLE: AC: Parent Role Scoring
+STATEMENT: >>>
+Given multiple hits for one parent and role, the current parent role score shall equal the maximum role hit and final semantic score shall apply the configured QA/Q/A weights.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-ROLE-MAX
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-RECENCY
+STATUS: Draft
+TITLE: AC: Episode Recency
+STATEMENT: >>>
+For Green records at k zero and k equal to half-life, recency scores shall be 1.0 and 0.5 before semantic/recency weighted combination.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-RECENCY-HALF-LIFE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-GOLD
+STATUS: Draft
+TITLE: AC: Gold Priority and Deduplication
+STATEMENT: >>>
+A Gold record also selected semantically shall appear once in final episodic candidates and shall retain Gold-first source priority.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-EPISODIC-DEDUPE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-SEMANTIC
+STATUS: Draft
+TITLE: AC: Semantic Chunk Roles
+STATEMENT: >>>
+Final semantic memory chunks shall contain question/answer evidence only and shall exclude record_handle entries.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-SEMANTIC-ROLES
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-SCOPE
+STATUS: Draft
+TITLE: AC: Automatic History Scope
+STATEMENT: >>>
+Automatic semantic and deterministic retrieval shall not return a record from another history solely because the active-file filter failed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-FILTER-FAILURE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-PACK
+STATUS: Draft
+TITLE: AC: MemoryContextPack
+STATEMENT: >>>
+After one successful memory retrieval, the SuperPrompt shall contain a MemoryContextPack whose candidate counts match its actual lists and optional Direct Recall/context fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-PACK-COUNTS
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-SEPARATE
+STATUS: Draft
+TITLE: AC: Document Artifact Separation
+STATEMENT: >>>
+Running memory retrieval shall leave document chunk objects, stage views, and S_CTX_MD unchanged.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-SP-NO-DOCUMENT-OVERWRITE
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-PERMISSION
+STATUS: Draft
+TITLE: AC: Memory Context Permission
+STATEMENT: >>>
+When PreProcessing sets allow_memory_context false, the final SuperPrompt shall not receive synthesized memory context for that request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-MEMORY-PERMISSION
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-CONFIG
+STATUS: Draft
+TITLE: AC: Configuration Consumption Truth
+STATEMENT: >>>
+Changing an unconsumed JSON field shall not be represented as changing runtime behavior; changing a consumed field shall be observable in selection or diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-IR-AC-SYNC
+STATUS: Draft
+TITLE: AC: Requirement-Code Synchronization
+STATEMENT: >>>
+A memory ingestion/retrieval baseline shall not be accepted when vector identity, history scope, scoring equations, tag policy, candidate roles, pack semantics, or configuration authority contradicts this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-IR-CODE-OWNERSHIP
+
+[[/SECTION]]

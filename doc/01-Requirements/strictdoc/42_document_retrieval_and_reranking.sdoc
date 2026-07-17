@@ -1,0 +1,1586 @@
+[DOCUMENT]
+TITLE: GHOST Document Retrieval and Reranking Requirements
+UID: GHOST-DOCUMENT-RETRIEVAL-RERANKING
+VERSION: 0.1
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines query-time document retrieval and optional reranking within GHOST Knowledge Management.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-ROOT
+STATUS: Draft
+TITLE: Document Retrieval and Reranking Scope
+STATEMENT: >>>
+GHOST shall retrieve query-relevant document chunks from an active project, optionally apply SPLADE and ColBERT ranking branches, hydrate selected chunks from raw sources, and write ordered candidate state into SuperPrompt for A3 evidence selection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST; current Python paths may remain under ragstream.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-KM-PARENT
+STATUS: Draft
+TITLE: Retrieval Knowledge Management Parent
+STATEMENT: >>>
+Document Retrieval and Reranking shall be governed by the capability boundaries, shared artifacts, configuration governance, and sibling ownership defined in 40_knowledge_management.sdoc.
+
+This document shall refine the retrieval/reranking sub-capability without redefining ingestion, A3, A4, or Memory Management.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-BOUNDARY
+STATUS: Draft
+TITLE: Retrieval Boundary
+STATEMENT: >>>
+This document shall own query projection consumption, query splitting, dense ranking, SPLADE rescoring, reciprocal-rank fusion, hydration, retrieval-stage write-back, optional ColBERT reranking, and reranked-stage write-back.
+
+It shall not own ingestion, A3 usefulness decisions, A4 condensation, memory retrieval, or final prompt composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-COMPONENTS
+STATUS: Draft
+TITLE: Current Retrieval Components
+STATEMENT: >>>
+The current capability shall be organized around Retriever, RetrieverEmb, RetrieverSplade, rrf_merge, smart_query_splitter, Chunk hydration, and Reranker.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Retrieval Input and Query Projection
+
+[TEXT]
+STATEMENT: >>>
+Retrieval consumes the prepared SuperPrompt rather than reparsing raw input.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SP
+STATUS: Draft
+TITLE: SuperPrompt Input
+STATEMENT: >>>
+Retriever shall receive the active prepared SuperPrompt, active project name, requested top_k, and SPLADE enable/bypass choice.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-QUERY-PROJECTOR
+STATUS: Draft
+TITLE: Query Projection Source
+STATEMENT: >>>
+Retriever shall obtain document query text through SuperPromptProjector.build_query_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SP
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-ROUTING
+STATUS: Draft
+TITLE: ActiveBrief Routing Compliance
+STATEMENT: >>>
+The query text used for retrieval shall reflect the finalized prompt-materiality/topic-relation policy established by PreProcessing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-QUERY-PROJECTOR
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-EMPTY-SUPPRESSION
+STATUS: Draft
+TITLE: Empty Query Suppression
+STATEMENT: >>>
+A deliberately empty document query produced by the routing policy shall suppress document retrieval and shall not be replaced by prompt_ready, memory context, or an unrelated fallback.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROUTING
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-PROJECT
+STATUS: Draft
+TITLE: Project Name
+STATEMENT: >>>
+The project name shall be non-empty and shall identify one project-specific dense store and raw-document subtree.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SP
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-TOPK
+STATUS: Draft
+TITLE: Requested Candidate Limit
+STATEMENT: >>>
+The requested top_k shall define the maximum fused retrieval rows returned by the retrieval stage when positive.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SP
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-NO-MEMORY-QUERY
+STATUS: Draft
+TITLE: No Memory Query Ownership
+STATEMENT: >>>
+Document Retriever shall not query the memory vector store or MemoryIndexLookup.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SP
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Deterministic Query Splitting
+
+[TEXT]
+STATEMENT: >>>
+The current smart_query_splitter is a deterministic linear overlapping splitter, not yet a semantic splitter.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-QUERY-SPLIT
+STATUS: Draft
+TITLE: Query Piece Generation
+STATEMENT: >>>
+The projected query shall be split into ordered overlapping text pieces before dense and sparse scoring.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-QUERY-TRIM
+STATUS: Draft
+TITLE: Query Trim
+STATEMENT: >>>
+Query splitting shall trim the complete query and shall return an empty list when no usable text remains.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-QUERY-SPLIT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-QUERY-CHUNKER
+STATUS: Draft
+TITLE: Shared Chunker Use
+STATEMENT: >>>
+The current query splitter shall reuse the deterministic Chunker windowing algorithm.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-QUERY-SPLIT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-QUERY-SIZE
+STATUS: Draft
+TITLE: Query Window Validation
+STATEMENT: >>>
+Query chunk size shall be positive; overlap shall be non-negative and smaller than chunk size.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-QUERY-SPLIT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-QUERY-BASELINE
+STATUS: Draft
+TITLE: Current Query Window Baseline
+STATEMENT: >>>
+The current query-splitting baseline shall use 1200-character windows with 120-character overlap until replaced by approved runtime configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-QUERY-SPLIT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-QUERY-ORDER
+STATUS: Draft
+TITLE: Query Piece Order
+STATEMENT: >>>
+Returned query pieces shall preserve the order produced by deterministic windowing and shall exclude empty pieces.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-QUERY-SPLIT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-NO-SMART-CLAIM
+STATUS: Draft
+TITLE: No Semantic Splitter Claim
+STATEMENT: >>>
+The current smart_query_splitter module shall not be described as semantic, sentence-aware, or LLM-based while its implementation remains linear character windowing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-QUERY-SPLIT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Dense Candidate Generation
+
+[TEXT]
+STATEMENT: >>>
+Dense retrieval is the mandatory first candidate-generation branch.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-FIRST
+STATUS: Draft
+TITLE: Dense First-Pass Retrieval
+STATEMENT: >>>
+RetrieverEmb shall generate the initial candidate set from the active project Chroma document store.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-NEUTRAL
+STATUS: Draft
+TITLE: Dense Backend State Neutrality
+STATEMENT: >>>
+RetrieverEmb shall receive project name, query pieces, and top_k without knowledge of SuperPrompt write-back or raw-file hydration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-STORE
+STATUS: Draft
+TITLE: Dense Store Validation
+STATEMENT: >>>
+Dense retrieval shall fail explicitly when the Chroma root or active project store does not exist.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-EMPTY-QUERY
+STATUS: Draft
+TITLE: Dense Empty Query
+STATEMENT: >>>
+Dense retrieval shall return no rows when query pieces are empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-READ
+STATUS: Draft
+TITLE: Dense Store Read Contract
+STATEMENT: >>>
+Dense retrieval shall read stored chunk identifiers, embeddings, and metadata from the active project collection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-LENGTH
+STATUS: Draft
+TITLE: Dense Store Shape Validation
+STATEMENT: >>>
+Dense retrieval shall reject mismatched identifier/embedding lengths and mismatched non-empty metadata lengths.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-QUERY-EMBED
+STATUS: Draft
+TITLE: Query Embedding
+STATEMENT: >>>
+The dense backend shall embed all query pieces using the configured dense Embedder.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-DIM
+STATUS: Draft
+TITLE: Embedding Dimension Validation
+STATEMENT: >>>
+Stored and query embedding matrices shall be two-dimensional and shall have equal vector dimensions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-COSINE
+STATUS: Draft
+TITLE: Cosine Similarity
+STATEMENT: >>>
+The dense backend shall row-normalize stored and query vectors and shall compute cosine similarities by matrix multiplication.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-PNORM
+STATUS: Draft
+TITLE: Query-Piece Aggregation
+STATEMENT: >>>
+Per-chunk dense similarities across query pieces shall be clipped at zero and aggregated by p-norm mean.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-PNORM-P
+STATUS: Draft
+TITLE: Current Dense p Value
+STATEMENT: >>>
+The current dense p-norm aggregation baseline shall use p = 10 until replaced by approved configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-PNORM
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-SORT
+STATUS: Draft
+TITLE: Dense Deterministic Sort
+STATEMENT: >>>
+Dense rows shall be ordered by descending aggregated score and then ascending chunk identifier for ties.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DENSE-CUTOFF
+STATUS: Draft
+TITLE: Dense Candidate Cutoff
+STATEMENT: >>>
+Dense retrieval shall return no more than the positive requested top_k or its documented fallback when the caller supplies no valid positive limit.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Hard Embedding Floor
+
+[TEXT]
+STATEMENT: >>>
+The dense result is filtered before SPLADE scoring and first fusion.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-EMB-FLOOR
+STATUS: Draft
+TITLE: Hard Dense Similarity Floor
+STATEMENT: >>>
+Retriever shall remove dense candidate rows whose dense score is below the configured hard_embedding_floor.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-EMB-FLOOR-ZERO
+STATUS: Draft
+TITLE: Disabled Floor
+STATEMENT: >>>
+A non-positive hard_embedding_floor shall disable dense-floor filtering.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-EMB-FLOOR
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-EMB-FLOOR-SOURCE
+STATUS: Draft
+TITLE: Floor Configuration Source
+STATEMENT: >>>
+The current hard embedding floor shall be read from runtime_config.document_retrieval.hard_embedding_floor.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-EMB-FLOOR
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-EMB-FLOOR-META
+STATUS: Draft
+TITLE: Floor Score Meaning
+STATEMENT: >>>
+The score compared to hard_embedding_floor shall be the aggregated dense embedding score later projected as emb_score.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-EMB-FLOOR
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Optional SPLADE Rescoring Branch
+
+[TEXT]
+STATEMENT: >>>
+The current SPLADE branch rescoring scope is bounded by dense-selected candidate identifiers.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+STATUS: Draft
+TITLE: SPLADE Enable Switch
+STATEMENT: >>>
+Retriever shall accept an explicit use_retrieval_splade switch.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-LAZY
+STATUS: Draft
+TITLE: Lazy Sparse Initialization
+STATEMENT: >>>
+The SPLADE encoder and RetrieverSplade backend shall be initialized lazily on first enabled use.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-CANDIDATES
+STATUS: Draft
+TITLE: Dense-Bounded Sparse Candidates
+STATEMENT: >>>
+When enabled, RetrieverSplade shall score exactly the unique ordered identifiers surviving dense retrieval and hard-floor filtering.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-NOT-INDEPENDENT
+STATUS: Draft
+TITLE: No Independent Sparse Search Claim
+STATEMENT: >>>
+The current enabled SPLADE branch shall not be described as an independent global sparse candidate generator because it receives dense-selected candidate_ids.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-CANDIDATES
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-STORE
+STATUS: Draft
+TITLE: Sparse Store Validation
+STATEMENT: >>>
+Enabled sparse retrieval shall validate the SPLADE root and active project store.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-MISSING-ID
+STATUS: Draft
+TITLE: Sparse Candidate Alignment
+STATEMENT: >>>
+Every dense-selected candidate identifier shall exist in the active SPLADE store; missing identifiers shall fail the sparse backend explicitly.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-CANDIDATES
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-QUERY
+STATUS: Draft
+TITLE: Query-Side Sparse Encoding
+STATEMENT: >>>
+RetrieverSplade shall encode query pieces using the query-side sparse encoder.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-DOT
+STATUS: Draft
+TITLE: Sparse Similarity
+STATEMENT: >>>
+Sparse document and query representations shall be compared by deterministic sparse dot product.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-PNORM
+STATUS: Draft
+TITLE: Sparse Piece Aggregation
+STATEMENT: >>>
+Per-chunk sparse similarities across query pieces shall be clipped at zero and aggregated by p-norm mean.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-P
+STATUS: Draft
+TITLE: Current Sparse p Value
+STATEMENT: >>>
+The current sparse p-norm aggregation baseline shall use p = 10 until replaced by approved configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-PNORM
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-SORT
+STATUS: Draft
+TITLE: Sparse Deterministic Sort
+STATEMENT: >>>
+Sparse rows shall be sorted by descending aggregated score and ascending chunk identifier for ties.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-MISSING-STORE
+STATUS: Draft
+TITLE: Missing Sparse Store Fallback
+STATEMENT: >>>
+When the top-level Retriever encounters FileNotFoundError for an older project without a SPLADE store, it shall continue with an empty sparse row list rather than aborting dense retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-BYPASS
+STATUS: Draft
+TITLE: SPLADE Bypass Contract
+STATEMENT: >>>
+When SPLADE is disabled, Retriever shall duplicate the dense ranked rows into the second fusion input so the downstream fusion/write-back contract remains unchanged.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SPARSE-BYPASS-DIAG
+STATUS: Draft
+TITLE: SPLADE Bypass Observability
+STATEMENT: >>>
+The system shall expose whether SPLADE used real sparse scores, was unavailable, or was bypassed with dense duplication.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-OPTION
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. First Weighted Reciprocal Rank Fusion
+
+[TEXT]
+STATEMENT: >>>
+Dense and sparse-ranked rows are fused by one neutral deterministic helper.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF1
+STATUS: Draft
+TITLE: Retrieval RRF Fusion
+STATEMENT: >>>
+Retriever shall fuse dense and sparse/bypass ranked lists using weighted reciprocal-rank fusion.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF-K
+STATUS: Draft
+TITLE: RRF Constant
+STATEMENT: >>>
+The RRF helper shall use a positive configurable rank constant; the current baseline shall be 60.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF-WEIGHTS
+STATUS: Draft
+TITLE: Current Retrieval Fusion Weights
+STATEMENT: >>>
+The current retrieval fusion baseline shall weight the dense list 0.75 and the sparse/bypass list 0.25 until replaced by approved JSON configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF-SCORE
+STATUS: Draft
+TITLE: RRF Score Calculation
+STATEMENT: >>>
+Each available rank contribution shall equal its branch weight divided by RRF constant plus one-based rank; contributions shall be summed by chunk identifier.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF-UNION
+STATUS: Draft
+TITLE: RRF Identifier Union
+STATEMENT: >>>
+The neutral RRF helper shall support the union of identifiers appearing in either input list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF-META
+STATUS: Draft
+TITLE: RRF Metadata
+STATEMENT: >>>
+The neutral RRF result shall preserve merged metadata and attach generic branch scores, branch ranks, and fused rrf_score when available.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF-META-MERGE
+STATUS: Draft
+TITLE: Conservative Metadata Merge
+STATEMENT: >>>
+Metadata fusion shall retain an existing key value and shall add only keys absent from the accumulated metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF-SORT
+STATUS: Draft
+TITLE: Fused Deterministic Sort
+STATEMENT: >>>
+Fused rows shall be ordered by descending fused score and ascending chunk identifier for ties.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF-CUTOFF
+STATUS: Draft
+TITLE: Fused Retrieval Cutoff
+STATEMENT: >>>
+The retrieval RRF output shall be limited to the requested positive top_k.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-RRF-PROJECTION
+STATUS: Draft
+TITLE: Retrieval Metadata Projection
+STATEMENT: >>>
+Retriever shall map neutral RRF branch fields to retrieval-specific emb_score, splade_score, emb_rank, splade_rank, and rrf_score aliases without discarding neutral metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Source Hydration and Chunk Reconstruction
+
+[TEXT]
+STATEMENT: >>>
+Vector stores hold vectors and metadata; raw chunk text is reconstructed from doc_raw.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-HYDRATE
+STATUS: Draft
+TITLE: Hydration Requirement
+STATEMENT: >>>
+Retriever shall hydrate each fused ranked row into a Chunk object before writing request-time document context into SuperPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-HYDRATE-PATH
+STATUS: Draft
+TITLE: Hydration Source Path
+STATEMENT: >>>
+Hydration shall resolve metadata path relative to the configured document root.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-HYDRATE-INDEX
+STATUS: Draft
+TITLE: Hydration Chunk Index
+STATEMENT: >>>
+Hydration shall require chunk_idx metadata and shall select the corresponding reconstructed chunk.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-HYDRATE-SAME-CONFIG
+STATUS: Draft
+TITLE: Hydration Chunking Consistency
+STATEMENT: >>>
+Hydration shall use the same effective chunk size and overlap as ingestion for the source-version being reconstructed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-HYDRATE-CACHE
+STATUS: Draft
+TITLE: Per-Run Hydration Cache
+STATEMENT: >>>
+Hydration shall cache source text and reconstructed chunk lists per source path within one retrieval run to avoid repeated reads and splits.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-HYDRATE-SKIP-PATH
+STATUS: Draft
+TITLE: Broken Path Skip
+STATEMENT: >>>
+A ranked row with missing path metadata or a missing raw source file shall be skipped rather than crashing hydration of all other rows.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-HYDRATE-SKIP-IDX
+STATUS: Draft
+TITLE: Broken Index Skip
+STATEMENT: >>>
+A ranked row with absent, negative, or out-of-range chunk index shall be skipped rather than becoming a fabricated chunk.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-HYDRATE-ALIGN
+STATUS: Draft
+TITLE: Hydrated Row Alignment
+STATEMENT: >>>
+The list of valid ranked rows and hydrated Chunk objects shall remain one-to-one and order-aligned.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-CHUNK-CONTRACT
+STATUS: Draft
+TITLE: Chunk Runtime Contract
+STATEMENT: >>>
+A hydrated Chunk shall contain stable identifier, project-relative source, snippet, reconstructed source span, and copied metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-HYDRATE-NO-MUTATE
+STATUS: Draft
+TITLE: Hydration Source Integrity
+STATEMENT: >>>
+Hydration shall read source files and shall not modify the raw project document or persistent vector metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. Retrieval-Stage SuperPrompt Write-Back
+
+[TEXT]
+STATEMENT: >>>
+The retrieval stage establishes both a retrieval view and an explicit A3-ready passthrough view.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-WRITE
+STATUS: Draft
+TITLE: Retrieval Write-Back
+STATEMENT: >>>
+Retriever shall write valid hydrated chunks and ordered ranking state into the same SuperPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-BASE
+STATUS: Draft
+TITLE: Base Context Chunks
+STATEMENT: >>>
+sp.base_context_chunks shall contain hydrated chunks in fused retrieval order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-WRITE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-VIEW
+STATUS: Draft
+TITLE: Retrieval View
+STATEMENT: >>>
+sp.views_by_stage["retrieval"] shall contain ordered triples of chunk identifier, retrieval fused score, and SELECTED status.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-WRITE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-PASSTHROUGH
+STATUS: Draft
+TITLE: A3-Ready Passthrough View
+STATEMENT: >>>
+Retrieval shall initialize sp.views_by_stage["reranked"] as a copy of retrieval ordering and scores so A3 can run when real ColBERT reranking is not executed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-WRITE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-PASSTHROUGH-NOT-RERANK
+STATUS: Draft
+TITLE: Passthrough Truthfulness
+STATEMENT: >>>
+The retrieval-created reranked view shall be marked as passthrough and shall not be represented as a completed ColBERT ranking.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-PASSTHROUGH
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-FINAL-IDS
+STATUS: Draft
+TITLE: Retrieval Final IDs
+STATEMENT: >>>
+sp.final_selection_ids shall equal the ordered identifiers of the valid hydrated retrieval rows.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-WRITE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-STAGE
+STATUS: Draft
+TITLE: Retrieval Lifecycle
+STATEMENT: >>>
+After successful retrieval write-back, sp.stage shall equal retrieval and history_of_stages shall receive retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-WRITE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-DIAG
+STATUS: Draft
+TITLE: Retrieval Passthrough Diagnostics
+STATEMENT: >>>
+SuperPrompt extras shall record the A3-ready source, candidate count, and reranked passthrough state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-WRITE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Optional ColBERT Reranking Input and Cleaning
+
+[TEXT]
+STATEMENT: >>>
+Reranker consumes retrieval candidates and may bypass or execute a ColBERT scoring path.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-ROOT
+STATUS: Draft
+TITLE: Reranker Capability
+STATEMENT: >>>
+Reranker shall optionally rescore and reorder the bounded document candidates already stored by Retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-PRECONDITION
+STATUS: Draft
+TITLE: Reranker Preconditions
+STATEMENT: >>>
+Reranker shall require a non-empty retrieval view and non-empty base_context_chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-QUERY
+STATUS: Draft
+TITLE: Reranker Query Projection
+STATEMENT: >>>
+Real reranking shall rebuild the current query text through SuperPromptProjector and split it with the configured query-window contract.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-CANDIDATE-CAP
+STATUS: Draft
+TITLE: Reranker Candidate Cap
+STATEMENT: >>>
+Real or bypass reranking shall process no more than the effective reranker top_k candidates; the current constructor baseline shall be 50.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-MODEL
+STATUS: Draft
+TITLE: Current ColBERT Model
+STATEMENT: >>>
+The current reranker model baseline shall be lightonai/GTE-ModernColBERT-v1 until changed by approved configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-DEVICE
+STATUS: Draft
+TITLE: Reranker Device Governance
+STATEMENT: >>>
+The reranker runtime device shall be configurable and shall be honored by model initialization.
+
+The current constructor default of cpu shall not be claimed as enforced when the backend model is created without applying the device argument.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-CLEAN-DYNAMIC
+STATUS: Draft
+TITLE: Dynamic Cleaning Only
+STATEMENT: >>>
+Reranker shall clean a temporary scoring copy of each chunk text and shall not alter the stored or hydrated canonical snippet.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-CLEAN-FRONT
+STATUS: Draft
+TITLE: Front-Matter Cleaning
+STATEMENT: >>>
+Reranker cleaning shall remove an initial delimited front-matter block when present.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-CLEAN-DYNAMIC
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-CLEAN-META
+STATUS: Draft
+TITLE: Metadata-Line Cleaning
+STATEMENT: >>>
+Reranker cleaning shall remove configured line-level metadata keys such as title, author, version, updated, tags, dates, and description.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-CLEAN-DYNAMIC
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-CLEAN-ARTIFACT
+STATUS: Draft
+TITLE: Prompt-Artifact Cleaning
+STATEMENT: >>>
+Reranker cleaning shall remove code-fence marker lines, @@meta lines, and recognized END_OF_PROMPT marker lines while preserving normal content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-CLEAN-DYNAMIC
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-CLEAN-EMPTY
+STATUS: Draft
+TITLE: Empty Cleaned Candidate
+STATEMENT: >>>
+A candidate whose cleaned scoring text is empty shall be excluded from ColBERT scoring.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-CLEAN-DYNAMIC
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-NO-VALID
+STATUS: Draft
+TITLE: No Valid Rerank Candidates
+STATEMENT: >>>
+Real reranking shall fail explicitly when no candidate can be prepared for ColBERT scoring.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. ColBERT Scoring and Second Fusion
+
+[TEXT]
+STATEMENT: >>>
+ColBERT scores the same bounded candidate documents for every query piece and the result is fused with retrieval order.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-ENCODE
+STATUS: Draft
+TITLE: ColBERT Encoding
+STATEMENT: >>>
+Real reranking shall encode query pieces as queries and the cleaned candidate snippets as documents using the configured ColBERT model.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-DOCS-PER-QUERY
+STATUS: Draft
+TITLE: Candidate Set per Query Piece
+STATEMENT: >>>
+Every query piece shall be scored against the same ordered valid candidate identifier and document list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ENCODE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-MEAN
+STATUS: Draft
+TITLE: ColBERT Piece Aggregation
+STATEMENT: >>>
+For each chunk identifier, ColBERT scores returned across query pieces shall be aggregated by arithmetic mean.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ENCODE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-COLBERT-SORT
+STATUS: Draft
+TITLE: ColBERT Deterministic Sort
+STATEMENT: >>>
+Aggregated ColBERT rows shall be ordered by descending mean score and ascending chunk identifier for ties.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ENCODE
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-RRF2
+STATUS: Draft
+TITLE: Second Weighted RRF
+STATEMENT: >>>
+Reranker shall fuse the original retrieval ranking with the ColBERT ranking through the same neutral weighted RRF helper.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-WEIGHTS
+STATUS: Draft
+TITLE: Current Reranker Fusion Weights
+STATEMENT: >>>
+The current second-fusion baseline shall weight Retrieval 0.75 and ColBERT 0.25.
+
+Comments describing equal weighting shall not override the executed values.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-RRF2
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-META-PRESERVE
+STATUS: Draft
+TITLE: Retrieval Metadata Preservation
+STATEMENT: >>>
+Before the second fusion overwrites generic rrf_score, the original retrieval fused score shall be preserved under retrieval_rrf_score when available.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-RRF2
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-META-PROJECT
+STATUS: Draft
+TITLE: Reranker Metadata Projection
+STATEMENT: >>>
+Reranker shall project neutral second-fusion fields to retrieval_score, colbert_score, retrieval_rank, colbert_rank, and rerank_rrf_score.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-RRF2
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-WRITE-META
+STATUS: Draft
+TITLE: Chunk Metadata Write-Back
+STATEMENT: >>>
+Reranker-specific scores and ranks shall be merged into the hydrated chunk metadata for later diagnostic rendering.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-RRF2
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-FINAL-SORT
+STATUS: Draft
+TITLE: Final Rerank Order
+STATEMENT: >>>
+The final reranked rows shall be sorted by descending rerank fused score and ascending chunk identifier for ties.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-RRF2
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 12. Reranking Bypass and SuperPrompt Write-Back
+
+[TEXT]
+STATEMENT: >>>
+Bypass preserves downstream contracts without claiming model scoring.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-BYPASS
+STATUS: Draft
+TITLE: ColBERT Bypass
+STATEMENT: >>>
+When use_reranking_colbert is false, Reranker shall copy the bounded retrieval order and scores into the reranked stage without calling the ColBERT model.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-BYPASS-META
+STATUS: Draft
+TITLE: Bypass Metadata
+STATEMENT: >>>
+Bypass may populate retrieval and ColBERT score/rank aliases from the retrieval order solely to preserve downstream metadata shape; diagnostics shall identify the bypass.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-BYPASS
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-VIEW
+STATUS: Draft
+TITLE: Reranked View
+STATEMENT: >>>
+sp.views_by_stage["reranked"] shall contain ordered chunk identifier, effective rerank score, and SELECTED status for every retained candidate.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-IDS
+STATUS: Draft
+TITLE: Reranked Final IDs
+STATEMENT: >>>
+sp.final_selection_ids shall equal the ordered identifiers in the reranked view.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-STAGE
+STATUS: Draft
+TITLE: Reranker Lifecycle
+STATEMENT: >>>
+After real or bypass reranking, sp.stage shall equal reranked and history_of_stages shall receive reranked.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RERANK-BASE-PRESERVE
+STATUS: Draft
+TITLE: Base Chunk Preservation
+STATEMENT: >>>
+Reranker shall not replace base_context_chunks; it shall reorder candidates through views and selection identifiers while enriching metadata only.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 13. Configuration, Error Handling, and Observability
+
+[TEXT]
+STATEMENT: >>>
+Retrieval/reranking parameters shall migrate to validated JSON configuration and effective behavior shall remain visible.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-CONFIG-JSON
+STATUS: Draft
+TITLE: JSON Configuration Target
+STATEMENT: >>>
+Retrieval and reranking tuning parameters shall be migrated to versioned runtime_config.json.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-CONFIG-FIELDS
+STATUS: Draft
+TITLE: Retrieval Configuration Fields
+STATEMENT: >>>
+The configuration target shall include query chunk size/overlap, dense model, dense p value, dense candidate limit, embedding floor, SPLADE enablement/model/device/p value, first RRF constant/weights, hydration chunk parameters, reranker model/device/candidate cap, ColBERT enablement, and second RRF constant/weights.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-CONFIG-UNUSED
+STATUS: Draft
+TITLE: Unused Current Runtime Keys
+STATEMENT: >>>
+runtime_config document_retrieval keys that are not consumed by the active code, including semantic_stage_max_total_chunks or max_document_chunks_for_a3 where not wired, shall not be described as enforced runtime limits.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-CONFIG-WEIGHTS
+STATUS: Draft
+TITLE: Weight Validation
+STATEMENT: >>>
+Configured fusion weights shall be finite and non-negative and at least one branch weight shall be positive.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-CONFIG-LIMITS
+STATUS: Draft
+TITLE: Limit Validation
+STATEMENT: >>>
+Configured candidate limits, p values, RRF constants, and query chunk size shall be positive; overlap shall satisfy the splitter contract.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-EFFECTIVE
+STATUS: Draft
+TITLE: Effective Retrieval Diagnostics
+STATEMENT: >>>
+The run shall expose effective query-piece count, dense count, floor-survivor count, sparse mode/count, fusion weights, hydrated count, reranker mode/count, and model identifiers.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-ERROR
+STATUS: Draft
+TITLE: Retrieval Error Integrity
+STATEMENT: >>>
+Missing dense project stores, invalid vector shapes, incompatible dimensions, sparse candidate misalignment, empty reranker preparation, or invalid configuration shall not produce fabricated successful rankings.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-OPTIONAL-ERROR
+STATUS: Draft
+TITLE: Optional Branch Failure Boundary
+STATEMENT: >>>
+Only documented optional-branch failures may degrade to a fallback; mandatory dense retrieval and hydration-contract failures shall remain observable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-LOG-CONTENT
+STATUS: Draft
+TITLE: Retrieval Logging Content
+STATEMENT: >>>
+Normal logs shall expose stage status, counts, effective modes, model identifiers, and latency without dumping full project evidence by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 14. Traceability and Acceptance Criteria
+
+[TEXT]
+STATEMENT: >>>
+These criteria verify the complete retrieval/reranking contract before A3.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-CODE-OWNERSHIP
+STATUS: Draft
+TITLE: Retrieval Code Ownership
+STATEMENT: >>>
+Retriever, RetrieverEmb, RetrieverSplade, rrf_merge, smart_query_splitter, Chunk, DocScore compatibility, and Reranker shall map to the deepest applicable UIDs in this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-SIBLING
+STATUS: Draft
+TITLE: Sibling Ownership Boundary
+STATEMENT: >>>
+Document ingestion shall remain owned by 41 and A3/A4 behavior shall remain owned by 43.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-DENSE
+STATUS: Draft
+TITLE: AC: Dense Ranking
+STATEMENT: >>>
+Given a valid project store and query pieces, dense retrieval shall return at most top_k rows ordered by p-norm aggregated cosine score with deterministic tie resolution.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-DENSE-FIRST
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-FLOOR
+STATUS: Draft
+TITLE: AC: Hard Floor
+STATEMENT: >>>
+Given a positive hard embedding floor, every dense row entering SPLADE/fusion shall have dense score greater than or equal to that floor.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-EMB-FLOOR
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-SPARSE
+STATUS: Draft
+TITLE: AC: Dense-Bounded SPLADE
+STATEMENT: >>>
+Given SPLADE enabled, every sparse-scored identifier shall belong to the dense survivor set and every dense survivor shall be present in the sparse store or the branch shall fail explicitly.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-CANDIDATES
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-SPARSE-BYPASS
+STATUS: Draft
+TITLE: AC: SPLADE Bypass
+STATEMENT: >>>
+Given SPLADE disabled, retrieval shall complete using dense duplication as the second fusion input and shall expose bypass status.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-SPARSE-BYPASS
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-RRF1
+STATUS: Draft
+TITLE: AC: First Fusion
+STATEMENT: >>>
+Given two ranked inputs and configured weights, fused scores and order shall match deterministic weighted RRF with the configured rank constant.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-RRF1
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-HYDRATE
+STATUS: Draft
+TITLE: AC: Hydration
+STATEMENT: >>>
+Every row written to the retrieval view shall have a corresponding hydrated Chunk; broken rows shall be omitted from both aligned outputs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-HYDRATE-ALIGN
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-PASSTHROUGH
+STATUS: Draft
+TITLE: AC: Retrieval Passthrough
+STATEMENT: >>>
+After retrieval without real reranking, the reranked view shall equal the retrieval view and diagnostics shall identify retrieval_passthrough.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-PASSTHROUGH
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-COLBERT
+STATUS: Draft
+TITLE: AC: ColBERT Reranking
+STATEMENT: >>>
+Given real reranking enabled and valid candidates, ColBERT mean scores shall be fused with retrieval ranking using the configured second-fusion values and shall produce the reranked view.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-RRF2
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-RERANK-BYPASS
+STATUS: Draft
+TITLE: AC: ColBERT Bypass
+STATEMENT: >>>
+Given ColBERT disabled, no ColBERT model call shall occur and retrieval order shall be copied into the reranked stage.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-BYPASS
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-CLEAN
+STATUS: Draft
+TITLE: AC: Non-Mutating Cleaning
+STATEMENT: >>>
+Reranker cleaning shall alter only the temporary scoring text; the corresponding base_context_chunks snippets shall remain unchanged.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-CLEAN-DYNAMIC
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-WEIGHTS
+STATUS: Draft
+TITLE: AC: Executed Weight Truth
+STATEMENT: >>>
+The effective retrieval and reranking weights reported for the current baseline shall be 0.75/0.25 unless validated JSON configuration overrides them in implemented code.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RERANK-WEIGHTS
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-CONFIG
+STATUS: Draft
+TITLE: AC: JSON Parameter Migration
+STATEMENT: >>>
+After configuration migration, changing a retrieval limit, p value, RRF constant, branch weight, model, device, or query window shall require only validated JSON change and shall be reflected in diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-DOC-RETRIEVE-AC-SYNC
+STATUS: Draft
+TITLE: AC: Requirement-Code Synchronization
+STATEMENT: >>>
+A retrieval baseline shall not be accepted when query routing, branch scope, fusion weights, hydration semantics, passthrough meaning, or reranking write-back contradicts this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-RETRIEVE-CODE-OWNERSHIP
+
+[[/SECTION]]

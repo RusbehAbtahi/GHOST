@@ -1,0 +1,1174 @@
+[DOCUMENT]
+TITLE: GHOST Orchestrator and Runtime Pipeline Requirements
+UID: GHOST-ORCH
+VERSION: 0.5
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines the GHOST runtime orchestration requirements for the Prompt Builder path.
+
+The runtime pipeline is organized into five functional stages:
+1. Prompt Preprocessing / Routing.
+2. PromptShaper / Job Structuring.
+3. Knowledge Management Path.
+4. Memory Management Path.
+5. Final Prompt Composition.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-ROOT
+STATUS: Draft
+TITLE: Orchestrator and Runtime Pipeline Scope
+STATEMENT: >>>
+This file shall define the runtime orchestration and pipeline coordination requirements for GHOST Prompt Builder execution.
+
+The scope includes prompt preprocessing, prompt shaping, document/project knowledge retrieval, memory retrieval, document evidence processing, memory context synthesis, shared SuperPrompt state, and final prompt composition.
+
+The scope excludes detailed requirements for document ingestion, memory recording, memory ingestion, GUI layout, deployment, benchmarking, logging sinks, and future lifecycle synchronization except where this file must reference their runtime boundaries.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST.
+
+The existing Python package namespace may remain ragstream in current source code and paths.
+
+Requirements shall not treat ragstream as the product identity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Runtime Object Model and Boundaries
+
+[TEXT]
+STATEMENT: >>>
+GHOST runtime orchestration uses a shared SuperPrompt object as the evolving in-memory state for the current Prompt Builder run.
+
+The controller coordinates executable components. The lower-level subsystems own their internal algorithms and data stores.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-SUPERPROMPT-CENTRAL-STATE
+STATUS: Draft
+TITLE: SuperPrompt as Shared Runtime State
+STATEMENT: >>>
+The Prompt Builder runtime shall use SuperPrompt as the shared state object passed through preprocessing, shaping, context retrieval, document evidence processing, memory context synthesis, and final prompt composition.
+
+SuperPrompt shall carry canonical prompt body fields, runtime extras, effective retrieval query text, document context artifacts, memory context artifacts, stage history, and rendered prompt strings.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-CONTROLLER-ROLE
+STATUS: Draft
+TITLE: Controller Coordination Role
+STATEMENT: >>>
+The application controller shall coordinate runtime calls across preprocessing, PromptShaper, document retriever, memory retriever, document reranker, A3, A4, and final prompt projection.
+
+The controller shall not own the internal algorithms of document retrieval, memory retrieval, reranking, A3 classification, A4 condensation, or memory synthesis.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-LOWER-LEVEL-OWNERSHIP
+STATUS: Draft
+TITLE: Lower-Level Subsystem Ownership
+STATEMENT: >>>
+This file shall define orchestration-level runtime responsibilities and boundaries.
+
+Detailed algorithms shall remain owned by their subsystem requirement files:
+- preprocessing and ActiveBrief relation classification;
+- PromptShaper and agent-stack behavior;
+- document retrieval, dense/SPLADE scoring, RRF, reranking, A3, and A4;
+- memory recording, indexing, retrieval, compression, and synthesis;
+- SuperPrompt projection and rendering.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-SNAPSHOT-CONTRACT
+STATUS: Draft
+TITLE: Runtime Snapshot Contract
+STATEMENT: >>>
+The Prompt Builder runtime shall preserve stage snapshots of the evolving SuperPrompt where the GUI or manual workflow requires inspection of intermediate state.
+
+Snapshots shall represent runtime state at meaningful orchestration points and shall not redefine the functional pipeline hierarchy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-SUPERPROMPT-CENTRAL-STATE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Five Functional Runtime Stages
+
+[TEXT]
+STATEMENT: >>>
+The Prompt Builder pipeline is defined at high level by five functional stages. Details inside the stages may execute through several concrete Python methods.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+STATUS: Draft
+TITLE: Five Functional Runtime Stages
+STATEMENT: >>>
+The Prompt Builder runtime shall be described by these five high-level functional stages:
+
+1. Prompt Preprocessing / Routing.
+2. PromptShaper / Job Structuring.
+3. Knowledge Management Path.
+4. Memory Management Path.
+5. Final Prompt Composition.
+
+Each stage shall have clear inputs, responsibilities, outputs, and ownership boundaries.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-STAGE-1-PREPROCESSING
+STATUS: Draft
+TITLE: Stage 1: Prompt Preprocessing and Routing
+STATEMENT: >>>
+Stage 1 shall transform the raw user prompt into normalized runtime input and routing information.
+
+It shall prepare the prompt for structured shaping and context retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+STATUS: Draft
+TITLE: Stage 2: PromptShaper and Job Structuring
+STATEMENT: >>>
+Stage 2 shall transform the preprocessed prompt into an internal structured job representation.
+
+The structured representation shall make task, purpose, context, configuration, and downstream evidence behavior explicit enough for retrieval and prompt composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-STAGE-3-KNOWLEDGE
+STATUS: Draft
+TITLE: Stage 3: Knowledge Management Path
+STATEMENT: >>>
+Stage 3 shall produce document/project knowledge context for the current request.
+
+It shall include document retrieval, document ranking/reranking behavior, document usefulness validation, and document evidence condensation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-STAGE-4-MEMORY
+STATUS: Draft
+TITLE: Stage 4: Memory Management Path
+STATEMENT: >>>
+Stage 4 shall produce durable-memory-based context for the current request.
+
+It shall include memory record lookup, memory vector retrieval, memory candidate scoring and selection, memory compression, ActiveBrief use, and synthesized memory context generation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-STAGE-5-COMPOSITION
+STATUS: Draft
+TITLE: Stage 5: Final Prompt Composition
+STATEMENT: >>>
+Stage 5 shall compose the final Prompt Builder output from the structured prompt, selected document evidence, synthesized memory context, and system/configuration rules.
+
+The composed output shall be the Prompt Builder artifact presented to the user.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Stage 1 - Prompt Preprocessing / Routing
+
+[TEXT]
+STATEMENT: >>>
+This stage handles the raw prompt before it becomes a shaped job. It prepares both the current prompt body and routing signals for context retrieval.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-PREPROCESS-INPUT
+STATUS: Draft
+TITLE: Raw Prompt Input Handling
+STATEMENT: >>>
+The preprocessing stage shall receive the raw user prompt text from the active Prompt Builder input.
+
+Whitespace-only input shall not create a meaningful SuperPrompt transformation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+
+[REQUIREMENT]
+UID: GHOST-ORCH-PREPROCESS-SCHEMA
+STATUS: Draft
+TITLE: Prompt Schema Normalization
+STATEMENT: >>>
+The preprocessing stage shall use the prompt schema to normalize the raw user prompt into SuperPrompt body fields.
+
+The canonical body shall support fields such as system, task, audience, role, tone, depth, confidence, evidence_policy, context, purpose, format, and text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+
+[REQUIREMENT]
+UID: GHOST-ORCH-PREPROCESS-RELATION-CLASSIFICATION
+STATUS: Draft
+TITLE: ActiveBrief Relation Classification
+STATEMENT: >>>
+The preprocessing stage shall classify the relation between the current prompt and the active memory brief when memory context exists.
+
+The classification shall support materiality and topic-relation routing signals such as strong or weak prompt materiality and same-topic, related-domain, or irrelevant topic relation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+
+[REQUIREMENT]
+UID: GHOST-ORCH-PREPROCESS-QUERY-ROUTING
+STATUS: Draft
+TITLE: Retrieval Routing Preparation
+STATEMENT: >>>
+The preprocessing stage shall prepare routing information used later to build retrieval intent.
+
+Routing shall allow current prompt text, ActiveBrief body, ActiveBrief title, or empty document retrieval intent depending on the prompt materiality and topic relation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+
+[REQUIREMENT]
+UID: GHOST-ORCH-PREPROCESS-PROMPT-READY
+STATUS: Draft
+TITLE: Early Prompt Projection After Preprocessing
+STATEMENT: >>>
+After preprocessing, the runtime may compose a prompt-ready preview from the current SuperPrompt state.
+
+This preview shall not be treated as the final Prompt Builder output when later context paths still have to run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+
+[REQUIREMENT]
+UID: GHOST-ORCH-PREPROCESS-OUTPUT
+STATUS: Draft
+TITLE: Preprocessing Output Contract
+STATEMENT: >>>
+The preprocessing stage shall output a mutated SuperPrompt containing normalized prompt body content and routing metadata in extras.
+
+The output SuperPrompt shall be suitable for PromptShaper execution and retrieval-intent construction.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Stage 2 - PromptShaper / Job Structuring
+
+[TEXT]
+STATEMENT: >>>
+This stage turns the preprocessed prompt into a more explicit internal job representation used by the rest of the pipeline.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-A2-INPUT
+STATUS: Draft
+TITLE: PromptShaper Input Contract
+STATEMENT: >>>
+PromptShaper shall receive the current SuperPrompt after preprocessing.
+
+It shall use the prompt body and runtime metadata as the basis for job structuring.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+
+[REQUIREMENT]
+UID: GHOST-ORCH-A2-STRUCTURE
+STATUS: Draft
+TITLE: PromptShaper Structured Job Output
+STATEMENT: >>>
+PromptShaper shall read the current structured prompt from SuperPrompt and select job/configuration metadata for the request.
+
+The selected metadata shall include supported fields such as system, audience, tone, depth, confidence, and evidence policy where available.
+
+PromptShaper shall update the same SuperPrompt instance and preserve the task, purpose, and context produced by preprocessing unless a supported selector result explicitly updates a compatible field.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+
+[REQUIREMENT]
+UID: GHOST-ORCH-A2-CATALOG-SELECTION
+STATUS: Draft
+TITLE: PromptShaper Catalog Selection Metadata
+STATEMENT: >>>
+PromptShaper shall store selected meta-setting identifiers in SuperPrompt extras when such selections are produced.
+
+This metadata shall be available to prompt projection, including evidence policy rendering.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+
+[REQUIREMENT]
+UID: GHOST-ORCH-A2-LLM-OPTION
+STATUS: Draft
+TITLE: PromptShaper LLM Execution Option
+STATEMENT: >>>
+The runtime shall allow PromptShaper execution with or without the LLM-assisted path according to active runtime settings.
+
+Disabling the LLM-assisted PromptShaper path shall not remove the SuperPrompt state object from the pipeline.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+
+[REQUIREMENT]
+UID: GHOST-ORCH-A2-OUTPUT
+STATUS: Draft
+TITLE: PromptShaper Output Contract
+STATEMENT: >>>
+The PromptShaper stage shall output the same SuperPrompt instance updated with structured job content and PromptShaper metadata.
+
+The output shall be suitable for retrieval-intent construction and both context paths.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Stage 3 - Knowledge Management Path
+
+[TEXT]
+STATEMENT: >>>
+This stage is the document/project knowledge path. It produces selected and condensed document evidence for the current request.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-SCOPE
+STATUS: Draft
+TITLE: Knowledge Management Runtime Scope
+STATEMENT: >>>
+The Knowledge Management path shall produce document/project context from the active project stores.
+
+It shall include document retrieval, dense and sparse scoring, deterministic fusion, hydration, document reranking or pass-through, document usefulness validation, and document evidence condensation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-3-KNOWLEDGE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-INPUTS
+STATUS: Draft
+TITLE: Knowledge Path Inputs
+STATEMENT: >>>
+The Knowledge Management path shall use the current SuperPrompt, active project name, retrieval top-k value, document retrieval runtime settings, and retrieval intent/query text.
+
+It shall not use memory records as document chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-QUERY
+STATUS: Draft
+TITLE: Document Retrieval Query Construction
+STATEMENT: >>>
+The document retrieval query shall be built from the structured SuperPrompt body and routing metadata.
+
+For weak and irrelevant routing, the document retrieval query may be empty so that document retrieval is suppressed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-DENSE
+STATUS: Draft
+TITLE: Dense Document Retrieval Backend
+STATEMENT: >>>
+The document retrieval path shall support dense embedding retrieval over the active project Chroma document store.
+
+The dense backend shall receive neutral retrieval inputs and return ranked document rows to the higher-level Retriever.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-SPLADE
+STATUS: Draft
+TITLE: SPLADE Document Retrieval Backend
+STATEMENT: >>>
+The document retrieval path shall support SPLADE-based sparse retrieval over the active project SPLADE store.
+
+When a fixed dense candidate set is supplied, the SPLADE backend shall score those candidate IDs instead of independently replacing the candidate universe.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-RRF
+STATUS: Draft
+TITLE: Document Retrieval Fusion
+STATEMENT: >>>
+The document retrieval path shall fuse dense and SPLADE ranked rows with deterministic weighted Reciprocal Rank Fusion.
+
+The fusion helper shall remain neutral and shall not own SuperPrompt, dense semantics, SPLADE semantics, or hydration logic.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-HYDRATION
+STATUS: Draft
+TITLE: Document Chunk Hydration
+STATEMENT: >>>
+The document Retriever shall hydrate selected ranked rows into real Chunk objects by reading the source files under the active doc_raw project root.
+
+Rows that point to stale or broken source files shall be skipped rather than crashing the entire document retrieval stage.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-SUPERPROMPT-WRITE
+STATUS: Draft
+TITLE: Knowledge Context SuperPrompt Write-Back
+STATEMENT: >>>
+The Knowledge Management path shall write hydrated document chunks, retrieval views, A3-ready document candidate views, and selected document IDs into SuperPrompt.
+
+The document write-back fields shall remain separate from memory context fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-RERANKER
+STATUS: Draft
+TITLE: Document ReRanker Boundary
+STATEMENT: >>>
+The document ReRanker shall operate only on document retrieval candidates already stored in SuperPrompt.
+
+When ColBERT reranking is disabled, the runtime shall keep the A3-ready document candidate view initialized by document retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-A3
+STATUS: Draft
+TITLE: Document Evidence Usefulness Validation
+STATEMENT: >>>
+A3 shall evaluate document candidates from the document candidate view.
+
+A3 shall not be responsible for memory record truth, memory candidate storage, or memory synthesis.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-A4
+STATUS: Draft
+TITLE: Document Evidence Condensation
+STATEMENT: >>>
+A4 shall condense selected document evidence after document retrieval, optional reranking, and A3 usefulness validation.
+
+A4 shall not replace the Memory Management compression and synthesis path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-KNOWLEDGE-OUTPUT
+STATUS: Draft
+TITLE: Knowledge Path Output Contract
+STATEMENT: >>>
+The Knowledge Management path shall output document evidence artifacts in SuperPrompt.
+
+The output shall include document chunks and/or document evidence summary content suitable for final prompt composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Stage 4 - Memory Management Path
+
+[TEXT]
+STATEMENT: >>>
+This stage is the durable memory context path. It produces query-relevant synthesized memory context for the current request.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-SCOPE
+STATUS: Draft
+TITLE: Memory Management Runtime Scope
+STATEMENT: >>>
+The Memory Management path shall produce context from durable GHOST memory rather than from project document stores.
+
+It shall include memory record truth, memory metadata/index lookup, semantic memory retrieval, memory candidate scoring and selection, memory compression, ActiveBrief use, and synthesized memory context generation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-4-MEMORY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-DURABLE-TRUTH
+STATUS: Draft
+TITLE: Durable Memory Truth Boundary
+STATEMENT: >>>
+The Memory Management path shall treat MemoryManager as the runtime boundary to durable memory state.
+
+The durable memory state includes the active memory history, MemoryRecords, .ragmem persistence, .ragmeta.json metadata, and SQLite indexing.
+
+Detailed memory persistence behavior shall remain owned by the Memory Management requirement files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-RETRIEVER-ENTRY
+STATUS: Draft
+TITLE: MemoryRetriever Entry Point
+STATEMENT: >>>
+MemoryRetriever shall be the retrieval-side runtime entry point for the Memory Management path.
+
+It shall read the current SuperPrompt, active MemoryManager, MemoryVectorStore, memory_index.sqlite3, and runtime memory retrieval configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-QUERY
+STATUS: Draft
+TITLE: Memory Retrieval Query Construction
+STATEMENT: >>>
+MemoryRetriever shall build memory retrieval query text from SuperPrompt.
+
+The preferred source shall be SuperPrompt.effective_retrieval_query_text when available, with fallback construction from task, purpose, context, text, or prompt-ready content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-SEMANTIC
+STATUS: Draft
+TITLE: Semantic Memory Retrieval
+STATEMENT: >>>
+MemoryRetriever shall query the memory vector store for semantic memory chunks linked to the active memory file when vector retrieval is available and enabled.
+
+The semantic pass shall score vector hits and aggregate parent record scores before candidate selection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-INDEX
+STATUS: Draft
+TITLE: Indexed Memory Candidate Lookup
+STATEMENT: >>>
+MemoryRetriever shall collect deterministic non-vector memory candidates through the SQLite-backed memory index lookup.
+
+The candidate sources shall include working memory, latest Gold records, and direct-recall candidates when configured and available.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-CANDIDATE-PACK
+STATUS: Draft
+TITLE: MemoryContextPack Assembly
+STATEMENT: >>>
+MemoryRetriever shall assemble selected working memory candidates, episodic candidates, semantic memory chunks, direct-recall candidates, diagnostics, and token budget information into a MemoryContextPack.
+
+The pack shall be runtime data and shall not be treated as durable memory truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-COMPRESSION
+STATUS: Draft
+TITLE: Memory Candidate Compression
+STATEMENT: >>>
+The Memory Management path shall compress episodic memory candidates before final memory context synthesis where the memory configuration enables that behavior.
+
+Memory compression shall be part of the Memory Management path and shall not be represented as document condensation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-ACTIVEBRIEF
+STATUS: Draft
+TITLE: ActiveBrief Runtime Use
+STATEMENT: >>>
+The Memory Management path shall use the latest non-Black ActiveRetrievalBrief from live memory records when available.
+
+The ActiveBrief shall support retrieval query construction, anti-duplication, topic continuity, and memory synthesis context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-SYNTHESIS
+STATUS: Draft
+TITLE: MemoryMergeSynthesizer Runtime Synthesis
+STATEMENT: >>>
+MemoryMergeSynthesizer shall produce compact query-relevant Memory Context from selected episodic candidates, semantic memory chunks, effective retrieval query text, and ActiveRetrievalBrief information.
+
+The synthesized Memory Context shall be runtime data and shall not modify .ragmem, .ragmeta.json, SQLite, vectors, or durable MemoryRecord truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-SUPERPROMPT-WRITE
+STATUS: Draft
+TITLE: Memory Context SuperPrompt Write-Back
+STATEMENT: >>>
+The Memory Management path shall write the MemoryContextPack, synthesized memory context text, ActiveBrief title/body, memory diagnostics, and memory counts into SuperPrompt.
+
+These fields shall remain separate from document chunk and document evidence fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-EMPTY-PACK
+STATUS: Draft
+TITLE: Empty Memory Pack Behavior
+STATEMENT: >>>
+When memory retrieval is disabled, no active memory file exists, or query text is empty, the Memory Management path shall write an empty MemoryContextPack with diagnostics rather than fabricating memory context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-OUTPUT
+STATUS: Draft
+TITLE: Memory Path Output Contract
+STATEMENT: >>>
+The Memory Management path shall output synthesized memory context and memory diagnostics in SuperPrompt.
+
+The output shall be suitable for final prompt composition as supporting background context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Stage 5 - Final Prompt Composition
+
+[TEXT]
+STATEMENT: >>>
+This stage renders the final Prompt Builder output from the structured prompt and both runtime context paths.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COMPOSE-SCOPE
+STATUS: Draft
+TITLE: Final Composition Scope
+STATEMENT: >>>
+Final prompt composition shall render the Prompt Builder output from the current SuperPrompt state.
+
+The output shall include system/configuration content, current user request content, supporting memory context, supporting document evidence summary, and raw document evidence where appropriate for the current stage.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-5-COMPOSITION
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COMPOSE-SYSTEM
+STATUS: Draft
+TITLE: System and Configuration Rendering
+STATEMENT: >>>
+Final composition shall render system and configuration content from SuperPrompt body fields and PromptShaper-selected metadata.
+
+Evidence policy instructions shall be rendered when a non-default evidence policy is selected.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-COMPOSE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COMPOSE-REQUEST
+STATUS: Draft
+TITLE: Current User Request Rendering
+STATEMENT: >>>
+Final composition shall render the current user request as the highest-priority task content.
+
+Task, purpose, context, format, and text sections shall be included only when the corresponding SuperPrompt values are present.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-COMPOSE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COMPOSE-MEMORY
+STATUS: Draft
+TITLE: Memory Context Rendering
+STATEMENT: >>>
+Final composition shall render synthesized Memory Context under Supporting Context when memory context text is available.
+
+The Memory Context shall be presented as background support, not as the current task itself.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-COMPOSE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COMPOSE-DOCUMENT-SUMMARY
+STATUS: Draft
+TITLE: Document Evidence Summary Rendering
+STATEMENT: >>>
+Final composition shall render selected document evidence summary under Supporting Context when such evidence exists.
+
+Document evidence shall be presented as supporting evidence for the current task.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-COMPOSE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COMPOSE-RAW-DOCUMENT
+STATUS: Draft
+TITLE: Raw Document Evidence Rendering
+STATEMENT: >>>
+Final composition may render raw document evidence before final condensed stages where the runtime projection logic allows it.
+
+Raw document evidence shall be hidden after document evidence has been condensed for final output stages.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-COMPOSE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COMPOSE-OUTPUT
+STATUS: Draft
+TITLE: Prompt Ready Output Contract
+STATEMENT: >>>
+Final composition shall write rendered strings into SuperPrompt.System_MD, SuperPrompt.Prompt_MD, SuperPrompt.S_CTX_MD, SuperPrompt.Attachments_MD where used, and SuperPrompt.prompt_ready.
+
+SuperPrompt.prompt_ready shall be the final Prompt Builder output presented to the user.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-COMPOSE-SCOPE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. Coordination Between the Five Stages
+
+[TEXT]
+STATEMENT: >>>
+The controller and runner coordinate concrete Python method calls. These calls implement the five functional stages without changing their hierarchy.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COORDINATE-SAME-SP
+STATUS: Draft
+TITLE: Same SuperPrompt Instance Across Runtime
+STATEMENT: >>>
+The runtime shall pass the same evolving SuperPrompt object through the main Prompt Builder path unless a snapshot copy is intentionally created for inspection.
+
+Subsystems shall mutate and return the current SuperPrompt according to their ownership boundary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-SUPERPROMPT-CENTRAL-STATE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COORDINATE-PREPROCESS-A2
+STATUS: Draft
+TITLE: Preprocessing to PromptShaper Coordination
+STATEMENT: >>>
+The controller shall run preprocessing before PromptShaper.
+
+PromptShaper shall receive a SuperPrompt that already contains normalized body content and routing metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COORDINATE-CONTEXT-PATHS
+STATUS: Draft
+TITLE: Context Path Coordination
+STATEMENT: >>>
+The runtime shall coordinate Knowledge Management and Memory Management as separate context paths that both read the current SuperPrompt and write their own context artifacts back into it.
+
+Document context artifacts and memory context artifacts shall not overwrite each other.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COORDINATE-RETRIEVAL-BOUNDARY
+STATUS: Draft
+TITLE: Retrieval Boundary Coordination
+STATEMENT: >>>
+The controller retrieval boundary shall call the document Retriever and, when configured, the MemoryRetriever.
+
+Document retrieval shall write document chunk artifacts.
+
+Memory retrieval shall write memory pack and synthesized memory context artifacts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COORDINATE-DOCUMENT-POSTPROCESS
+STATUS: Draft
+TITLE: Document Post-Retrieval Coordination
+STATEMENT: >>>
+After document retrieval, the runtime shall allow document reranking or pass-through, A3 usefulness validation, and A4 document evidence condensation.
+
+These operations belong to the Knowledge Management path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-KNOWLEDGE-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COORDINATE-MEMORY-INTERNAL
+STATUS: Draft
+TITLE: Memory Internal Processing Coordination
+STATEMENT: >>>
+Memory scoring, indexed lookup, compression, ActiveBrief use, and MemoryMergeSynthesizer execution shall remain inside the Memory Management path.
+
+These operations shall not be described as document retrieval, document reranking, A3, or A4 responsibilities.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-MEMORY-SCOPE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-COORDINATE-COMPOSITION-LAST
+STATUS: Draft
+TITLE: Composition After Context Availability
+STATEMENT: >>>
+Final prompt composition shall occur after the structured prompt and available runtime context artifacts have been written into SuperPrompt.
+
+Composition shall use whatever document evidence and memory context are actually available and shall not fabricate missing context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-5-COMPOSITION
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Data Roots and Runtime Configuration
+
+[TEXT]
+STATEMENT: >>>
+This section defines only the runtime coordination expectations for project and memory roots. Detailed ingestion and deployment rules belong to sibling files.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-DATA-ROOTS
+STATUS: Draft
+TITLE: Controller Data Root Contract
+STATEMENT: >>>
+The controller shall maintain runtime paths for project document raw data, document Chroma stores, document SPLADE stores, memory root, and memory SQLite index.
+
+The controller shall ensure required runtime root directories exist before they are used.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-PROJECT-SELECTION
+STATUS: Draft
+TITLE: Active Project Selection Contract
+STATEMENT: >>>
+The Knowledge Management path shall use the active project name to address project-specific document stores.
+
+Prompt Builder execution shall fail clearly when no active project is available for document retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-DATA-ROOTS
+
+[REQUIREMENT]
+UID: GHOST-ORCH-MEMORY-CONFIG
+STATUS: Draft
+TITLE: Memory Retrieval Configuration Contract
+STATEMENT: >>>
+MemoryRetriever shall be configured only after the runtime has available memory manager and memory vector store objects.
+
+If those objects are not available, memory retrieval shall be skipped or represented by empty diagnostics rather than fabricated context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-DATA-ROOTS
+
+[REQUIREMENT]
+UID: GHOST-ORCH-RUNTIME-FLAGS
+STATUS: Draft
+TITLE: Runtime Feature Flags
+STATEMENT: >>>
+The runtime shall respect feature flags for LLM-assisted PromptShaper behavior, SPLADE document retrieval, and ColBERT document reranking.
+
+Feature flags shall change enabled implementation behavior without changing the five functional stage hierarchy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-DATA-ROOTS
+
+[REQUIREMENT]
+UID: GHOST-ORCH-TOP-K
+STATUS: Draft
+TITLE: Retrieval Top-K Runtime Setting
+STATEMENT: >>>
+The active top-k retrieval setting shall be passed into the Knowledge Management document retrieval path.
+
+Lower-level retrieval backends may apply their own validation and fallback behavior for invalid top-k values.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-DATA-ROOTS
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. Boundary Rules for Sibling Requirement Files
+
+[TEXT]
+STATEMENT: >>>
+Requirement 10 defines orchestration. Detailed subsystem behavior belongs in the sibling files named by the approved requirement tree.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-BOUNDARY-AGENTSTACK
+STATUS: Draft
+TITLE: Agent Stack Boundary
+STATEMENT: >>>
+Detailed PromptShaper selector catalogs, agent prompt definitions, model-call behavior, parsing behavior, and agent configuration shall be owned by the Agent Stack requirement file.
+
+This file shall reference PromptShaper only at runtime orchestration level.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-BOUNDARY-DOCUMENT-INGESTION
+STATUS: Draft
+TITLE: Document Ingestion Boundary
+STATEMENT: >>>
+Detailed requirements for creating document stores, chunking source files, embedding documents, SPLADE indexing, and ingestion status shall be owned by Document Ingestion and Knowledge Management requirement files.
+
+This file shall reference document stores only as runtime inputs to the Knowledge Management path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-BOUNDARY-DOCUMENT-RETRIEVAL
+STATUS: Draft
+TITLE: Document Retrieval Boundary
+STATEMENT: >>>
+Detailed requirements for dense retrieval scoring, SPLADE scoring, RRF settings, hydration edge cases, reranker model configuration, A3 logic, and A4 condenser prompt behavior shall be owned by Knowledge Management and RAG pipeline requirement files.
+
+This file shall state how those capabilities fit into the Knowledge Management path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-BOUNDARY-MEMORY
+STATUS: Draft
+TITLE: Memory Management Boundary
+STATEMENT: >>>
+Detailed requirements for memory recording, memory ingestion, memory retrieval, memory scoring, memory compression, ActiveBrief generation, memory file persistence, and memory metadata/index handling shall be owned by Memory Management requirement files.
+
+This file shall state how those capabilities fit into the Memory Management path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-BOUNDARY-GUI
+STATUS: Draft
+TITLE: GUI Boundary
+STATEMENT: >>>
+Detailed requirements for Streamlit layout, widgets, visual indicators, manual buttons, and workspace layout shall be owned by GUI requirement files.
+
+This file shall define only the runtime orchestration contract behind Prompt Builder execution.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[REQUIREMENT]
+UID: GHOST-ORCH-BOUNDARY-QUALITY
+STATUS: Draft
+TITLE: Quality and Observability Boundary
+STATEMENT: >>>
+Detailed requirements for logging, metrics, benchmarking, security, traceability, and verification governance shall be owned by Quality, Governance, and Observability requirement files.
+
+This file shall include only acceptance criteria needed to validate the orchestrator runtime hierarchy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 12. Acceptance Criteria
+
+[TEXT]
+STATEMENT: >>>
+These acceptance criteria validate observable and traceable runtime behavior of the GHOST Prompt Builder orchestration.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-ORCH-AC-FIVE-STAGES
+STATUS: Draft
+TITLE: AC: Five Main Functional Stages
+STATEMENT: >>>
+The Prompt Builder runtime shall preserve the following five functional orchestration stages as the main runtime model:
+
+1. Prompt Preprocessing / Routing.
+2. PromptShaper / Job Structuring.
+3. Knowledge Management Path.
+4. Memory Management Path.
+5. Final Prompt Composition.
+
+Concrete implementation steps, runner labels, GUI indicators, and subsystem method names may be more detailed, but they shall remain traceable to one of these five functional stages.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-AC-KNOWLEDGE-MEMORY-PEER
+STATUS: Draft
+TITLE: AC: Knowledge and Memory Peer Paths
+STATEMENT: >>>
+The Prompt Builder runtime shall maintain Knowledge Management and Memory Management as separate peer runtime context paths after PromptShaper / Job Structuring.
+
+Document context artifacts and memory context artifacts shall keep separate ownership, separate processing, and separate SuperPrompt write-back fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-AC-CONDENSATION-PLACEMENT
+STATUS: Draft
+TITLE: AC: Context Processing Placement
+STATEMENT: >>>
+The Prompt Builder runtime shall place document reranking, document usefulness validation, and document evidence condensation inside the Knowledge Management Path.
+
+The Prompt Builder runtime shall place memory scoring, memory compression, ActiveBrief use, and MemoryMergeSynthesizer output inside the Memory Management Path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+
+[REQUIREMENT]
+UID: GHOST-ORCH-AC-SUPERPROMPT
+STATUS: Draft
+TITLE: AC: SuperPrompt Context Separation
+STATEMENT: >>>
+The final SuperPrompt state shall be able to contain structured prompt data, document evidence artifacts, memory context artifacts, and rendered prompt-ready output without collapsing them into one indistinguishable context source.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-SUPERPROMPT-CENTRAL-STATE
+
+[REQUIREMENT]
+UID: GHOST-ORCH-AC-COMPOSITION
+STATUS: Draft
+TITLE: AC: Final Composition Inputs
+STATEMENT: >>>
+The final Prompt Builder output shall be composed from structured prompt content, available document evidence, available synthesized memory context, and system/configuration rules.
+
+Missing document context or missing memory context shall not be fabricated during final prompt composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-ORCH-STAGE-5-COMPOSITION
+
+[[/SECTION]]

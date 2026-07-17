@@ -1,0 +1,124 @@
+[DOCUMENT]
+TITLE: GHOST SuperPrompt Projection and Prompt Builder Requirements
+UID: GHOST-SUPERPROMPT-PROJECTION-PROMPT-BUILDER
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose
+
+[TEXT]
+STATEMENT: >>>
+Defines current SuperPrompt projection, stage-dependent context rendering, prompt-ready composition, and Prompt Builder output behavior.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Scope and Boundary
+
+[REQUIREMENT]
+UID: GHOST-SPPB-ROOT
+TITLE: GHOST SuperPrompt Projection and Prompt Builder Scope
+STATEMENT: >>>
+This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+
+It owns current SuperPrompt projection and Prompt Builder behavior.
+
+It shall not redefine prompt preprocessing, Knowledge Management, Memory Management, GUI layout, or final LLM answer generation.
+
+This file shall not duplicate detailed requirements owned by sibling files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CIPA-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Initial Topic Headings
+
+[[SECTION]]
+TITLE: 3.1. SuperPrompt Shared-State Inputs
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2. SuperPrompt Projection
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.3. Stage-Dependent Rendering
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.4. Knowledge Context Projection
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.5. Memory Context Projection
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.6. ActiveRetrievalBrief Projection
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.7. Prompt-Ready Composition
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.8. Prompt Builder Output Boundary
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]

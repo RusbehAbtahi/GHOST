@@ -1,0 +1,132 @@
+[DOCUMENT]
+TITLE: GHOST Quality, Security, Traceability, and Governance Requirements
+UID: GHOST-GOV
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose
+
+[TEXT]
+STATEMENT: >>>
+Defines testing, regression tests, security hardening, secrets/config governance, source-of-truth governance, StrictDoc UID rules, requirement versioning, change approval, and architecture/code/test traceability direction.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Scope and Boundary
+
+[REQUIREMENT]
+UID: GHOST-GOV-ROOT
+TITLE: GHOST Quality, Security, Traceability, and Governance Scope
+STATEMENT: >>>
+This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+
+It defines ownership, scope, and placeholder headings for this capability area. Detailed atomic requirements shall be migrated here from legacy requirements, implementation status, architecture notes, UML files, and code evidence after human approval.
+
+This file shall not duplicate detailed requirements owned by sibling files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-QGO-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Initial Topic Headings
+
+[[SECTION]]
+TITLE: 3.1. Testing Strategy
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2. Regression Tests
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.3. Security Hardening
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.4. Secrets and Configuration Governance
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.5. Source-of-Truth Governance
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.6. StrictDoc UID Rules
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.7. Requirement Versioning
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.8. Change Approval
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.9. Architecture / Code / Test Traceability Direction
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]

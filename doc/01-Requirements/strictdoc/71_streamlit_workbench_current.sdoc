@@ -1,0 +1,182 @@
+[DOCUMENT]
+TITLE: GHOST Current Streamlit Workbench Requirements
+UID: GHOST-UI-ST
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose
+
+[TEXT]
+STATEMENT: >>>
+Defines the current implemented Streamlit UI, including tabs, Prompt Builder UI, advanced/manual pipeline buttons, Project Context UI, memory panels, Manual Memory Feed, Runtime Log UI, Files tab memory-history management, ChatGPT shared-link import UI, and Streamlit session-state boundaries.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Scope and Boundary
+
+[REQUIREMENT]
+UID: GHOST-UI-ST-ROOT
+TITLE: GHOST Current Streamlit Workbench Scope
+STATEMENT: >>>
+This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+
+It defines ownership, scope, and placeholder headings for this capability area. Detailed atomic requirements shall be migrated here from legacy requirements, implementation status, architecture notes, UML files, and code evidence after human approval.
+
+This file shall not duplicate detailed requirements owned by sibling files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-UI-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Initial Topic Headings
+
+[[SECTION]]
+TITLE: 3.1. Main Tab
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2. Files Tab
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.3. Hard Rules Placeholder Tab
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.4. Metrics Demo Tab
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.5. General Settings Placeholder
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.6. Prompt Builder UI
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.7. Advanced / Manual Pipeline Buttons
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.8. Project Context UI
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.9. Memory Cards and Right Panel
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.10. Manual Memory Feed Row
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.11. Runtime Log UI
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.12. Files Tab Memory-History Management
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.13. ChatGPT Shared-Link Import UI
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.14. Current Streamlit Session-State Boundaries
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]

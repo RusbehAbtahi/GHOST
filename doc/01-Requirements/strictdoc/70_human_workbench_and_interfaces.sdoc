@@ -1,0 +1,182 @@
+[DOCUMENT]
+TITLE: GHOST Human Workbench and Interface Requirements
+UID: GHOST-UI
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose
+
+[TEXT]
+STATEMENT: >>>
+Parent file for GHOST interfaces. Defines current/future UI boundary, Streamlit as current implemented workbench, React/TypeScript and FastAPI as future interface architecture, UI ownership rules, separation between UI rendering and subsystem logic, and UI surfaces.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Scope and Boundary
+
+[REQUIREMENT]
+UID: GHOST-UI-ROOT
+TITLE: GHOST Human Workbench and Interface Scope
+STATEMENT: >>>
+This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+
+It defines ownership, scope, and placeholder headings for this capability area. Detailed atomic requirements shall be migrated here from legacy requirements, implementation status, architecture notes, UML files, and code evidence after human approval.
+
+This file shall not duplicate detailed requirements owned by sibling files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Initial Topic Headings
+
+[[SECTION]]
+TITLE: 3.1. Interface Parent Scope
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2. Current / Future UI Boundary
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.3. Streamlit as Current Implemented Workbench
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.4. React/TypeScript and FastAPI as Future Interface Architecture
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.5. UI Ownership Rules
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.6. Separation Between UI Rendering and Subsystem Logic
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.7. Prompt Builder Surface
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.8. Files Surface
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.9. Memory Surface
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.10. Metrics Surface
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.11. Hard Rules Surface
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.12. Runtime Log Surface
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.13. Child File: Current Streamlit Workbench
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.14. Child File: Future React/FastAPI Interface
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]

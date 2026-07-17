@@ -1,0 +1,5273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <meta charset="UTF-8"/>
+  <meta name="keywords" content="strictdoc, documentation, documentation-tool, requirements-management, requirements, documentation-generator, requirement-specifications, requirements-engineering, technical-documentation, requirements-specification"/>
+  <meta name="description" content="strictdoc. Software for technical documentation and requirements management."/>
+  <meta name="strictdoc-export-type" content="static">
+  <meta name="strictdoc-document-level" content="1">
+
+  <link rel="shortcut icon" href="../_static/favicon.ico" type="image/x-icon"/>
+
+  
+  
+  <link rel="stylesheet" href="../_static/base.css"/>
+  <link rel="stylesheet" href="../_static/layout.css"/>
+  <link rel="stylesheet" href="../_static/content.css"/>
+  <link rel="stylesheet" href="../_static/node.css"/>
+  <link rel="stylesheet" href="../_static/node_content.css"/>
+  <link rel="stylesheet" href="../_static/element.css"/>
+  <link rel="stylesheet" href="../_static/form.css"/>
+  <link rel="stylesheet" href="../_static/requirement__temporary.css"/>
+  <link rel="stylesheet" href="../_static/autogen.css"/>
+  <link rel="stylesheet" href="../_static/pygments.css"/>
+  
+
+
+  
+  <script src="../_static/stimulus_umd.min.js"></script>
+  <script src="../_static/stimulus_application.js"></script>
+  
+  <script src="../_static/app_core.js"></script>
+
+  <script src="../_static/dropdown_menu.js"></script>
+
+  <script src="../_static/resizable_bar.js"></script>
+  <script src="../_static/collapsible_toc.js"></script>
+  <script src="../_static/project_tree_preserve_scroll.js"></script>
+  <script src="../_static/toc_highlighting.js"></script>
+
+  <script src="../_static/controllers/copy_to_clipboard_controller.js"></script>
+
+  <meta name="strictdoc-project-hash" content="75d3eaaf30f88e849763ace11f757821">
+<meta name="strictdoc-search-index-timestamp" content="1784306934.701524">
+<meta name="strictdoc-search-index-path" content="../_static/static_html_search_index.js">
+
+
+<script src="../_static/app_core.js"></script>
+<script src="../_static/static_html_search.js" defer></script><script>
+  // configure mathjax to show equation numbers
+  window.MathJax = {
+    tex: {
+      tags: 'ams',
+    },   
+  };
+  </script>
+  <script id="MathJax-script" async src="../_static/mathjax/tex-mml-chtml.js"></script><script src="../_static/mermaid/mermaid.min.js"></script>
+    <script type="module">
+      mermaid.initialize({ startOnLoad: true });
+    </script>
+  
+  
+
+
+  <title>GHOST Runtime Platform and Operations Requirements - Document</title>
+
+  
+</head>
+
+<body data-viewtype="document" data-turbo="false">
+
+<div class="mars">
+  
+</div>
+
+  <div class="layout" id="layout">
+
+    <nav class="layout_nav">
+      
+  <div class="nav">
+
+
+
+  <a
+    data-link="index"
+    class="nav_button"
+    href="../index.html"
+    title="Project index"
+    data-testid="project-tree-link-project-index"
+  >
+    <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="9" y1="4" x2="7" y2="4"></line>
+  <line x1="12" y1="9" x2="12" y2="7"></line>
+  <line x1="6" y1="10" x2="10" y2="6"></line>
+  <circle cx="4" cy="12" r="2.25"></circle>
+  <circle cx="12" cy="4" r="2.25"></circle>
+  <circle cx="4" cy="4" r="2.25"></circle>
+  <circle cx="12" cy="12" r="2.25"></circle>
+</svg>
+  </a></div>
+
+    </nav>
+
+    <aside class="layout_tree">
+      
+  
+
+
+
+<div
+  js-resizable_bar="tree"
+  data-state="open"
+  data-position="left"
+>
+
+<div class="project_tree_with_ad">
+  <turbo-frame id="frame_aside_project_tree">
+  <div
+    class="tree"
+    js-project_tree_preserve_scroll="tree"
+    data-project-title="Untitled Project"
+    data-testid="aside-project-tree"
+  >
+    
+        
+          <div
+            class="tree_folder"
+            data-level="0"
+            data-testid="tree-folder-item"
+          >
+          <span class="tree_folder_path">/</span>
+          </div>
+        
+      
+        
+        <a
+          href="../strictdoc/00_ghost_srs.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Software Requirements Specification"
+            data-file_name="00_ghost_srs.sdoc"
+          >GHOST Software Requirements Specification</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/100_future_vision_and_lifecycle_sync.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Future Vision and Lifecycle Synchronization Requirements"
+            data-file_name="100_future_vision_and_lifecycle_sync.sdoc"
+          >GHOST Future Vision and Lifecycle Synchronization Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/10_orchestrator_and_pipeline.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Orchestrator and Runtime Pipeline Requirements"
+            data-file_name="10_orchestrator_and_pipeline.sdoc"
+          >GHOST Orchestrator and Runtime Pipeline Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/20_agent_stack.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Agent Stack Requirements"
+            data-file_name="20_agent_stack.sdoc"
+          >GHOST Agent Stack Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/30_preprocessing_prompt_functions.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Preprocessing and Prompt Functions Requirements"
+            data-file_name="30_preprocessing_prompt_functions.sdoc"
+          >GHOST Preprocessing and Prompt Functions Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/40_knowledge_management.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Knowledge Management Requirements"
+            data-file_name="40_knowledge_management.sdoc"
+          >GHOST Knowledge Management Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/41_document_ingestion.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Document Ingestion Requirements"
+            data-file_name="41_document_ingestion.sdoc"
+          >GHOST Document Ingestion Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/42_document_retrieval_and_reranking.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Document Retrieval and Reranking Requirements"
+            data-file_name="42_document_retrieval_and_reranking.sdoc"
+          >GHOST Document Retrieval and Reranking Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/43_evidence_selection_and_condensation.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Evidence Selection and Condensation Requirements"
+            data-file_name="43_evidence_selection_and_condensation.sdoc"
+          >GHOST Evidence Selection and Condensation Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/50_memory_management.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Memory Management Requirements"
+            data-file_name="50_memory_management.sdoc"
+          >GHOST Memory Management Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/51_memory_recording_and_files.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Memory Recording and Files Requirements"
+            data-file_name="51_memory_recording_and_files.sdoc"
+          >GHOST Memory Recording and Files Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/52_memory_ingestion_and_retrieval.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Memory Ingestion and Retrieval Requirements"
+            data-file_name="52_memory_ingestion_and_retrieval.sdoc"
+          >GHOST Memory Ingestion and Retrieval Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/53_memory_merge_activebrief_blackboard.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Memory Merge, ActiveBrief, and Blackboard Boundary Requirements"
+            data-file_name="53_memory_merge_activebrief_blackboard.sdoc"
+          >GHOST Memory Merge, ActiveBrief, and Blackboard Boundary Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/60_context_integration_and_prompt_assembly.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Context Integration and Prompt Assembly Requirements"
+            data-file_name="60_context_integration_and_prompt_assembly.sdoc"
+          >GHOST Context Integration and Prompt Assembly Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/61_superprompt_projection_and_prompt_builder.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST SuperPrompt Projection and Prompt Builder Requirements"
+            data-file_name="61_superprompt_projection_and_prompt_builder.sdoc"
+          >GHOST SuperPrompt Projection and Prompt Builder Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/62_context_validation_deduplication_and_conflict_resolution.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Context Validation, Deduplication, and Conflict Resolution Requirements"
+            data-file_name="62_context_validation_deduplication_and_conflict_resolution.sdoc"
+          >GHOST Context Validation, Deduplication, and Conflict Resolution Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/63_hard_rule_integration_and_finalization.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Hard Rule Integration and Finalization Requirements"
+            data-file_name="63_hard_rule_integration_and_finalization.sdoc"
+          >GHOST Hard Rule Integration and Finalization Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/70_human_workbench_and_interfaces.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Human Workbench and Interface Requirements"
+            data-file_name="70_human_workbench_and_interfaces.sdoc"
+          >GHOST Human Workbench and Interface Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/71_streamlit_workbench_current.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Current Streamlit Workbench Requirements"
+            data-file_name="71_streamlit_workbench_current.sdoc"
+          >GHOST Current Streamlit Workbench Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/72_react_fastapi_interface_future.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Future React and FastAPI Interface Requirements"
+            data-file_name="72_react_fastapi_interface_future.sdoc"
+          >GHOST Future React and FastAPI Interface Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/80_runtime_platform_and_operations.html"
+          class="tree_item"
+          
+          active="true"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Runtime Platform and Operations Requirements"
+            data-file_name="80_runtime_platform_and_operations.sdoc"
+          >GHOST Runtime Platform and Operations Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/90_quality_governance_and_observability.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Quality, Governance, and Observability Requirements"
+            data-file_name="90_quality_governance_and_observability.sdoc"
+          >GHOST Quality, Governance, and Observability Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/91_logging_textforge_raglog.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST TextForge and RagLog Logging Requirements"
+            data-file_name="91_logging_textforge_raglog.sdoc"
+          >GHOST TextForge and RagLog Logging Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/92_metrics_evaluation_benchmarking.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Metrics, Evaluation, and Benchmarking Requirements"
+            data-file_name="92_metrics_evaluation_benchmarking.sdoc"
+          >GHOST Metrics, Evaluation, and Benchmarking Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/93_quality_security_traceability_governance.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Quality, Security, Traceability, and Governance Requirements"
+            data-file_name="93_quality_security_traceability_governance.sdoc"
+          >GHOST Quality, Security, Traceability, and Governance Requirements</div>
+        </a>
+        
+        
+        
+        
+      </div>
+</turbo-frame>
+  
+  <div id="ethical-ad-placement"></div>
+</div>
+</div>
+
+    </aside><aside
+        data-position="right"
+        class="layout_toc"
+      >
+        
+  
+
+
+
+<div
+  js-resizable_bar="toc"
+  data-state="open"
+  data-position="right"
+>
+<turbo-frame
+  id="frame-toc"
+  style="display: contents"
+>
+      <ul
+      data-testid="toc-list"
+      js-collapsible_list="list"
+      class="toc"
+      id="toc"
+      data-controller="draggable_list"><li data-nodeid="a88f0f9397584f7785d45b157c759e8d">
+        <a
+          href="#1-1-Purpose"
+          anchor="1-1-Purpose"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            1
+          </span>1. Purpose
+            </a></li><li data-nodeid="851175cb205948128d083e3cad99cc51">
+        <a
+          href="#2-2-Scope-and-Boundary"
+          anchor="2-2-Scope-and-Boundary"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            2
+          </span>2. Scope and Boundary
+            </a><ul><li data-nodeid="da79af0939974e02baf946c563d38996">
+        <a
+          href="#GHOST-RUN-ROOT"
+          anchor="GHOST-RUN-ROOT"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            2.1
+          </span>GHOST Runtime Platform and Operations Scope
+            </a></li></ul>
+            </li><li data-nodeid="6c6f1ab2ce414afe8790bef7a0b4b28a">
+        <a
+          href="#3-3-Initial-Topic-Headings"
+          anchor="3-3-Initial-Topic-Headings"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3
+          </span>3. Initial Topic Headings
+            </a><ul><li data-nodeid="4386ca3ffd264d7a876e14216e8a045c">
+        <a
+          href="#3.1-3-1-Local-Runtime"
+          anchor="3.1-3-1-Local-Runtime"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.1
+          </span>3.1. Local Runtime
+            </a></li><li data-nodeid="8916abcd600c400e8599f167302892a5">
+        <a
+          href="#3.2-3-2-Python-Package-and-Runtime-Layout"
+          anchor="3.2-3-2-Python-Package-and-Runtime-Layout"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.2
+          </span>3.2. Python Package and Runtime Layout
+            </a></li><li data-nodeid="00d3cc882943464abec44b6ff8ba8c07">
+        <a
+          href="#3.3-3-3-runtime_config-json"
+          anchor="3.3-3-3-runtime_config-json"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.3
+          </span>3.3. runtime_config.json
+            </a></li><li data-nodeid="c261c894442447babdd2913316feda13">
+        <a
+          href="#3.4-3-4-Data-Roots"
+          anchor="3.4-3-4-Data-Roots"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.4
+          </span>3.4. Data Roots
+            </a></li><li data-nodeid="874c8f719cb54d468f59974460db6939">
+        <a
+          href="#3.5-3-5-AWS-Phase-1-Deployment"
+          anchor="3.5-3-5-AWS-Phase-1-Deployment"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.5
+          </span>3.5. AWS Phase-1 Deployment
+            </a></li><li data-nodeid="71214d75a35d49519c46a0c235dfff38">
+        <a
+          href="#3.6-3-6-Docker-EC2-ECR"
+          anchor="3.6-3-6-Docker-EC2-ECR"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.6
+          </span>3.6. Docker / EC2 / ECR
+            </a></li><li data-nodeid="76dceebb5db3490289c3cb9a738ad258">
+        <a
+          href="#3.7-3-7-nginx-HTTPS-Route53"
+          anchor="3.7-3-7-nginx-HTTPS-Route53"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.7
+          </span>3.7. nginx / HTTPS / Route53
+            </a></li><li data-nodeid="ed48bc731b9a48beaceacc2023ce0091">
+        <a
+          href="#3.8-3-8-SSM-Secrets"
+          anchor="3.8-3-8-SSM-Secrets"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.8
+          </span>3.8. SSM Secrets
+            </a></li><li data-nodeid="0257dc3929ce479a9ea7d259be29e4d1">
+        <a
+          href="#3.9-3-9-Persistent-app-data-Mount"
+          anchor="3.9-3-9-Persistent-app-data-Mount"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.9
+          </span>3.9. Persistent /app/data Mount
+            </a></li><li data-nodeid="117a482f4bf8462eb3c7971e94e524f8">
+        <a
+          href="#3.10-3-10-GitHub-Actions-CI-CD"
+          anchor="3.10-3-10-GitHub-Actions-CI-CD"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.10
+          </span>3.10. GitHub Actions CI/CD
+            </a></li><li data-nodeid="7d6f0dbf0bed40cd84b1f3e0a1ba8b8c">
+        <a
+          href="#3.11-3-11-Single-User-Private-Instance-Boundary"
+          anchor="3.11-3-11-Single-User-Private-Instance-Boundary"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.11
+          </span>3.11. Single-User / Private-Instance Boundary
+            </a></li><li data-nodeid="95ded1096cc041208d8d6f2fc092ee71">
+        <a
+          href="#3.12-3-12-Future-Backend-Session-API-Runtime-Model"
+          anchor="3.12-3-12-Future-Backend-Session-API-Runtime-Model"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.12
+          </span>3.12. Future Backend / Session / API Runtime Model
+            </a></li></ul>
+            </li></ul>
+</turbo-frame>
+</div>
+
+      </aside><header class="layout_header">
+      <div class="header">
+
+  
+  <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <polyline points="14 5 14 10.5 8 15 2 10.5 2 5 8 1 14 5 8 9.5"></polyline>
+  <polyline points="2.5 5.5 8 9.5 8 15"></polyline>
+</svg>
+  <div
+    class="header__project_name"
+    id="header-project-name"
+    title="Untitled Project"
+  >Untitled Project
+  </div>
+
+  
+      <svg
+  class="svg_icon"
+  viewBox="0 0 20 20"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  >
+  <path d="M12.5 4.5l-5 11"></path>
+</svg>
+      <turbo-frame id="header_document_title">
+  <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+  <div
+    class="header__document_title"
+    title="GHOST Runtime Platform and Operations Requirements"
+  >
+    GHOST Runtime Platform and Operations Requirements
+  </div>
+</turbo-frame>
+    
+      <svg
+  class="svg_icon"
+  viewBox="0 0 20 20"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  >
+  <path d="M12.5 4.5l-5 11"></path>
+</svg>
+      <turbo-frame
+  id="frame-viewtype-menu"
+  style="display: contents"
+>
+  <div class="viewtype">
+  <div
+    id="viewtype_handler"
+    class="viewtype__handler"
+    data-dropdown-handler
+    aria-expanded="false"
+    aria-controls="viewtype_menu"
+  >
+    <span>Document</span>
+    <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 10l3 3 3-3M5 6l3-3 3 3"></path>
+</svg>
+  </div>
+  <menu
+    id="viewtype_menu"
+    class="dropdown_menu"
+    aria-hidden="true"
+    aria-labelledby="viewtype_handler"
+  >
+    <li class="dropdown_menu_header">VIEWS</li>
+    <li>
+      <a
+        data-viewtype_link="document"
+        class="dropdown_menu_item"
+        title="Go to Document view"
+        href="../strictdoc/80_runtime_platform_and_operations.html#GHOST-RUN">
+      Document</a>
+    </li><li>
+      <a
+        data-viewtype_link="table"
+        class="dropdown_menu_item"
+        title="Go to Table view"
+        href="../strictdoc/80_runtime_platform_and_operations-TABLE.html#GHOST-RUN">
+      Table</a>
+    </li><li>
+      <a
+        data-viewtype_link="traceability"
+        class="dropdown_menu_item"
+        title="Go to Traceability view"
+        href="../strictdoc/80_runtime_platform_and_operations-TRACE.html#GHOST-RUN">
+      Traceability</a>
+    </li><li>
+      <a
+        data-viewtype_link="deep_traceability"
+        class="dropdown_menu_item"
+        title="Go to Deep Traceability view"
+        href="../strictdoc/80_runtime_platform_and_operations-DEEP-TRACE.html#GHOST-RUN">
+      Deep Traceability</a>
+    </li></menu>
+</div>
+</turbo-frame>
+    
+  <div class="header__placeholder" data-testid="header-placeholder" id="header-placeholder"></div>
+
+  <div id="search" class="search-box">
+  <div class="search-input">
+      <input type="text" id="userinput" tabindex="2" placeholder="Search" autocorrect="off" spellcheck="false" autocomplete="off" data-testid="static-html-search-input">
+  </div>
+  <div id="search_results" class="search-results">
+    <div id="results_navigation" class="search-results-navigation">
+      <div id="results_count" class="search-results-count"></div>
+      <div class="search-results-navigation-buttons">
+        <span class="search-results-navigation-button" id="start" data-testid="static-html-search-button-start"></span>
+        <span class="search-results-navigation-button" id="previous" data-testid="static-html-search-button-previous"></span>
+        <span class="search-results-navigation-button" id="next" data-testid="static-html-search-button-next"></span>
+        <span class="search-results-navigation-button" id="end" data-testid="static-html-search-button-end"></span>
+      </div>
+    </div>
+    <div id="suggestions" class="search-suggestions"></div>
+  </div>
+</div></div>
+    </header>
+
+    <main class="layout_main">
+      
+  <div class="main">
+  <turbo-frame id="frame_document_content">
+      <div
+        class="content"
+      >
+        
+        
+
+        
+
+<turbo-frame id="article-8ef9c50547c945bfa4eda4ddb3e45d34">
+
+  <sdoc-node
+    data-editable_node="on"
+    node-role="root"
+    data-testid="node-root"
+    data-controller="copy_to_clipboard"
+  >
+
+    
+    
+
+  
+<h1 data-testid="document-title">
+  GHOST Runtime Platform and Operations Requirements
+  <span style="position: absolute; left: 0;" id="GHOST-RUN" data-uid="GHOST-RUN" data-anchor="GHOST-RUN"></span>
+</h1>
+  <sdoc-meta><sdoc-meta-label data-testid="document-config-uid-label">UID:</sdoc-meta-label>
+    <sdoc-meta-field data-testid="document-config-uid-field"><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>GHOST-RUN</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-meta-field><sdoc-meta-label data-testid="document-config-version-label">VERSION:</sdoc-meta-label>
+    <sdoc-meta-field data-testid="document-config-version-field"><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>0.1-draft</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-meta-field>
+
+  </sdoc-meta>
+
+
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-a88f0f9397584f7785d45b157c759e8d">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="1-1-Purpose"
+  data-anchor="1-1-Purpose"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="1"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="1"
+  >
+    <h2><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>1.&nbsp;1. Purpose</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h2>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-4b7ec5b74eb2472aa6336a065d0f5d36">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="4b7ec5b74eb2472aa6336a065d0f5d36"
+  data-anchor="4b7ec5b74eb2472aa6336a065d0f5d36"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Defines local runtime behavior, Python package/runtime layout, runtime_config.json, data roots, AWS Phase-1 deployment, Docker, EC2, ECR, nginx, HTTPS, Route53, SSM secrets, persistent /app/data mount, GitHub Actions CI/CD, single-user/private-instance boundary, and future backend/session/API runtime model.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-851175cb205948128d083e3cad99cc51">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="2-2-Scope-and-Boundary"
+  data-anchor="2-2-Scope-and-Boundary"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="2"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="2"
+  >
+    <h2><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>2.&nbsp;2. Scope and Boundary</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h2>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-da79af0939974e02baf946c563d38996">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="REQUIREMENT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+      
+        <div
+    data-copy-clipboard-target="button"
+    data-path="../#GHOST-RUN-ROOT"
+    class="copy_stable_link-button"
+    title="Click to copy a stable node link to the clipboard"
+  >
+    <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+      <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M9,7 L9.5,7.5 C10.5,8.5 10.5,9.5 9.5,10.5 L6,14 C5,15 4,15 3,14 L2,13 C1,12 1,11 2,10 L3.5,8.5"></path>
+  <path d="M7,9 L6.5,8.5 C5.5,7.5 5.5,6.5 6.5,5.5 L10,2 C11,1 12,1 13,2 L14,3 C15,4 15,5 14,6 L12.5,7.5"></path>
+</svg>
+    </span>
+    <span style="display: none;" data-copy-clipboard-target="doneIcon">
+      <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+    </span>
+  </div>
+      
+    <sdoc-anchor
+  id="GHOST-RUN-ROOT"
+  data-anchor="GHOST-RUN-ROOT"
+  node-role="requirement"
+  data-uid="GHOST-RUN-ROOT"
+  
+  
+>
+  
+  <div class="anchor_block" data-testid="anchor_hover_button">
+    
+      
+<div
+  class="anchor_button"
+  title="Click to copy"
+  data-testid="section-anchor-button"
+  data-copy-clipboard-target="button"
+  data-anchor-id="GHOST-RUN-ROOT"
+>
+  <span
+    class="anchor_base_icon"
+    style="display: contents; line-height: 0.1;"
+    data-copy-clipboard-target="copyIcon"
+  >
+    <span class="svg_icon_not_hover_visible"><svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="8" cy="3" r="1"></circle>
+  <line x1="8" y1="4" x2="8" y2="14.5"></line>
+  <path d="M5.5,6 C5.5,6 7,6 10.5,6 C10.5,6 5.5,6 5.5,6 Z"/>
+  <path d="M2,11 C3,10 3.5,9.5 3.5,9.5 C3.5,12 5,13 8,13 C11,13 12.5,12 12.5,9.5 C12.5,9.5 13,10 14,11"/>
+</svg></span>
+    <span class="svg_icon_hover_visible"><svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg></span>
+  </span>
+  <span
+    class="anchor_check_icon"
+    style="display: none; line-height: 0.1;"
+    data-copy-clipboard-target="doneIcon"
+  >
+    <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+  </span>
+  <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover"></div>
+  <span class="anchor_button_text">GHOST-RUN-ROOT</span>
+</div>
+    </div></sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="2.1"
+  show-node-type-name="REQUIREMENT"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="2.1"
+  >
+    <sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>2.1.&nbsp;GHOST Runtime Platform and Operations Scope</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+    <sdoc-node-field-label>UID:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-type="singleline"
+      data-field-label="UID"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>GHOST-RUN-ROOT</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+  
+      
+    <sdoc-node-field-label>RELATIONS (Parent):</sdoc-node-field-label>
+    <sdoc-node-field data-field-label="parent relations">
+      <ul class="requirement__link">
+        <li>
+          <a data-turbo="false" class="requirement__link-parent" href="../strictdoc/00_ghost_srs.html#GHOST-SRS-FILE-TREE">
+            <span class="requirement__parent-uid">GHOST-SRS-FILE-TREE</span>
+            Requirement File Tree Parent Anchor
+            
+          </a>
+        </li>
+      </ul>
+    </sdoc-node-field>
+      
+    </sdoc-scope>
+    
+    <sdoc-scope class="node_fields_group-primary">
+      
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>This file is a draft child requirement file in the GHOST StrictDoc requirement tree.<br/>
+<br/>
+It defines ownership, scope, and placeholder headings for this capability area. Detailed atomic requirements shall be migrated here from legacy requirements, implementation status, architecture notes, UML files, and code evidence after human approval.<br/>
+<br/>
+This file shall not duplicate detailed requirements owned by sibling files.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+      
+      
+
+
+
+  
+      
+
+
+
+  
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-6c6f1ab2ce414afe8790bef7a0b4b28a">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3-3-Initial-Topic-Headings"
+  data-anchor="3-3-Initial-Topic-Headings"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3"
+  >
+    <h2><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.&nbsp;3. Initial Topic Headings</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h2>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-4386ca3ffd264d7a876e14216e8a045c">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.1-3-1-Local-Runtime"
+  data-anchor="3.1-3-1-Local-Runtime"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.1"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.1"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.1.&nbsp;3.1. Local Runtime</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-14a30bac0c584513b339055caa7cd7a2">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="14a30bac0c584513b339055caa7cd7a2"
+  data-anchor="14a30bac0c584513b339055caa7cd7a2"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-8916abcd600c400e8599f167302892a5">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.2-3-2-Python-Package-and-Runtime-Layout"
+  data-anchor="3.2-3-2-Python-Package-and-Runtime-Layout"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.2"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.2"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.2.&nbsp;3.2. Python Package and Runtime Layout</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-f3679eddf34849f3bc88476de0ea3435">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="f3679eddf34849f3bc88476de0ea3435"
+  data-anchor="f3679eddf34849f3bc88476de0ea3435"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-00d3cc882943464abec44b6ff8ba8c07">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.3-3-3-runtime_config-json"
+  data-anchor="3.3-3-3-runtime_config-json"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.3"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.3"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.3.&nbsp;3.3. runtime_config.json</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-41af7abe721f452e92935cba57730683">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="41af7abe721f452e92935cba57730683"
+  data-anchor="41af7abe721f452e92935cba57730683"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-c261c894442447babdd2913316feda13">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.4-3-4-Data-Roots"
+  data-anchor="3.4-3-4-Data-Roots"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.4"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.4"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.4.&nbsp;3.4. Data Roots</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-0f133b1351a2434faef8c44b65dffa56">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="0f133b1351a2434faef8c44b65dffa56"
+  data-anchor="0f133b1351a2434faef8c44b65dffa56"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-874c8f719cb54d468f59974460db6939">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.5-3-5-AWS-Phase-1-Deployment"
+  data-anchor="3.5-3-5-AWS-Phase-1-Deployment"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.5"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.5"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.5.&nbsp;3.5. AWS Phase-1 Deployment</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-7ab88bcb45fd4fc98b7ae0171f58c5bb">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="7ab88bcb45fd4fc98b7ae0171f58c5bb"
+  data-anchor="7ab88bcb45fd4fc98b7ae0171f58c5bb"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-71214d75a35d49519c46a0c235dfff38">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.6-3-6-Docker-EC2-ECR"
+  data-anchor="3.6-3-6-Docker-EC2-ECR"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.6"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.6"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.6.&nbsp;3.6. Docker / EC2 / ECR</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-66bd421d5039459bb9ad9775e573f5c9">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="66bd421d5039459bb9ad9775e573f5c9"
+  data-anchor="66bd421d5039459bb9ad9775e573f5c9"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-76dceebb5db3490289c3cb9a738ad258">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.7-3-7-nginx-HTTPS-Route53"
+  data-anchor="3.7-3-7-nginx-HTTPS-Route53"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.7"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.7"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.7.&nbsp;3.7. nginx / HTTPS / Route53</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-03b1ec7144fc4fcea14e737748aef5b0">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="03b1ec7144fc4fcea14e737748aef5b0"
+  data-anchor="03b1ec7144fc4fcea14e737748aef5b0"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-ed48bc731b9a48beaceacc2023ce0091">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.8-3-8-SSM-Secrets"
+  data-anchor="3.8-3-8-SSM-Secrets"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.8"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.8"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.8.&nbsp;3.8. SSM Secrets</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-3b436c2b73904e59a207ef4bcdb0edff">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3b436c2b73904e59a207ef4bcdb0edff"
+  data-anchor="3b436c2b73904e59a207ef4bcdb0edff"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-0257dc3929ce479a9ea7d259be29e4d1">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.9-3-9-Persistent-app-data-Mount"
+  data-anchor="3.9-3-9-Persistent-app-data-Mount"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.9"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.9"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.9.&nbsp;3.9. Persistent /app/data Mount</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-4b00ced013744d73a264634db42e8f38">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="4b00ced013744d73a264634db42e8f38"
+  data-anchor="4b00ced013744d73a264634db42e8f38"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-117a482f4bf8462eb3c7971e94e524f8">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.10-3-10-GitHub-Actions-CI-CD"
+  data-anchor="3.10-3-10-GitHub-Actions-CI-CD"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.10"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.10"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.10.&nbsp;3.10. GitHub Actions CI/CD</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-6c62b1b00f3c4a6a9b162d34c4a345a6">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="6c62b1b00f3c4a6a9b162d34c4a345a6"
+  data-anchor="6c62b1b00f3c4a6a9b162d34c4a345a6"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-7d6f0dbf0bed40cd84b1f3e0a1ba8b8c">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.11-3-11-Single-User-Private-Instance-Boundary"
+  data-anchor="3.11-3-11-Single-User-Private-Instance-Boundary"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.11"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.11"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.11.&nbsp;3.11. Single-User / Private-Instance Boundary</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-6c1ac39871494d568c1fd925704cd715">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="6c1ac39871494d568c1fd925704cd715"
+  data-anchor="6c1ac39871494d568c1fd925704cd715"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-95ded1096cc041208d8d6f2fc092ee71">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="narrative"
+      show-node-type-name="SECTION"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="3.12-3-12-Future-Backend-Session-API-Runtime-Model"
+  data-anchor="3.12-3-12-Future-Backend-Session-API-Runtime-Model"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="narrative"
+  data-level="3.12"
+  show-node-type-name="SECTION"
+  data-testid="requirement-style-narrative"
+>
+  
+  
+  
+  <sdoc-node-title
+    data-level="3.12"
+  >
+    <h3><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>3.12.&nbsp;3.12. Future Backend / Session / API Runtime Model</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></h3>
+  </sdoc-node-title>
+
+
+
+  
+    
+    <sdoc-scope class="node_fields_group-secondary">
+      
+      
+      
+    </sdoc-scope>
+    
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+          
+            
+
+
+
+
+
+
+
+
+<turbo-frame id="article-cbc6d86503a6448cb39a92aced36ad5b">
+
+  <sdoc-node
+    data-editable_node="on"
+    show-anchors
+    data-controller="copy_to_clipboard"
+    node-role="requirement"
+    
+      node-view="plain"
+      show-node-type-name="TEXT"
+    data-included-document="False"
+    data-testid="node-requirement"
+  >
+
+    
+    <sdoc-anchor
+  id="cbc6d86503a6448cb39a92aced36ad5b"
+  data-anchor="cbc6d86503a6448cb39a92aced36ad5b"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+<sdoc-node-content
+  node-view="plain"
+  data-level=""
+  show-node-type-name="TEXT"
+  data-testid="requirement-style-plain"
+>
+  
+  
+  
+
+
+
+  
+    
+    <sdoc-node-field-label>STATEMENT:</sdoc-node-field-label>
+    <sdoc-node-field
+      data-field-label="statement"
+    ><sdoc-field>
+  <sdoc-field-content>
+    <sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen>
+  </sdoc-field-content>
+  <sdoc-field-service>
+
+    <div class="copy_to_clipboard">
+      <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover">
+        <div title="Click to copy" class="copy_to_clipboard-button action_button" data-copy-clipboard-target="button">
+          <span style="display: contents;" data-copy-clipboard-target="copyIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg>
+          </span>
+          <span style="display: none;" data-copy-clipboard-target="doneIcon">
+            <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </sdoc-field-service>
+</sdoc-field></sdoc-node-field>
+    
+    
+    
+
+
+
+  
+    
+
+
+
+  
+
+</sdoc-node-content>
+
+
+    
+    
+
+  </sdoc-node>
+</turbo-frame>
+          
+
+      </div>
+</turbo-frame>
+</div>
+
+    </main>
+
+    <footer class="layout_footer">
+      <div class="footer">
+        Built with
+        <a
+          class="strictdoc__link"
+          href="https://github.com/strictdoc-project/strictdoc"
+          target="_blank"
+        >StrictDoc</a>
+        <a
+          class="strictdoc__version"
+          href="https://github.com/strictdoc-project/strictdoc/releases/tag/0.25.0"
+          target="_blank"
+        >
+          <svg height="16" viewBox="0 0 16 16" version="1.1" width="16" >
+            <path fill-rule="evenodd" d="M2.5 7.775V2.75a.25.25 0 01.25-.25h5.025a.25.25 0 01.177.073l6.25 6.25a.25.25 0 010 .354l-5.025 5.025a.25.25 0 01-.354 0l-6.25-6.25a.25.25 0 01-.073-.177zm-1.5 0V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 010 2.474l-5.026 5.026a1.75 1.75 0 01-2.474 0l-6.25-6.25A1.75 1.75 0 011 7.775zM6 5a1 1 0 100 2 1 1 0 000-2z"/>
+          </svg>
+          0.25.0
+        </a>
+      </div>
+    </footer>
+
+    <aside class="layout_aside">
+      
+    </aside>
+
+  </div>
+  
+  <div id="modal"></div>
+  <div id="confirm"></div>
+  
+
+</body>
+</html>

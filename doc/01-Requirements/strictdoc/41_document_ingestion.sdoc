@@ -1,0 +1,1346 @@
+[DOCUMENT]
+TITLE: GHOST Document Ingestion Requirements
+UID: GHOST-DOCUMENT-INGESTION
+VERSION: 0.1
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines the requirements for project-based document ingestion within GHOST Knowledge Management.
+
+The ingestion path converts raw project files into persistent dense and optional sparse chunk indexes plus a deterministic manifest ledger.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-ROOT
+STATUS: Draft
+TITLE: Document Ingestion Scope
+STATEMENT: >>>
+GHOST shall provide deterministic project-based document ingestion that scans raw source files, detects content changes, creates stable overlapping chunks, generates dense and optional sparse representations, persists both branches, and publishes the current file manifest.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST.
+
+Current source paths may remain under the ragstream package namespace without redefining the product name.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-KM-PARENT
+STATUS: Draft
+TITLE: Document Ingestion Knowledge Management Parent
+STATEMENT: >>>
+Document Ingestion shall be governed by the capability boundaries, shared artifacts, configuration governance, and sibling ownership defined in 40_knowledge_management.sdoc.
+
+This document shall refine the ingestion sub-capability without redefining the complete Knowledge Management flow.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-BOUNDARY
+STATUS: Draft
+TITLE: Ingestion Boundary
+STATEMENT: >>>
+Document ingestion shall prepare persistent project evidence stores.
+
+It shall not execute query-time retrieval, reranking, A3 selection, A4 condensation, memory ingestion, memory retrieval, or final prompt composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-COMPONENTS
+STATUS: Draft
+TITLE: Current Ingestion Components
+STATEMENT: >>>
+The current ingestion capability shall be organized around DocumentLoader, IngestionManager, file-manifest utilities, Chunker, Embedder, SpladeEmbedder, VectorStoreChroma, and VectorStoreSplade.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SHARED-CHUNK-IDENTITY
+STATUS: Draft
+TITLE: Shared Dense/Sparse Chunk Identity
+STATEMENT: >>>
+Dense and sparse ingestion branches shall use the same ordered source chunks, stable chunk identifiers, and core metadata so their records can be aligned deterministically.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Project Source Discovery and Loading
+
+[TEXT]
+STATEMENT: >>>
+The current raw-document model is a project subfolder beneath the configured doc_raw root.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DOCROOT
+STATUS: Draft
+TITLE: Document Root
+STATEMENT: >>>
+Document ingestion shall operate beneath an explicit existing document-root directory.
+
+Construction shall fail when the configured root does not exist or is not a directory.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-PROJECT-SUBFOLDER
+STATUS: Draft
+TITLE: Project Subfolder
+STATEMENT: >>>
+One ingestion run shall target one named subfolder beneath the document root.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DOCROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-RECURSIVE-SCAN
+STATUS: Draft
+TITLE: Recursive File Discovery
+STATEMENT: >>>
+DocumentLoader shall recursively discover regular files beneath the selected project subfolder.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-PROJECT-SUBFOLDER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-MISSING-PROJECT
+STATUS: Draft
+TITLE: Missing Project Failure
+STATEMENT: >>>
+Document loading shall fail explicitly when the selected project subfolder does not exist.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-PROJECT-SUBFOLDER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CURRENT-FILE-TYPES
+STATUS: Draft
+TITLE: Current Loader File-Type Behavior
+STATEMENT: >>>
+The current DocumentLoader shall treat every discovered regular file as text regardless of extension.
+
+User-facing upload restrictions such as .txt and .md shall remain a GUI/controller import concern and shall not be falsely described as a loader-level extension filter.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-RECURSIVE-SCAN
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-UTF8
+STATUS: Draft
+TITLE: UTF-8 Loading
+STATEMENT: >>>
+DocumentLoader shall first decode source files as UTF-8.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-RECURSIVE-SCAN
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-LATIN1
+STATUS: Draft
+TITLE: Latin-1 Fallback
+STATEMENT: >>>
+When UTF-8 decoding raises UnicodeDecodeError, DocumentLoader shall retry the file using Latin-1 decoding rather than aborting the complete scan for that decoding case.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-UTF8
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-LOADER-OUTPUT
+STATUS: Draft
+TITLE: Loader Output Contract
+STATEMENT: >>>
+DocumentLoader shall return absolute source-path strings paired with decoded file text for the selected project.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-RECURSIVE-SCAN
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-RELATIVE-PATH
+STATUS: Draft
+TITLE: Project-Relative Path Contract
+STATEMENT: >>>
+IngestionManager shall convert each loaded absolute path into a POSIX-style path relative to the document root for manifest records, chunk metadata, and stable identifiers.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-LOADER-OUTPUT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. File State, Hashing, and Manifest Ledger
+
+[TEXT]
+STATEMENT: >>>
+The manifest is the deterministic ledger used to identify new, changed, unchanged, and removed project files.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SHA256
+STATUS: Draft
+TITLE: Content Hash
+STATEMENT: >>>
+GHOST shall calculate a SHA-256 digest from the source file bytes for every discovered file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-HASH-BYTES
+STATUS: Draft
+TITLE: Byte-Based Hashing
+STATEMENT: >>>
+Content hashes shall be computed from bytes read from disk and shall not be derived from decoded or normalized text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SHA256
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-FILE-RECORD
+STATUS: Draft
+TITLE: Manifest File Record
+STATEMENT: >>>
+Each current file record shall contain project-relative path, SHA-256 digest, modification time, and byte size.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SHA256
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-MANIFEST-SHAPE
+STATUS: Draft
+TITLE: Manifest Shape
+STATEMENT: >>>
+The published manifest shall contain a version, generated-at timestamp, and a list of file records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-MISSING-MANIFEST
+STATUS: Draft
+TITLE: Missing Manifest Behavior
+STATEMENT: >>>
+When no prior manifest exists, manifest loading shall return a valid empty versioned manifest rather than failing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-MANIFEST-SHAPE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CORRUPT-MANIFEST
+STATUS: Draft
+TITLE: Corrupt Manifest Failure
+STATEMENT: >>>
+Invalid manifest JSON shall fail explicitly and shall not be silently treated as an empty prior state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-MANIFEST-SHAPE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-MANIFEST-NORMALIZATION
+STATUS: Draft
+TITLE: Manifest Key Normalization
+STATEMENT: >>>
+Manifest loading may restore missing version, timestamp, or files keys to documented defaults, but shall preserve valid existing file records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-MANIFEST-SHAPE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DIFF-PATH
+STATUS: Draft
+TITLE: Manifest Match Key
+STATEMENT: >>>
+Manifest comparison shall match current and previous records by project-relative path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-MANIFEST-SHAPE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DIFF-NEW
+STATUS: Draft
+TITLE: New File Classification
+STATEMENT: >>>
+A current path absent from the prior manifest shall be classified for processing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DIFF-PATH
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DIFF-CHANGED
+STATUS: Draft
+TITLE: Changed File Classification
+STATEMENT: >>>
+A current path whose SHA-256 differs from the prior record shall be classified for processing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DIFF-PATH
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DIFF-UNCHANGED
+STATUS: Draft
+TITLE: Unchanged File Classification
+STATEMENT: >>>
+A current path whose SHA-256 equals the prior record shall be classified as unchanged and shall not be re-chunked or re-embedded in that run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DIFF-PATH
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DIFF-TOMBSTONE
+STATUS: Draft
+TITLE: Tombstone Classification
+STATEMENT: >>>
+A prior manifest path absent from the current scan shall be classified as a tombstone.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DIFF-PATH
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-ATOMIC-MANIFEST
+STATUS: Draft
+TITLE: Atomic Manifest Publication
+STATEMENT: >>>
+Manifest publication shall write a complete temporary JSON file and atomically replace the published manifest using the filesystem replace operation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-MANIFEST-SHAPE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-MANIFEST-PUBLISH-ORDER
+STATUS: Draft
+TITLE: Manifest Publication Order
+STATEMENT: >>>
+A new manifest shall be published only after the run has completed processing its target files and any enabled tombstone cleanup.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ATOMIC-MANIFEST
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-NO-TRANSACTION-CLAIM
+STATUS: Draft
+TITLE: No Whole-Run Transaction Claim
+STATEMENT: >>>
+Atomic manifest replacement shall not be described as a transactional rollback guarantee for dense or sparse store writes.
+
+The current stores may contain partial changes when a later operation in the run fails before manifest publication.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ATOMIC-MANIFEST
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Chunking and Stable Identifier Contract
+
+[TEXT]
+STATEMENT: >>>
+One shared deterministic chunking pass feeds all enabled document-representation branches.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CHUNKER
+STATUS: Draft
+TITLE: Overlapping Character Chunking
+STATEMENT: >>>
+Chunker shall split decoded source text into sequential overlapping character windows.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CHUNK-SIZE
+STATUS: Draft
+TITLE: Positive Chunk Size
+STATEMENT: >>>
+The effective chunk size shall be a positive integer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHUNKER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-OVERLAP-NONNEG
+STATUS: Draft
+TITLE: Non-Negative Overlap
+STATEMENT: >>>
+The effective chunk overlap shall be non-negative.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHUNKER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-OVERLAP-LT-SIZE
+STATUS: Draft
+TITLE: Overlap Smaller than Chunk
+STATEMENT: >>>
+The effective overlap shall be strictly smaller than the chunk size.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHUNKER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CHUNK-TRIM
+STATUS: Draft
+TITLE: Chunk Boundary Trimming
+STATEMENT: >>>
+Each extracted window shall be trimmed and empty trimmed windows shall not become indexed chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHUNKER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CHUNK-ORDER
+STATUS: Draft
+TITLE: Chunk Order
+STATEMENT: >>>
+Chunks shall preserve ascending source-window order and shall receive zero-based chunk indexes according to the emitted non-empty chunk list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHUNKER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-ID-FORMAT
+STATUS: Draft
+TITLE: Stable Chunk Identifier
+STATEMENT: >>>
+Each chunk identifier shall be formed from project-relative path, source SHA-256, and chunk index using one deterministic shared format.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHUNKER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-ID-VERSIONED
+STATUS: Draft
+TITLE: Content-Versioned Identity
+STATEMENT: >>>
+A content change shall produce a new source hash and therefore a new stable identifier for every chunk of the changed file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ID-FORMAT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-METADATA
+STATUS: Draft
+TITLE: Chunk Metadata
+STATEMENT: >>>
+Each stored chunk representation shall include at least project-relative path, source SHA-256, chunk index, and source modification time.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ID-FORMAT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SHARED-CHUNKS
+STATUS: Draft
+TITLE: Single Shared Chunking Pass
+STATEMENT: >>>
+Dense and sparse branches shall consume the same chunk texts, identifiers, and metadata produced by one ingestion chunking pass.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SHARED-CHUNK-IDENTITY
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-HYDRATION-COMPAT
+STATUS: Draft
+TITLE: Retrieval Hydration Compatibility
+STATEMENT: >>>
+The chunking parameters and index semantics used for ingestion shall be available to query-time hydration so the stored chunk index reconstructs the same source window.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHUNKER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CHUNK-PARAM-SINGLE-SOURCE
+STATUS: Draft
+TITLE: Chunk Parameter Single Source
+STATEMENT: >>>
+Chunk size and overlap shall be governed by one validated runtime-configuration source shared by ingestion, query splitting where intentionally aligned, and document hydration.
+
+Temporary duplicated code defaults shall be treated as migration debt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-HYDRATION-COMPAT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Dense Embedding and Chroma Persistence
+
+[TEXT]
+STATEMENT: >>>
+The dense branch is mandatory in the current ingestion path.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DENSE-REQUIRED
+STATUS: Draft
+TITLE: Dense Branch
+STATEMENT: >>>
+Every processed non-empty source file shall generate dense embeddings for its emitted chunk texts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DENSE-BATCH
+STATUS: Draft
+TITLE: Dense Batch Embedding
+STATEMENT: >>>
+The dense Embedder shall support embedding the file chunk texts in one batch call and shall return one vector per input text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DENSE-REQUIRED
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DENSE-EMPTY
+STATUS: Draft
+TITLE: Empty Dense Input
+STATEMENT: >>>
+An empty dense embedding input list shall return an empty vector list without a provider request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DENSE-REQUIRED
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DENSE-KEY
+STATUS: Draft
+TITLE: Embedding Provider Key
+STATEMENT: >>>
+The current dense embedding implementation shall require an available OpenAI API key and shall fail explicitly when the key is unavailable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DENSE-REQUIRED
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DENSE-MODEL
+STATUS: Draft
+TITLE: Dense Embedding Model
+STATEMENT: >>>
+The dense embedding model identifier shall be explicit and shall default to text-embedding-3-small until changed by approved configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DENSE-REQUIRED
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CHROMA-PERSIST
+STATUS: Draft
+TITLE: Persistent Chroma Store
+STATEMENT: >>>
+Dense vectors and metadata shall be upserted into a persistent Chroma collection under the active project store directory.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DENSE-REQUIRED
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CHROMA-TELEMETRY
+STATUS: Draft
+TITLE: Chroma Telemetry Default
+STATEMENT: >>>
+The document Chroma store shall disable anonymized telemetry by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHROMA-PERSIST
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CHROMA-LENGTH
+STATUS: Draft
+TITLE: Dense Store Length Validation
+STATEMENT: >>>
+Dense store add operations shall reject mismatched identifier, vector, or metadata lengths.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHROMA-PERSIST
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CHROMA-UPsert
+STATUS: Draft
+TITLE: Dense Upsert Semantics
+STATEMENT: >>>
+A repeated chunk identifier shall replace the stored vector and metadata for that identifier through upsert semantics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CHROMA-PERSIST
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DENSE-COUNT
+STATUS: Draft
+TITLE: Dense Ingestion Counters
+STATEMENT: >>>
+Ingestion statistics shall expose dense vector upsert count and dense embedded-byte count.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DENSE-REQUIRED
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Optional SPLADE Sparse Ingestion
+
+[TEXT]
+STATEMENT: >>>
+The sparse branch is structurally parallel to the dense branch but optional.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+STATUS: Draft
+TITLE: Optional Sparse Branch
+STATEMENT: >>>
+SPLADE sparse ingestion shall execute only when both a sparse store and sparse embedder are supplied for the run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-PAIR
+STATUS: Draft
+TITLE: Paired Sparse Dependencies
+STATEMENT: >>>
+Supplying only one of sparse store or sparse embedder shall fail explicitly rather than silently running a partial sparse branch.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-DOC-ENCODE
+STATUS: Draft
+TITLE: Document-Side Sparse Encoding
+STATEMENT: >>>
+SpladeEmbedder.embed shall use the document-side sparse encoder and shall return one sparse representation per input chunk text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-EMPTY
+STATUS: Draft
+TITLE: Empty Sparse Input
+STATEMENT: >>>
+An empty sparse embedding input list shall return an empty result.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-REP
+STATUS: Draft
+TITLE: Sparse Representation
+STATEMENT: >>>
+Each sparse representation shall be a mapping from normalized vocabulary-dimension identifiers to non-zero floating-point weights.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-MODEL
+STATUS: Draft
+TITLE: Sparse Model Baseline
+STATEMENT: >>>
+The current sparse model shall default to naver/splade-cocondenser-ensembledistil until changed by approved configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-DEVICE
+STATUS: Draft
+TITLE: Sparse Device Baseline
+STATEMENT: >>>
+The current sparse encoder shall default to CPU execution until changed by approved configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-DIMS
+STATUS: Draft
+TITLE: Sparse Active-Dimension Cap
+STATEMENT: >>>
+The sparse encoder may cap active dimensions per vector; the effective cap shall be configurable and observable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-PERSIST
+STATUS: Draft
+TITLE: Persistent Sparse Store
+STATEMENT: >>>
+Sparse vectors and metadata shall be persisted in the active project sparse store using atomic replacement of the serialized bundle file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-LENGTH
+STATUS: Draft
+TITLE: Sparse Store Length Validation
+STATEMENT: >>>
+Sparse store add operations shall reject mismatched identifier, vector, or metadata lengths.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-PERSIST
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-NORMALIZE
+STATUS: Draft
+TITLE: Sparse Vector Normalization
+STATEMENT: >>>
+Sparse persistence shall normalize keys to strings, values to floats, and shall omit zero-weight dimensions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-PERSIST
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SPARSE-COUNT
+STATUS: Draft
+TITLE: Sparse Ingestion Counters
+STATEMENT: >>>
+Ingestion statistics shall expose sparse vector upsert count and sparse embedded-byte count when the branch executes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-OPTIONAL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Version Cleanup, Tombstones, and Store Maintenance
+
+[TEXT]
+STATEMENT: >>>
+Changed-file cleanup and removed-file cleanup are explicit independent policies.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DELETE-OLD-FLAG
+STATUS: Draft
+TITLE: Changed-Version Cleanup Switch
+STATEMENT: >>>
+The ingestion run shall expose an explicit delete_old_versions policy and the current default shall be enabled.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DELETE-OLD
+STATUS: Draft
+TITLE: Changed-Version Cleanup
+STATEMENT: >>>
+When changed-version cleanup is enabled and the prior hash differs, all dense and enabled sparse records matching the prior path/hash pair shall be deleted.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DELETE-OLD-FLAG
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DELETE-OLD-ORDER
+STATUS: Draft
+TITLE: Current Changed-Version Cleanup Order
+STATEMENT: >>>
+The current implementation shall perform prior-version deletion before writing the new dense and optional sparse representations for that file.
+
+This order and its failure implications shall remain visible until changed by an approved coordinated requirement/code update.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DELETE-OLD
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-TOMBSTONE-FLAG
+STATUS: Draft
+TITLE: Tombstone Cleanup Switch
+STATEMENT: >>>
+The ingestion run shall expose an explicit delete_tombstones policy and the current default shall be disabled.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-TOMBSTONE-DELETE
+STATUS: Draft
+TITLE: Tombstone Cleanup
+STATEMENT: >>>
+When tombstone cleanup is enabled, all dense and enabled sparse records matching each removed file path/hash pair shall be deleted.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-TOMBSTONE-FLAG
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-TOMBSTONE-PRESERVE
+STATUS: Draft
+TITLE: Default Tombstone Preservation
+STATEMENT: >>>
+When tombstone cleanup is disabled, the new manifest may omit the removed file while prior vector-store entries remain until a later cleanup operation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-TOMBSTONE-FLAG
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-DELETE-FILTER
+STATUS: Draft
+TITLE: Version Delete Filter
+STATEMENT: >>>
+File-version deletion shall match both project-relative path and source SHA-256.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DELETE-OLD
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-STORE-SNAPSHOT
+STATUS: Draft
+TITLE: Store Snapshot Capability
+STATEMENT: >>>
+Dense and sparse stores shall support creation of timestamped filesystem snapshots of their project persistence directories.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SNAPSHOT-NONOVERWRITE
+STATUS: Draft
+TITLE: Snapshot Non-Overwrite
+STATEMENT: >>>
+A snapshot operation shall not silently overwrite an existing snapshot directory with the same resolved name.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-STORE-SNAPSHOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Ingestion Orchestration and Statistics
+
+[TEXT]
+STATEMENT: >>>
+IngestionManager owns the current run sequence and aggregate result counters.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SEQUENCE
+STATUS: Draft
+TITLE: Ingestion Sequence
+STATEMENT: >>>
+One ingestion run shall perform source loading, current-record construction, prior-manifest diff, changed/new file processing, optional tombstone cleanup, manifest publication, and statistics return in that order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-UNCHANGED-SKIP
+STATUS: Draft
+TITLE: Unchanged File Skip
+STATEMENT: >>>
+Files classified unchanged shall not be re-chunked, re-embedded, or upserted during that run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SEQUENCE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-NO-CHUNKS
+STATUS: Draft
+TITLE: No-Chunk File Behavior
+STATEMENT: >>>
+A processed file whose chunking result contains no non-empty chunks shall contribute no embeddings or vectors for that file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SEQUENCE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-EMBED-BYTES
+STATUS: Draft
+TITLE: Embedded Byte Accounting
+STATEMENT: >>>
+Embedded-byte counters shall be calculated from UTF-8 byte lengths of emitted chunk texts and shall be recorded separately for dense and sparse branches.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SEQUENCE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-STATS
+STATUS: Draft
+TITLE: Ingestion Statistics Contract
+STATEMENT: >>>
+IngestionStats shall expose scanned files, files to process, unchanged files, tombstones, chunks added, total vector upserts, changed-version deletions, tombstone deletions, published manifest path, total embedded bytes, and dense/sparse branch counters.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SEQUENCE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-STATS-IMMUTABLE
+STATUS: Draft
+TITLE: Immutable Statistics Result
+STATEMENT: >>>
+The returned ingestion statistics object shall be immutable after construction.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-STATS
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CONTROLLER
+STATUS: Draft
+TITLE: Controller Integration
+STATEMENT: >>>
+The controller shall create project directories and instantiate the current loader/manager, dense store, sparse store, chunker, dense embedder, and sparse embedder before invoking ingestion.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-PROJECT-STORES
+STATUS: Draft
+TITLE: Project Store Separation
+STATEMENT: >>>
+Each project shall use separate raw-document, Chroma, SPLADE, and manifest paths under their configured roots.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CONTROLLER
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-RETURN
+STATUS: Draft
+TITLE: Controller Result Projection
+STATEMENT: >>>
+The controller may project IngestionStats into a serializable result and add project paths and import information for the interface layer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CONTROLLER
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. Configuration Governance
+
+[TEXT]
+STATEMENT: >>>
+Ingestion quality and retrievability depend on consistent externally governed operational parameters.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CONFIG-JSON
+STATUS: Draft
+TITLE: JSON Configuration Target
+STATEMENT: >>>
+Document-ingestion tuning parameters shall be migrated to versioned JSON runtime configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CONFIG-FIELDS
+STATUS: Draft
+TITLE: Ingestion Configuration Fields
+STATEMENT: >>>
+The ingestion configuration target shall include chunk size, overlap, dense model, sparse model, sparse device/backend/batch/dimension cap, sparse enablement, changed-version cleanup, tombstone cleanup, project-root policies, and supported source-type policy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CONFIG-CONSISTENCY
+STATUS: Draft
+TITLE: Chunk Configuration Consistency
+STATEMENT: >>>
+The effective chunk size and overlap used during ingestion shall match the values used to reconstruct source chunks during retrieval hydration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CONFIG-CURRENT
+STATUS: Draft
+TITLE: Current Baseline Defaults
+STATEMENT: >>>
+Until configuration migration is complete, the current baseline shall remain 1200 characters with 120-character overlap, text-embedding-3-small for dense embeddings, and the implemented SPLADE defaults.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CONFIG-NO-FALSE-CLAIM
+STATUS: Draft
+TITLE: No False Configuration Claim
+STATEMENT: >>>
+A default still supplied by a Python function or constructor shall not be described as controlled by runtime_config.json until the value is actually read and enforced from that file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CONFIG-VERSION
+STATUS: Draft
+TITLE: Configuration Version Traceability
+STATEMENT: >>>
+The effective ingestion-configuration version shall be traceable to the generated project indexes and manifest publication event.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CONFIG-JSON
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Error Handling, Security, and Quality Boundaries
+
+[TEXT]
+STATEMENT: >>>
+The ingestion path processes project files and external model calls and must preserve data and evidence integrity.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-FAIL-LOUD
+STATUS: Draft
+TITLE: Ingestion Failure Visibility
+STATEMENT: >>>
+Missing roots, missing project folders, invalid manifest JSON, invalid chunking values, missing API keys, paired sparse dependency errors, embedding failures, and persistence failures shall remain observable and shall not be reported as successful ingestion.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-PATH-BOUNDARY
+STATUS: Draft
+TITLE: Project Path Boundary
+STATEMENT: >>>
+Project names and source paths shall be constrained so ingestion cannot intentionally escape the configured document-root hierarchy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SOURCE-INTEGRITY
+STATUS: Draft
+TITLE: Source Integrity
+STATEMENT: >>>
+Ingestion shall read source files and shall not rewrite their original content as part of hashing, chunking, embedding, or indexing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-STORE-INTEGRITY
+STATUS: Draft
+TITLE: Store Alignment Integrity
+STATEMENT: >>>
+Dense and sparse branch records for one chunk identifier shall refer to the same source path, hash, chunk index, and chunking configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SHARED-CHUNK-IDENTITY
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SECRET-BOUNDARY
+STATUS: Draft
+TITLE: Secret Boundary
+STATEMENT: >>>
+Embedding-provider credentials shall be obtained from approved environment or secret-management facilities and shall not be persisted in manifests, vector metadata, or requirement artifacts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DENSE-KEY
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-LOG-CONTENT
+STATUS: Draft
+TITLE: Ingestion Logging Content
+STATEMENT: >>>
+Ingestion logs shall prefer paths, counts, hashes, model identifiers, and error context over full document contents.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-NO-BINARY-CLAIM
+STATUS: Draft
+TITLE: No Binary-Document Claim
+STATEMENT: >>>
+The current text loader shall not be represented as a parser for PDF, DOCX, images, archives, or other structured binary formats merely because it scans all file extensions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CURRENT-FILE-TYPES
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. Traceability and Acceptance Criteria
+
+[TEXT]
+STATEMENT: >>>
+These criteria verify ingestion behavior and its dependency contracts.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-CODE-OWNERSHIP
+STATUS: Draft
+TITLE: Ingestion Code Ownership
+STATEMENT: >>>
+DocumentLoader, IngestionManager, file-manifest utilities, Chunker, dense/sparse embedders, and dense/sparse document stores shall map to the deepest applicable UIDs in this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-SIBLING-BOUNDARY
+STATUS: Draft
+TITLE: Sibling Ownership Boundary
+STATEMENT: >>>
+Query-time retrieval and reranking shall remain owned by 42; A3/A4 shall remain owned by 43; memory ingestion shall remain outside this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ROOT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-NEW
+STATUS: Draft
+TITLE: AC: New File Ingestion
+STATEMENT: >>>
+Given a new readable project file, the run shall create its current record, chunks, stable identifiers, dense vectors, optional sparse vectors, metadata, and published manifest entry.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DIFF-NEW
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-UNCHANGED
+STATUS: Draft
+TITLE: AC: Unchanged File Skip
+STATEMENT: >>>
+Given an unchanged file with the same path and SHA-256, the run shall classify it unchanged and shall not add new vectors for it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DIFF-UNCHANGED
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-CHANGED
+STATUS: Draft
+TITLE: AC: Changed File Version
+STATEMENT: >>>
+Given a file whose content hash changed, the run shall create new hash-based chunk identifiers and, when enabled, remove records for the prior path/hash version.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DIFF-CHANGED
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-TOMBSTONE
+STATUS: Draft
+TITLE: AC: Tombstone Policy
+STATEMENT: >>>
+Given a prior manifest record missing from disk, the run shall classify a tombstone and shall delete its stored version only when tombstone cleanup is enabled.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-DIFF-TOMBSTONE
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-DENSE-SPARSE
+STATUS: Draft
+TITLE: AC: Dense/Sparse Alignment
+STATEMENT: >>>
+Given both ingestion branches enabled, the dense and sparse stores shall receive equal ordered identifier lists and matching metadata for the shared chunk texts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SHARED-CHUNKS
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-SPARSE-PAIR
+STATUS: Draft
+TITLE: AC: Sparse Pair Validation
+STATEMENT: >>>
+Given only one sparse dependency, ingestion shall fail before publishing a successful manifest for the run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-SPARSE-PAIR
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-MANIFEST
+STATUS: Draft
+TITLE: AC: Atomic Manifest
+STATEMENT: >>>
+Given a completed successful run, the published manifest shall be valid complete JSON and no temporary file shall remain as the authoritative manifest.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-ATOMIC-MANIFEST
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-CORRUPT
+STATUS: Draft
+TITLE: AC: Corrupt Manifest
+STATEMENT: >>>
+Given malformed prior manifest JSON, ingestion shall report failure and shall not silently rebuild from an assumed empty manifest.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CORRUPT-MANIFEST
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-HYDRATION
+STATUS: Draft
+TITLE: AC: Hydration Compatibility
+STATEMENT: >>>
+For every indexed chunk, applying the recorded source path, chunk index, and effective chunk parameters to the unchanged source file shall reconstruct the indexed text window.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-HYDRATION-COMPAT
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-STATS
+STATUS: Draft
+TITLE: AC: Statistics Consistency
+STATEMENT: >>>
+The returned branch and total counters shall equal the actual chunks processed, vectors upserted, bytes embedded, and records deleted during the run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-STATS
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-NO-BINARY
+STATUS: Draft
+TITLE: AC: Text-Loader Truth
+STATEMENT: >>>
+A structured binary file placed in the project folder shall not be claimed as correctly parsed unless a dedicated approved loader exists for that format.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-NO-BINARY-CLAIM
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-CONFIG
+STATUS: Draft
+TITLE: AC: Configured Chunking
+STATEMENT: >>>
+After JSON migration, changing the configured chunk size or overlap shall change ingestion and hydration consistently without requiring separate Python constant edits.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CONFIG-CONSISTENCY
+
+[REQUIREMENT]
+UID: GHOST-DOC-INGEST-AC-SYNC
+STATUS: Draft
+TITLE: AC: Requirement-Code Synchronization
+STATEMENT: >>>
+An ingestion baseline shall not be accepted when source discovery, hashing, manifest semantics, chunk identity, branch alignment, cleanup policy, or configuration authority contradicts this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-DOC-INGEST-CODE-OWNERSHIP
+
+[[/SECTION]]

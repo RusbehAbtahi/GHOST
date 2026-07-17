@@ -1,0 +1,126 @@
+[DOCUMENT]
+TITLE: GHOST Hard Rule Integration and Finalization Requirements
+UID: GHOST-HARD-RULE-INTEGRATION-FINALIZATION
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose
+
+[TEXT]
+STATEMENT: >>>
+Reserves ownership for Hard Rule integration, final context checks, finalization, and production of an LLM-ready prompt artifact.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Scope and Boundary
+
+[REQUIREMENT]
+UID: GHOST-HRIF-ROOT
+TITLE: GHOST Hard Rule Integration and Finalization Scope
+STATEMENT: >>>
+This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+
+It reserves ownership for Hard Rule acquisition, applicability decisions, rule integration, final checks, token-budget enforcement, and final LLM-ready prompt production.
+
+Hard Rule integration is not currently an implemented executable capability and shall not be presented as current behavior.
+
+Detailed atomic requirements shall be added only after the Hard Rule model, authority, storage, applicability, ordering, and enforcement behavior have been explicitly approved.
+
+This file shall not duplicate general quality, security, governance, or interface requirements owned by other files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CIPA-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Initial Topic Headings
+
+[[SECTION]]
+TITLE: 3.1. Current Hard Rules Boundary
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Current disabled and placeholder behavior shall remain separated from future Hard Rule enforcement.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2. Hard Rule Sources and Authority
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after rule sources and authority have been approved.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.3. Rule Applicability
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after rule-selection and applicability behavior have been approved.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.4. Rule Ordering and Precedence
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after ordering and precedence policies have been approved.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.5. Rule Integration
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after the integration mechanism has been approved.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.6. Final Context Checks
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after final checks and failure behavior have been approved.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.7. Token-Budget Finalization
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after final token-budget ownership has been approved.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.8. LLM-Ready Prompt Artifact
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after the final artifact contract has been approved.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]

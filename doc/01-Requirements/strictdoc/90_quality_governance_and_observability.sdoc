@@ -1,0 +1,182 @@
+[DOCUMENT]
+TITLE: GHOST Quality, Governance, and Observability Requirements
+UID: GHOST-QGO
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose
+
+[TEXT]
+STATEMENT: >>>
+Parent file for cross-cutting functional and non-functional requirements covering quality model, testing, evaluation, benchmarking, observability, metrics, security hardening, source-of-truth governance, change control, and requirement traceability rules.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Scope and Boundary
+
+[REQUIREMENT]
+UID: GHOST-QGO-ROOT
+TITLE: GHOST Quality, Governance, and Observability Scope
+STATEMENT: >>>
+This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+
+It defines ownership, scope, and placeholder headings for this capability area. Detailed atomic requirements shall be migrated here from legacy requirements, implementation status, architecture notes, UML files, and code evidence after human approval.
+
+This file shall not duplicate detailed requirements owned by sibling files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Initial Topic Headings
+
+[[SECTION]]
+TITLE: 3.1. Cross-Cutting FR/NFR Scope
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2. Quality Model
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.3. Testing Strategy
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.4. Evaluation Strategy
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.5. Benchmarking Strategy
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.6. Observability Strategy
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.7. Metrics Strategy
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.8. Security Hardening
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.9. Source-of-Truth Governance
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.10. Change Control
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.11. Requirement Traceability Rules
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.12. Child File: Logging
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.13. Child File: Metrics / Evaluation / Benchmarking
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.14. Child File: Quality / Security / Traceability / Governance
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]

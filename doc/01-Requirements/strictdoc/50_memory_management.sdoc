@@ -1,0 +1,1282 @@
+[DOCUMENT]
+TITLE: GHOST Memory Management Requirements
+UID: GHOST-MEMORY-MANAGEMENT
+VERSION: 0.1
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines the top-level Memory Management capability of GHOST.
+
+Memory Management preserves accepted interaction history as durable memory truth, creates retrieval representations, selects query-relevant memory, maintains ActiveRetrievalBrief continuity, and synthesizes runtime Memory Context for SuperPrompt composition.
+
+Detailed atomic behavior is allocated to files 51, 52, and 53.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-ROOT
+STATUS: Draft
+TITLE: Memory Management Scope
+STATEMENT: >>>
+GHOST shall provide a Memory Management capability that records accepted input/output pairs, persists memory histories, indexes memory metadata, creates dedicated memory vectors, retrieves multiple memory candidate classes, maintains ActiveRetrievalBrief state, compresses selected evidence, and produces query-dependent Memory Context.
+
+Memory Management shall remain separate from document Knowledge Management while participating as its logical peer after PreProcessing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST.
+
+The current Python package namespace may remain ragstream in implementation paths.
+
+Requirements shall not treat ragstream as the product identity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CHILD-DOCUMENTS
+STATUS: Draft
+TITLE: Memory Management Child Documents
+STATEMENT: >>>
+The Memory Management requirement family shall be decomposed into:
+1. 51_memory_recording_and_files.sdoc;
+2. 52_memory_ingestion_and_retrieval.sdoc;
+3. 53_memory_merge_activebrief_blackboard.sdoc.
+
+Each child shall own atomic requirements for its assigned capability and shall not duplicate sibling ownership.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-REQUIREMENT-NATURE
+STATUS: Draft
+TITLE: Requirement Nature
+STATEMENT: >>>
+This document shall define approved behavior, interfaces, boundaries, artifacts, configuration authority, and verification expectations.
+
+It shall not be used as an implementation-status log or as permission to infer unimplemented behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CURRENT-CAPABILITIES
+STATUS: Draft
+TITLE: Current Executable Memory Capabilities
+STATEMENT: >>>
+The current executable Memory Management scope shall include manual pair capture, memory-history files, editable metadata, SQLite indexing, ChatGPT shared-link import, memory-vector ingestion, working/episodic/semantic/Direct Recall selection, ActiveRetrievalBrief maintenance, runtime episodic compression, memory synthesis, and SuperPrompt write-back.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-NO-ANSWER-GENERATION
+STATUS: Draft
+TITLE: No Final Answer Generation
+STATEMENT: >>>
+Memory Management shall produce supporting runtime context and shall not answer the user request or own final LLM answer generation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Architectural Position and Peer Boundaries
+
+[TEXT]
+STATEMENT: >>>
+The approved high-level flow is PreProcessing followed by logically independent Knowledge Management and Memory Management context paths, followed by final prompt composition.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-ARCHITECTURAL-POSITION
+STATUS: Draft
+TITLE: Memory Architectural Position
+STATEMENT: >>>
+Memory Management shall consume the prepared SuperPrompt after PreProcessing and shall produce a memory-specific runtime context for final prompt composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-KNOWLEDGE-PEER
+STATUS: Draft
+TITLE: Knowledge Management Peer Boundary
+STATEMENT: >>>
+Memory Management and Knowledge Management shall be architectural peers.
+
+Neither path shall require the selected output of the other path in order to execute its current selection logic.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ARCHITECTURAL-POSITION
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-SERIAL-EXECUTION
+STATUS: Draft
+TITLE: Current Serial Execution
+STATEMENT: >>>
+The current controller may execute document retrieval before memory retrieval within one retrieval action.
+
+This serial call order shall not redefine Memory Management as a child of document retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-KNOWLEDGE-PEER
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-PREPROCESS-DEPENDENCY
+STATUS: Draft
+TITLE: PreProcessing Dependency
+STATEMENT: >>>
+Memory retrieval shall consume the effective retrieval query and ActiveBrief routing permissions prepared by 30_preprocessing_prompt_functions.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ARCHITECTURAL-POSITION
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-DOCUMENT-INDEPENDENCE
+STATUS: Draft
+TITLE: Document Candidate Independence
+STATEMENT: >>>
+Memory scoring, deterministic lookups, compression, and synthesis shall not depend on document candidate scores, document A3 labels, document A4 classes, or S_CTX_MD.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-KNOWLEDGE-PEER
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-NO-DOCUMENT-MUTATION
+STATUS: Draft
+TITLE: No Document Artifact Mutation
+STATEMENT: >>>
+Memory Management shall not mutate document base_context_chunks, document stage views, document final_selection_ids, or S_CTX_MD.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-DOCUMENT-INDEPENDENCE
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-A3-A4-BOUNDARY
+STATUS: Draft
+TITLE: Document A3 and A4 Boundary
+STATEMENT: >>>
+Current A3 and A4 shall remain document-evidence stages.
+
+Memory semantic chunks shall not be described as passing through document A3 or A4 in the current architecture.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-DOCUMENT-INDEPENDENCE
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-FINAL-COMPOSITION
+STATUS: Draft
+TITLE: Final Prompt Composition Boundary
+STATEMENT: >>>
+Final prompt composition shall render synthesized memory_context_text as supporting background context.
+
+Memory Management shall not own the final ordering of every SuperPrompt section or provider submission.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ARCHITECTURAL-POSITION
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AGENT-STACK-BOUNDARY
+STATUS: Draft
+TITLE: Agent Stack Boundary
+STATEMENT: >>>
+ActiveBrief summarization and Memory Context synthesis shall use the neutral Agent Stack defined in 20_agent_stack.sdoc.
+
+This Memory requirement family shall own the concrete memory payloads, decisions, safeguards, and state write-back.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-GUI-BOUNDARY
+STATUS: Draft
+TITLE: GUI Boundary
+STATEMENT: >>>
+The GUI may trigger, display, or edit memory operations, but durable-memory semantics and retrieval policy shall remain owned by server-side memory components.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Functional Decomposition and Lifecycle
+
+[TEXT]
+STATEMENT: >>>
+Memory Management combines durable recording, derivative ingestion, query-time retrieval, continuity maintenance, and runtime synthesis without replacing durable memory truth.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-RECORDING-CAPABILITY
+STATUS: Draft
+TITLE: Memory Recording Capability
+STATEMENT: >>>
+Memory Recording shall create and maintain MemoryRecord objects, active history identity, append-only stable-body files, editable metadata files, and a SQLite metadata mirror.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-FILE-CAPABILITY
+STATUS: Draft
+TITLE: Memory File Lifecycle Capability
+STATEMENT: >>>
+Memory file operations shall list, create, load, rename, and delete memory histories using stable file_id identity and mutable filenames.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-IMPORT-CAPABILITY
+STATUS: Draft
+TITLE: Conversation Import Capability
+STATEMENT: >>>
+The current import capability shall convert one public ChatGPT shared-link conversation into ordinary MemoryRecord objects and persist it as an ordinary memory history.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-INGESTION-CAPABILITY
+STATUS: Draft
+TITLE: Memory Ingestion Capability
+STATEMENT: >>>
+Memory Ingestion shall derive record-handle, question, and answer vector entries from durable MemoryRecord content and store them in the dedicated memory vector store.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-RETRIEVAL-CAPABILITY
+STATUS: Draft
+TITLE: Memory Retrieval Capability
+STATEMENT: >>>
+Memory Retrieval shall combine semantic-vector results with deterministic SQLite/.ragmem lookups into a structured MemoryContextPack.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-ACTIVEBRIEF-CAPABILITY
+STATUS: Draft
+TITLE: ActiveRetrievalBrief Capability
+STATEMENT: >>>
+ActiveRetrievalBrief maintenance shall create or update a compact query-independent conversation brief when a MemoryRecord is captured and shall preserve contributor traceability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-COMPRESSION-CAPABILITY
+STATUS: Draft
+TITLE: Runtime Compression Capability
+STATEMENT: >>>
+Runtime compression shall reduce selected episodic Q/A evidence against the effective query without modifying durable MemoryRecord text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-SYNTHESIS-CAPABILITY
+STATUS: Draft
+TITLE: Memory Context Synthesis Capability
+STATEMENT: >>>
+Memory synthesis shall produce one compact query-relevant memory_context string from the current configured evidence inputs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CAPTURE-SEQUENCE
+STATUS: Draft
+TITLE: Current Capture Sequence
+STATEMENT: >>>
+The current pair-capture sequence shall synchronize editable GUI metadata, create a new MemoryRecord, build its ActiveRetrievalBrief, append the stable body to .ragmem, rewrite .ragmeta.json, refresh SQLite, and then optionally schedule vector ingestion.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-RECORDING-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-RETRIEVAL-SEQUENCE
+STATUS: Draft
+TITLE: Current Retrieval Sequence
+STATEMENT: >>>
+The current memory retrieval sequence shall build a query, run semantic retrieval and deterministic lookups, score and merge candidates, compress episodic candidates, synthesize Memory Context, build diagnostics, and write memory artifacts into SuperPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-RETRIEVAL-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-DURABLE-BEFORE-DERIVATIVE
+STATUS: Draft
+TITLE: Durable Save Before Vector Ingestion
+STATEMENT: >>>
+A MemoryRecord shall be durably saved before its vector ingestion is scheduled.
+
+Failure to schedule or complete vector ingestion shall not invalidate the already saved MemoryRecord truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CAPTURE-SEQUENCE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Authority and Data Truth Model
+
+[TEXT]
+STATEMENT: >>>
+The memory subsystem deliberately separates authoritative stable content, current editable metadata, lookup indexes, vector derivatives, and run-local context.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-TRUTH-MODEL
+STATUS: Draft
+TITLE: Memory Truth Model
+STATEMENT: >>>
+Full accepted input/output MemoryRecord content in .ragmem shall remain the durable memory-body authority.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-STABLE-BODY-AUTHORITY
+STATUS: Draft
+TITLE: Stable Body Authority
+STATEMENT: >>>
+Stable identity, timestamps, input/output text, source, hashes, and stored ActiveRetrievalBrief fields shall be loaded from .ragmem.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-METADATA-AUTHORITY
+STATUS: Draft
+TITLE: Editable Metadata Authority
+STATEMENT: >>>
+Current editable tags, retrieval source mode, Direct Recall Key, user keywords, automatic keywords, project name, and embedded-file snapshot shall be represented in .ragmeta.json and overlaid onto loaded MemoryRecords.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-SQLITE-MIRROR
+STATUS: Draft
+TITLE: SQLite Mirror Status
+STATEMENT: >>>
+memory_index.sqlite3 shall mirror file-level and record-level metadata for deterministic lookup and shall not replace .ragmem as full Q/A truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-VECTOR-DERIVATIVE
+STATUS: Draft
+TITLE: Vector Store Derivative Status
+STATEMENT: >>>
+Memory vectors, embedded documents, vector metadata, and similarity results shall be derivative retrieval aids and shall not replace MemoryRecord truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-PACK-RUNTIME-ONLY
+STATUS: Draft
+TITLE: MemoryContextPack Runtime Status
+STATEMENT: >>>
+MemoryContextPack shall be run-local retrieval output and shall not be persisted as durable memory truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CONTEXT-RUNTIME-ONLY
+STATUS: Draft
+TITLE: Synthesized Memory Context Status
+STATEMENT: >>>
+memory_context_text shall be query-dependent runtime context and shall not be written back into .ragmem, .ragmeta.json, SQLite, or the memory vector store.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-PENDING-BUFFER-RUNTIME
+STATUS: Draft
+TITLE: Pending Topic Buffer Status
+STATEMENT: >>>
+pending_activebrief_topic_buffer shall remain RAM-only and shall not be persisted in .ragmem, .ragmeta.json, SQLite, or vectors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-ONE-ACTIVE-HISTORY
+STATUS: Draft
+TITLE: Single Active Memory History
+STATEMENT: >>>
+One MemoryManager instance shall own one active memory history and its in-memory record list at a time.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-IDENTITY-SEPARATION
+STATUS: Draft
+TITLE: File Identity and Filename Separation
+STATEMENT: >>>
+file_id shall be the stable memory-history identity.
+
+filename_ragmem and filename_meta shall be mutable path/display attributes and shall not become the identity key.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-PARENT-TRACE
+STATUS: Draft
+TITLE: Record Parent Trace
+STATEMENT: >>>
+A MemoryRecord may carry parent_id to preserve a chain relationship without changing record_id identity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Runtime Candidate and Context Model
+
+[TEXT]
+STATEMENT: >>>
+Memory retrieval preserves several candidate roles because recent continuity, semantic similarity, explicit priority, and exact recall are not equivalent selection mechanisms.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-WORKING-ROLE
+STATUS: Draft
+TITLE: Working Memory Candidate Role
+STATEMENT: >>>
+Working memory shall represent the latest configured non-excluded records from the active memory history through deterministic SQLite lookup.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-EPISODIC-ROLE
+STATUS: Draft
+TITLE: Episodic Candidate Role
+STATEMENT: >>>
+Episodic memory shall represent parent MemoryRecords selected from semantic parent scoring and the configured Gold priority lookup.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-SEMANTIC-ROLE
+STATUS: Draft
+TITLE: Semantic Chunk Role
+STATEMENT: >>>
+Semantic memory chunks shall represent selected question or answer vector hits with record traceability, semantic score, and optional recency contribution.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-DIRECT-ROLE
+STATUS: Draft
+TITLE: Direct Recall Candidate Role
+STATEMENT: >>>
+Direct Recall shall represent at most one exact-key lookup result across memory histories, subject to tag exclusion and configured enablement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-ACTIVEBRIEF-ROLE
+STATUS: Draft
+TITLE: ActiveRetrievalBrief Role
+STATEMENT: >>>
+ActiveRetrievalBrief shall provide query-independent working-conversation orientation and shall remain distinct from query-dependent Memory Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-SYNTHESIZED-ROLE
+STATUS: Draft
+TITLE: Synthesized Memory Context Role
+STATEMENT: >>>
+Synthesized Memory Context shall be the memory artifact rendered in the normal SuperPrompt supporting-context preview.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CURRENT-SYNTHESIS-INPUTS
+STATUS: Draft
+TITLE: Current Synthesis Input Boundary
+STATEMENT: >>>
+The current MemoryMergeSynthesizer shall receive compressed episodic candidates and semantic memory chunks.
+
+Working-memory candidates and Direct Recall shall remain present in MemoryContextPack but are not currently passed into the synthesizer evidence payload.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-SYNTHESIZED-ROLE
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-NO-RAW-PACK-DEFAULT-RENDER
+STATUS: Draft
+TITLE: No Raw Pack Rendering by Default
+STATEMENT: >>>
+The normal SuperPrompt preview shall render memory_context_text and shall not render the raw MemoryContextPack candidate dump by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-SYNTHESIZED-ROLE
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-ACTIVEBRIEF-ANTI-DUP
+STATUS: Draft
+TITLE: ActiveBrief Anti-Duplication Reference
+STATEMENT: >>>
+Memory synthesis shall use ActiveRetrievalBrief as orientation and anti-duplication reference rather than as substitute memory evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ACTIVEBRIEF-ROLE
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CURRENT-OVERLAP-SCOPE
+STATUS: Draft
+TITLE: Current Overlap Handling Scope
+STATEMENT: >>>
+The current memory synthesizer may combine duplicate episodic and semantic memory evidence within the memory path.
+
+Cross-path overlap removal between document context and memory context is not implemented.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-SYNTHESIZED-ROLE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Implementation Location Map
+
+[TEXT]
+STATEMENT: >>>
+This section provides orientation for the current implementation without replacing atomic behavioral requirements.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-CORE
+STATUS: Draft
+TITLE: Core Recording Locations
+STATEMENT: >>>
+Current core recording implementation shall be traceable to:
+- ragstream/memory/memory_record.py;
+- ragstream/memory/memory_manager.py;
+- ragstream/memory/memory_actions.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-STORAGE
+STATUS: Draft
+TITLE: File Storage Locations
+STATEMENT: >>>
+Current history-file lifecycle implementation shall be traceable to ragstream/memory/storage/memory_file_manager.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-IMPORT
+STATUS: Draft
+TITLE: Importer Locations
+STATEMENT: >>>
+Current ChatGPT shared-link import implementation shall be traceable to:
+- ragstream/memory/importers/chatgpt_shared_link_importer.py;
+- ragstream/memory/importers/chatgpt_shared_link_importer_helpers.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-INGESTION
+STATUS: Draft
+TITLE: Ingestion Locations
+STATEMENT: >>>
+Current memory-ingestion implementation shall be traceable to:
+- ragstream/memory/ingestion/memory_chunker.py;
+- ragstream/memory/ingestion/memory_ingestion_manager.py;
+- ragstream/memory/ingestion/memory_vector_store.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-RETRIEVAL
+STATUS: Draft
+TITLE: Retrieval Locations
+STATEMENT: >>>
+Current memory-retrieval implementation shall be traceable to:
+- ragstream/retrieval/retriever_mem.py;
+- ragstream/memory/retrieval/memory_context_pack.py;
+- ragstream/memory/retrieval/memory_index_lookup.py;
+- ragstream/memory/retrieval/memory_scoring.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-COMPRESSION
+STATUS: Draft
+TITLE: Compression and ActiveBrief Locations
+STATEMENT: >>>
+Current compression and ActiveBrief implementation shall be traceable to:
+- ragstream/memory/compression/memory_sentence_reducer.py;
+- ragstream/memory/compression/memory_compressor.py;
+- ragstream/memory/compression/memory_active_retrieval_brief.py;
+- ragstream/memory/compression/memory_activebrief_relevance_gate.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-SYNTHESIS
+STATUS: Draft
+TITLE: Synthesis Location
+STATEMENT: >>>
+Current Memory Context synthesis shall be traceable to ragstream/memory/memory_merge_synthesizer.py and data/agents/memory_synthesizer/memory_synthesizer_001.json.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-AGENTS
+STATUS: Draft
+TITLE: ActiveBrief Agent Configuration Locations
+STATEMENT: >>>
+Current ActiveBrief LLM configurations shall be traceable to:
+- data/agents/memory_activebrief_qa_summarizer/memory_activebrief_qa_summarizer_init_001.json;
+- data/agents/memory_activebrief_qa_summarizer/memory_activebrief_qa_summarizer_update_001.json.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-UI
+STATUS: Draft
+TITLE: Runtime and GUI Wiring Locations
+STATEMENT: >>>
+Current startup, action, and pipeline wiring shall be traceable to:
+- ragstream/app/ui_streamlit.py;
+- ragstream/app/ui_actions.py;
+- ragstream/app/ui_actions_files.py;
+- ragstream/app/pipeline_runner.py;
+- ragstream/app/controller.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LOCATION-DATA
+STATUS: Draft
+TITLE: Runtime Data Locations
+STATEMENT: >>>
+The current runtime data layout shall use:
+- data/memory/files/ for .ragmem and .ragmeta.json files;
+- data/memory/memory_index.sqlite3 for the SQLite mirror;
+- data/memory/vector_db/ for the persistent memory vector database.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Configuration Governance
+
+[TEXT]
+STATEMENT: >>>
+Memory behavior combines current versioned JSON settings with a small number of current Python defaults and startup constants.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CONFIG-ROOT
+STATUS: Draft
+TITLE: Runtime Configuration Source
+STATEMENT: >>>
+Current memory retrieval, compression, ActiveBrief, and synthesis settings shall be read from ragstream/config/runtime_config.json where the implementation currently consumes them.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CONFIG-SECTIONS
+STATUS: Draft
+TITLE: Current Memory Configuration Sections
+STATEMENT: >>>
+The current JSON configuration shall contain memory_retrieval, memory_compression, memory_merge_synthesizer, and memory_active_retrieval_brief sections.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CONFIG-VALIDATION
+STATUS: Draft
+TITLE: Configuration Validation Direction
+STATEMENT: >>>
+Operational limits, thresholds, weights, model identifiers, enable switches, and token budgets shall be validated before use when migrated into the versioned JSON contract.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-TUNABLES-JSON-DIRECTION
+STATUS: Draft
+TITLE: Tunable Parameter JSON Direction
+STATEMENT: >>>
+Tunable Memory Management parameters shall progressively move to versioned JSON configuration rather than remain scattered as Python literals.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CURRENT-PYTHON-DEFAULTS
+STATUS: Draft
+TITLE: Current Python Defaults
+STATEMENT: >>>
+A value that remains defined only in Python shall be documented as a current implementation default and shall not be reported as JSON-controlled.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-DEFINED-NOT-CONSUMED
+STATUS: Draft
+TITLE: Defined but Unconsumed Settings
+STATEMENT: >>>
+A configuration field present in runtime_config.json shall not be claimed as enforced unless the current execution path reads and applies that field.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-STARTUP-EMBEDDER
+STATUS: Draft
+TITLE: Current Memory Vector Embedder
+STATEMENT: >>>
+Current Streamlit startup shall initialize MemoryVectorStore with OpenAI text-embedding-3-large and collection name memory_vectors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-REDUCER-EMBEDDER
+STATUS: Draft
+TITLE: Current Reduction Embedder
+STATEMENT: >>>
+Current ActiveBrief reduction, relevance gating, and episodic query compression shall use the configured embedding model whose current JSON baseline is text-embedding-3-small.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AGENT-VERSIONS
+STATUS: Draft
+TITLE: Versioned Memory Agent Selection
+STATEMENT: >>>
+ActiveBrief init, ActiveBrief update, and Memory Context synthesis shall resolve explicit configured agent identifiers and versions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CONFIG-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CONFIG-OBSERVABILITY
+STATUS: Draft
+TITLE: Effective Configuration Observability
+STATEMENT: >>>
+Diagnostics shall identify the effective memory selection and synthesis policy sufficiently to reproduce a run without exposing secrets.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CONFIG-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Error Handling, Security, and Quality Boundaries
+
+[TEXT]
+STATEMENT: >>>
+Durable memory truth must remain intact when derivative or runtime processing fails.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-FAILURE-ISOLATION
+STATUS: Draft
+TITLE: Derivative Failure Isolation
+STATEMENT: >>>
+Vector-ingestion, retrieval, compression, or synthesis failure shall not rewrite or corrupt existing durable .ragmem content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-NO-FABRICATION
+STATUS: Draft
+TITLE: No Fabricated Memory
+STATEMENT: >>>
+Memory components shall not invent MemoryRecords, source text, candidate bodies, tags, keys, scores, or synthesized facts when inputs are missing or processing fails.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-EMPTY-PACK
+STATUS: Draft
+TITLE: Explicit Empty Retrieval Pack
+STATEMENT: >>>
+When no active history or no query is available, Memory Retrieval shall write an explicit empty MemoryContextPack with a diagnostic reason rather than fabricate context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-SYNTHESIS-FAILURE
+STATUS: Draft
+TITLE: Synthesis Failure Integrity
+STATEMENT: >>>
+A Memory Context synthesis failure shall produce empty memory_context and failure diagnostics rather than an invented fallback context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-SECRET-BOUNDARY
+STATUS: Draft
+TITLE: Credential Boundary
+STATEMENT: >>>
+Provider credentials shall remain outside .ragmem, .ragmeta.json, SQLite memory metadata, vector metadata, and agent JSON files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-PUBLIC-LOG-BOUNDARY
+STATUS: Draft
+TITLE: Public Logging Boundary
+STATEMENT: >>>
+Public logs shall report concise statuses and identifiers and shall not expose complete prompts, memory bodies, ActiveBrief text, vector values, or model payloads by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-DEVELOPER-LOG-BOUNDARY
+STATUS: Draft
+TITLE: Developer Logging Boundary
+STATEMENT: >>>
+Detailed memory payloads and diagnostics shall remain in explicitly enabled confidential developer logging paths.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-DETERMINISTIC-TESTABILITY
+STATUS: Draft
+TITLE: Deterministic Component Testability
+STATEMENT: >>>
+Filename sanitation, metadata normalization, SQLite lookups, chunk identity, score conversion, recency decay, candidate merging, and empty-state behavior shall be independently testable without an LLM call.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-LLM-TESTABILITY
+STATUS: Draft
+TITLE: LLM Boundary Testability
+STATEMENT: >>>
+ActiveBrief and Memory Context LLM calls shall be replaceable with controlled AgentFactory and LLMClient test doubles.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-PROVENANCE
+STATUS: Draft
+TITLE: Memory Provenance
+STATEMENT: >>>
+Every vector hit, episodic candidate, semantic chunk, Direct Recall result, and ActiveBrief contributor shall remain traceable to record_id and, where applicable, file_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. Sibling Ownership and Future Boundary
+
+[TEXT]
+STATEMENT: >>>
+This section prevents the top-level document from absorbing child details or claiming future concepts as current behavior.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-REC-FILE-REFERENCE
+STATUS: Draft
+TITLE: Recording and File Ownership
+STATEMENT: >>>
+Detailed MemoryRecord, .ragmem, .ragmeta.json, SQLite, capture, file lifecycle, and import requirements shall be owned by 51_memory_recording_and_files.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-INGEST-RETRIEVE-REFERENCE
+STATUS: Draft
+TITLE: Ingestion and Retrieval Ownership
+STATEMENT: >>>
+Detailed vector-entry, memory-store, ingestion, deterministic lookup, semantic scoring, candidate selection, and MemoryContextPack requirements shall be owned by 52_memory_ingestion_and_retrieval.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-MERGE-REFERENCE
+STATUS: Draft
+TITLE: ActiveBrief and Merge Ownership
+STATEMENT: >>>
+Detailed sentence reduction, ActiveBrief relevance routing, pending-topic handling, runtime compression, and Memory Context synthesis requirements shall be owned by 53_memory_merge_activebrief_blackboard.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-PREPROCESS-REFERENCE
+STATUS: Draft
+TITLE: PreProcessing Ownership Reference
+STATEMENT: >>>
+Prompt parsing, ActiveBrief relation classification, and memory-context permission policy shall remain owned by 30_preprocessing_prompt_functions.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-KM-REFERENCE
+STATUS: Draft
+TITLE: Knowledge Management Ownership Reference
+STATEMENT: >>>
+Document ingestion, document retrieval/reranking, document A3, and document A4 shall remain owned by files 40–43.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-PROMPT-COMPOSITION-REFERENCE
+STATUS: Draft
+TITLE: Prompt Composition Ownership Reference
+STATEMENT: >>>
+Final LLM-ready prompt assembly shall remain outside files 50–53.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-BLACKBOARD-NOT-CURRENT
+STATUS: Draft
+TITLE: Blackboard Current Boundary
+STATEMENT: >>>
+No current Blackboard coordinator, shared Blackboard state model, or Blackboard background-agent workflow shall be claimed as implemented by files 50–53.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-KNOWLEDGE-GRAPH-NOT-CURRENT
+STATUS: Draft
+TITLE: Knowledge Graph Current Boundary
+STATEMENT: >>>
+Knowledge-graph memory representation or graph-based retrieval shall not be claimed as current Memory Management behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CROSS-OVERLAP-NOT-CURRENT
+STATUS: Draft
+TITLE: Cross-Context Deduplication Boundary
+STATEMENT: >>>
+Automatic overlap detection and removal between final document context and final memory context shall remain outside the current implementation baseline.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-BACKGROUND-AGENTS-NOT-CURRENT
+STATUS: Draft
+TITLE: Background Agent Boundary
+STATEMENT: >>>
+Background agents for requirement-code synchronization, autonomous memory maintenance, or unattended context repair shall not be claimed as current Memory Management behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CODE-TRACEABILITY
+STATUS: Draft
+TITLE: Code Traceability Direction
+STATEMENT: >>>
+Memory implementation units shall be traceable to the deepest applicable UID in files 51–53 rather than only to the top-level Memory Management root.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-CHANGE-SYNC
+STATUS: Draft
+TITLE: Requirement-Code Synchronization
+STATEMENT: >>>
+An approved change to memory truth, persistence, indexing, retrieval policy, score semantics, runtime artifacts, or observable output shall update requirements, architecture, implementation traceability, and verification together.
+
+Pure internal refactoring that preserves approved behavior shall not require artificial requirement changes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Acceptance Criteria
+
+[TEXT]
+STATEMENT: >>>
+These criteria validate the top-level Memory Management architecture without duplicating child-level tests.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-HIERARCHY
+STATUS: Draft
+TITLE: AC: Memory Hierarchy
+STATEMENT: >>>
+The approved requirements set shall show durable recording, derivative ingestion/retrieval, ActiveBrief/compression/synthesis, and final prompt handoff as separate owned responsibilities.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-PEER
+STATUS: Draft
+TITLE: AC: Knowledge Peer Independence
+STATEMENT: >>>
+Given a prepared SuperPrompt and active memory history, Memory Management shall execute without requiring document retrieval or A3/A4 results.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-KNOWLEDGE-PEER
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-TRUTH
+STATUS: Draft
+TITLE: AC: Durable Truth Separation
+STATEMENT: >>>
+A vector-store deletion or empty retrieval run shall not delete or rewrite the corresponding .ragmem MemoryRecord body.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-TRUTH-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-METADATA
+STATUS: Draft
+TITLE: AC: Metadata Overlay
+STATEMENT: >>>
+Loading a history shall reconstruct stable bodies from .ragmem and overlay current editable metadata from .ragmeta.json.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-METADATA-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-PACK
+STATUS: Draft
+TITLE: AC: Candidate Pack Separation
+STATEMENT: >>>
+One retrieval run shall preserve working, episodic, semantic, Direct Recall, synthesis, selection-diagnostic, and token-report fields as distinguishable MemoryContextPack artifacts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-PACK-RUNTIME-ONLY
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-CURRENT-SYNTHESIS
+STATUS: Draft
+TITLE: AC: Current Synthesis Boundary
+STATEMENT: >>>
+The current synthesizer input shall contain episodic and semantic evidence, while working and Direct Recall candidates remain separately inspectable in the pack.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CURRENT-SYNTHESIS-INPUTS
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-EMPTY
+STATUS: Draft
+TITLE: AC: Empty Memory Context
+STATEMENT: >>>
+Given no usable memory evidence, the run shall produce an empty memory_context string and shall not fabricate a memory summary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-NO-FABRICATION
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-CONFIG
+STATUS: Draft
+TITLE: AC: Configuration Truth
+STATEMENT: >>>
+A setting shall be reported as effective only when the current execution path reads and applies it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-DEFINED-NOT-CONSUMED
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-PROVENANCE
+STATUS: Draft
+TITLE: AC: Candidate Provenance
+STATEMENT: >>>
+Every selected memory candidate shall expose sufficient file_id/record_id or vector_id/record_id linkage to identify its durable parent.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-PROVENANCE
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-NO-FUTURE-LEAK
+STATUS: Draft
+TITLE: AC: No Future Feature Leakage
+STATEMENT: >>>
+The current memory requirements shall not claim implemented Blackboard coordination, knowledge-graph retrieval, cross-path context deduplication, or background synchronization agents.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-BLACKBOARD-NOT-CURRENT
+
+[REQUIREMENT]
+UID: GHOST-MEMORY-AC-SYNC
+STATUS: Draft
+TITLE: AC: Requirement-Code Consistency
+STATEMENT: >>>
+A release baseline shall not be accepted when memory authority, persistence, candidate roles, synthesis inputs, configuration authority, or SuperPrompt artifact semantics contradict this requirement family.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEMORY-CHANGE-SYNC
+
+[[/SECTION]]

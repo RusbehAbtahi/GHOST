@@ -353,21 +353,21 @@ TITLE: 2.5 Capability Ownership Overview
 
 [TEXT]
 STATEMENT: >>>
-GHOST is organized around the following capability families:
+GHOST is organized around the following approved capability ownership families:
 
-- Prompt Orchestration
-- Orchestration Controller
+- Orchestrator and Runtime Pipeline
 - Agent Stack
-- Document Knowledge
-- Memory System
-- GUI Workbench
-- Runtime Operations
-- Quality Governance
-- External AI Tooling Boundary
-- Requirement Traceability Direction
-- Future Vision Backlog
+- PreProcessing and Prompt Functions
+- Knowledge Management
+- Memory Management
+- Human Workbench and Interfaces
+- Runtime Platform and Operations
+- Quality, Governance, and Observability
+- Future Vision and Lifecycle Synchronization
 
-The root SRS provides product-level requirement anchors for these capabilities. Proposed child files shall later contain detailed atomic requirements for each capability area after the requirement-file tree is approved.
+The root SRS provides product-level requirement anchors for these capabilities. Detailed atomic requirements shall live in connected child StrictDoc files after human approval and evidence-based migration from legacy requirements, implementation status, architecture notes, UML files, and code.
+
+The tree is capability-oriented. It shall not mechanically mirror the Python package tree, although implementation module names may be cited as evidence inside the owning child files.
 <<<
 
 [[/SECTION]]
@@ -465,57 +465,71 @@ TITLE: 2.8 Requirement File Tree and Ownership Map
 
 [TEXT]
 STATEMENT: >>>
-The following tree is the proposed StrictDoc requirement ownership map. It is intentionally visual. It is not a claim that every child file already exists.
+The following tree is the approved StrictDoc requirement ownership map for the current migration step.
 
 Legend:
 
 - [ROOT] root SRS and source-of-truth navigation
-- [CHILD] proposed detailed requirement file
-- [GROUP] proposed parent file with deeper child files
-- [FUTURE] future/backlog direction, not active implementation truth
+- [PARENT] parent child file with deeper child files
+- [CHILD] detailed child requirement file
+- [FUTURE] future/reserved capability, not current implementation truth
 
 Requirement File Tree::
 
   doc/01-Requirements/strictdoc/
-  |-- 00_ghost_srs.sdoc                           [ROOT]
-  |   `-- Root SRS: product scope, SRS structure, root anchors, UID policy, definitions, dependencies, interfaces, maturity boundary, and ownership map.
+  |-- 00_ghost_srs.sdoc                                  [ROOT]
+  |   `-- Root SRS: product scope, naming, source-of-truth rules, current/future boundary, UID policy, and child-file map.
   |
-  |-- 10_prompt_orchestration.sdoc                [CHILD]
-  |   `-- A0, A2, SuperPrompt mutation, SuperPromptProjector rendering, A5 reserved direction, and final Prompt Builder/send-boundary gap.
+  |-- 10_orchestrator_and_pipeline.sdoc                  [CHILD]
+  |   `-- Controller role, SuperPrompt shared state, runtime pipeline sequencing, Prompt Builder runner, final prompt/send boundary, Direct LLM Call boundary, and subsystem coordination.
   |
-  |-- 20_agent_stack.sdoc                         [CHILD]
-  |   `-- AgentFactory, AgentPrompt, llm_client, JSON agent configs, executable modes, aliases, model configuration, and output parsing.
+  |-- 20_agent_stack.sdoc                                [CHILD]
+  |   `-- JSON-based Agent Stack, AgentFactory, AgentPrompt, LLMClient, JSON configs, neutral/stateless infrastructure, and brief list of current agent users.
   |
-  |-- 30_document_knowledge.sdoc                  [GROUP]
-  |   |-- 31_document_ingestion.sdoc              [CHILD]
-  |   |-- 32_document_retrieval.sdoc              [CHILD]
-  |   `-- 33_evidence_selection_and_condensation.sdoc [CHILD]
+  |-- 30_preprocessing_prompt_functions.sdoc             [CHILD]
+  |   `-- A0 PreProcessing, prompt schema/header normalization, Prompt Qualifying / ActiveBrief Relation Classifier, A2 PromptShaper, A2 LLM bypass, and reserved Hard Rules fetch-copy behavior.
   |
-  |-- 40_memory_system.sdoc                       [GROUP]
-  |   |-- 41_memory_recording.sdoc                [CHILD]
-  |   |-- 42_memory_ingestion.sdoc                [CHILD]
-  |   |-- 43_memory_retrieval.sdoc                [CHILD]
-  |   |-- 44_memory_merge_and_activebrief.sdoc    [CHILD]
-  |   `-- 45_memory_files_and_import.sdoc         [CHILD]
+  |-- 40_knowledge_management.sdoc                       [PARENT]
+  |   |-- 41_document_ingestion.sdoc                     [CHILD]
+  |   |-- 42_document_retrieval_and_reranking.sdoc       [CHILD]
+  |   `-- 43_evidence_selection_and_condensation.sdoc    [CHILD]
   |
-  |-- 50_gui_workbench.sdoc                       [CHILD]
-  |   `-- Streamlit GUI, workspace, files tab, metrics tab demo boundary, memory controls, runtime logs, settings placeholders, upload limits, and prompt-only mode proposal.
+  |-- 50_memory_management.sdoc                          [PARENT]
+  |   |-- 51_memory_recording_and_files.sdoc             [CHILD]
+  |   |-- 52_memory_ingestion_and_retrieval.sdoc         [CHILD]
+  |   `-- 53_memory_merge_activebrief_blackboard.sdoc    [CHILD/FUTURE-HOOKS]
   |
-  |-- 60_runtime_operations.sdoc                  [CHILD]
-  |   `-- Local/AWS runtime, Docker, EC2, ECR, nginx, HTTPS, Route53, SSM, and persistent runtime data.
+  |-- 60_context_integration_and_prompt_assembly.sdoc    [PARENT]
+  |   |-- 61_superprompt_projection_and_prompt_builder.sdoc [CHILD]
+  |   |-- 62_context_validation_deduplication_and_conflict_resolution.sdoc [CHILD/FUTURE]
+  |   `-- 63_hard_rule_integration_and_finalization.sdoc [CHILD/FUTURE]
   |
-  |-- 70_quality_governance.sdoc                  [CHILD]
-  |   `-- Testing, logging, evaluation, security hardening, operational monitoring, component cards, source-of-truth governance, and change control.
+  |-- 70_human_workbench_and_interfaces.sdoc             [PARENT]
+  |   |-- 71_streamlit_workbench_current.sdoc            [CHILD]
+  |   `-- 72_react_fastapi_interface_future.sdoc         [CHILD/FUTURE]
   |
-  |-- 80_requirement_traceability_direction.sdoc  [CHILD/FUTURE]
-  |   `-- Stable UID mapping direction for requirements, architecture, code, tests, code-side UID markers, and future synchronization-agent support.
+  |-- 80_runtime_platform_and_operations.sdoc            [CHILD]
+  |   `-- Local runtime, Python runtime layout, runtime_config.json, data roots, AWS Phase-1 deployment, Docker, EC2, ECR, nginx, HTTPS, Route53, SSM, persistent /app/data mount, CI/CD, and single-user/private-instance boundary.
   |
-  `-- 90_future_vision_backlog.sdoc               [FUTURE]
-      `-- Ghost2, future hard-rule expansion, future model/tool routing, and backlog items not yet active requirements.
+  |-- 90_quality_governance_and_observability.sdoc       [PARENT]
+  |   |-- 91_logging_textforge_raglog.sdoc               [CHILD]
+  |   |-- 92_metrics_evaluation_benchmarking.sdoc        [CHILD/FUTURE]
+  |   `-- 93_quality_security_traceability_governance.sdoc [CHILD]
+  |
+  `-- 100_future_vision_and_lifecycle_sync.sdoc           [FUTURE]
+      `-- Requirement-Architecture-Code Sync reserved capability, Ghost2 boundary, Blackboard architecture boundary, advanced orchestration, and future capabilities not yet architecturally fixed.
 
 Ownership rule:
 
-The root SRS shall remain readable and navigable. It shall define root anchors and ownership boundaries. Detailed atomic requirements shall be migrated into proposed child files only after human approval of the tree.
+The root SRS shall remain readable and navigable. It defines root anchors and ownership boundaries. Detailed atomic requirements shall be migrated into child files only after human approval.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FILE-TREE
+STATUS: Draft
+TITLE: Requirement File Tree Parent Anchor
+STATEMENT: >>>
+This requirement is the parent anchor for the approved StrictDoc child-file tree. Connected child dummy files shall reference this UID, or a child-file parent UID, through StrictDoc parent references so generated HTML can display navigable requirement relationships.
 <<<
 
 [[/SECTION]]
@@ -649,7 +663,7 @@ TITLE: 3.1.3 UID and Traceability Policy
 
 [TEXT]
 STATEMENT: >>>
-This section defines the minimal root UID policy required before detailed child files are created. Detailed traceability requirements belong in 80_requirement_traceability_direction.sdoc after approval.
+This section defines the minimal root UID and traceability policy required for the connected StrictDoc tree. Detailed governance and traceability requirements belong in 93_quality_security_traceability_governance.sdoc, while future lifecycle synchronization capability belongs in 100_future_vision_and_lifecycle_sync.sdoc.
 <<<
 
 [REQUIREMENT]
@@ -665,7 +679,7 @@ UID: GHOST-SRS-NFR-UID-002
 STATUS: Draft
 TITLE: Root UID Prefixes
 STATEMENT: >>>
-The root SRS shall use GHOST-SRS-NFR for non-functional root requirements and GHOST-SRS-FR for functional root requirements. Child files may propose capability-specific prefixes after the child-file tree is approved.
+The root SRS shall use GHOST-SRS-NFR for non-functional root requirements and GHOST-SRS-FR for functional root requirements. Child files shall use capability-specific UID prefixes aligned with the approved child-file map.
 <<<
 
 [REQUIREMENT]
@@ -697,21 +711,27 @@ UID: GHOST-SRS-NFR-UID-006
 STATUS: Draft
 TITLE: Child File Linking Policy
 STATEMENT: >>>
-Until child StrictDoc files exist, the root SRS shall reference proposed child files by visible file-path ownership pointers in section text and requirement statements rather than by fake StrictDoc relations to non-existing requirement nodes.
+Child StrictDoc files shall be connected through stable parent anchor UIDs. Top-level child files shall reference GHOST-SRS-FILE-TREE, while deeper child files shall reference the root anchor UID of their approved parent child file.
 <<<
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.1.4 Quality, Validation, and Observability -> 70_quality_governance.sdoc
+TITLE: 3.1.4 Quality, Governance, and Observability -> 90_quality_governance_and_observability.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed child file:
+Parent child file:
 
-doc/01-Requirements/strictdoc/70_quality_governance.sdoc
+doc/01-Requirements/strictdoc/90_quality_governance_and_observability.sdoc
 
-This file shall later contain detailed quality, testing, evaluation, logging, security, operational monitoring, component-card, change-control, and governance requirements.
+Deeper child files:
+
+- doc/01-Requirements/strictdoc/91_logging_textforge_raglog.sdoc
+- doc/01-Requirements/strictdoc/92_metrics_evaluation_benchmarking.sdoc
+- doc/01-Requirements/strictdoc/93_quality_security_traceability_governance.sdoc
+
+This area is a mixed FR/NFR cross-cutting ownership group. It shall contain functional logging requirements where logging is the subsystem behavior, and non-functional quality/governance requirements where logging, metrics, tests, security, or traceability serve validation and observability goals.
 <<<
 
 [REQUIREMENT]
@@ -719,7 +739,7 @@ UID: GHOST-SRS-NFR-QLT-001
 STATUS: Draft
 TITLE: Quality Governance Capability
 STATEMENT: >>>
-GHOST shall maintain cross-cutting quality governance for automated testing, structured logging, benchmarking and evaluation, security hardening, operational monitoring, component cards, stakeholder-facing technical documentation, and requirement-change control.
+GHOST shall maintain cross-cutting quality governance for automated testing, structured logging, benchmarking and evaluation, security hardening, operational monitoring, source-of-truth governance, traceability rules, and requirement-change control.
 <<<
 
 [REQUIREMENT]
@@ -727,7 +747,7 @@ UID: GHOST-SRS-NFR-QLT-002
 STATUS: Draft
 TITLE: Measurable Targets To Be Defined
 STATEMENT: >>>
-Detailed child requirements shall later define measurable performance, reliability, usability, retrieval-quality, memory-quality, and validation targets where evidence and stable implementation behavior are sufficient. This root SRS shall not invent unsupported numeric targets.
+Detailed child requirements shall later define measurable performance, reliability, usability, retrieval-quality, memory-quality, observability, and validation targets where evidence and stable implementation behavior are sufficient. This root SRS shall not invent unsupported numeric targets.
 <<<
 
 [REQUIREMENT]
@@ -735,17 +755,17 @@ UID: GHOST-SRS-NFR-QLT-003
 STATUS: Draft
 TITLE: Logging and Metrics Boundary
 STATEMENT: >>>
-GHOST shall distinguish existing runtime logging direction from full operational observability. Current metrics UI behavior shall not be described as a completed observability dashboard unless supported by implementation evidence.
+GHOST shall distinguish the implemented TextForge/RagLog logging subsystem from future full operational metrics and observability behavior. Current Metrics UI behavior shall not be described as a completed observability dashboard unless supported by implementation evidence.
 <<<
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.1.5 Security, Privacy, and Operational Hardening -> 70_quality_governance.sdoc
+TITLE: 3.1.5 Security, Privacy, and Operational Hardening -> 93_quality_security_traceability_governance.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Security and operational hardening are cross-cutting. Detailed requirements belong in 70_quality_governance.sdoc and runtime details also connect to 60_runtime_operations.sdoc.
+Security and operational hardening are cross-cutting. Detailed security, privacy, source-of-truth, and traceability governance requirements belong in 93_quality_security_traceability_governance.sdoc. Runtime and deployment details connect to 80_runtime_platform_and_operations.sdoc.
 <<<
 
 [REQUIREMENT]
@@ -767,15 +787,15 @@ GHOST shall keep selected context, memory reuse, stored memory, excluded informa
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.1.6 Runtime Operations and Deployment -> 60_runtime_operations.sdoc
+TITLE: 3.1.6 Runtime Operations and Deployment -> 80_runtime_platform_and_operations.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed child file:
+Child file:
 
-doc/01-Requirements/strictdoc/60_runtime_operations.sdoc
+doc/01-Requirements/strictdoc/80_runtime_platform_and_operations.sdoc
 
-This file shall later contain detailed requirements for local execution, Docker runtime, AWS deployment, persistent runtime data, secrets, network exposure, deployment activation, and operational troubleshooting.
+This file shall contain detailed requirements for local execution, Python/runtime layout, runtime configuration, data roots, Docker runtime, AWS deployment, persistent runtime data, secrets, network exposure, CI/CD, deployment activation, and operational troubleshooting.
 <<<
 
 [REQUIREMENT]
@@ -894,103 +914,77 @@ The current requirements shall not define automatic self-tuning of pipeline para
 TITLE: 3.2 Functional Requirements
 
 [[SECTION]]
-TITLE: 3.2.1 Prompt Orchestration -> 10_prompt_orchestration.sdoc
+TITLE: 3.2.1 Orchestrator and Runtime Pipeline -> 10_orchestrator_and_pipeline.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed child file:
+Child file:
 
-doc/01-Requirements/strictdoc/10_prompt_orchestration.sdoc
+doc/01-Requirements/strictdoc/10_orchestrator_and_pipeline.sdoc
 
-This file shall later contain detailed requirements for preprocessing, A2 PromptShaper, SuperPrompt mutation, SuperPromptProjector rendering, A5 reserved direction, and final Prompt Builder/send-boundary behavior.
+This file shall contain detailed requirements for Controller role, SuperPrompt shared state, runtime pipeline sequencing, Prompt Builder runner, final prompt/send boundary, Direct LLM Call boundary, manual memory-feed trigger points, and coordination of preprocessing, knowledge retrieval, memory retrieval, Agent Stack users, UI actions, and data-root coordination without data ownership.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-PRM-001
+UID: GHOST-SRS-FR-ORCH-001
 STATUS: Draft
-TITLE: Prompt Orchestration Capability
+TITLE: Orchestrator and Runtime Pipeline Capability
 STATEMENT: >>>
-GHOST shall provide prompt orchestration that turns free-form user prompts into structured SuperPrompt state and prompt-ready output through preprocessing, prompt shaping, controlled context assembly, and GUI-visible rendering.
+GHOST shall provide a runtime orchestration spine that coordinates the active SuperPrompt, legal pipeline stage order, implemented stage calls, current GUI runner behavior, and final prompt/send-boundary direction without duplicating the internal ownership of preprocessing, knowledge, memory, agent, UI, logging, or runtime-platform subsystems.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-PRM-002
-STATUS: Draft
-TITLE: Current Prompt Rendering Authority
-STATEMENT: >>>
-Current GUI-visible engineered prompt rendering shall be described as SuperPromptProjector and SuperPrompt prompt-ready composition behavior, not as completed dedicated Prompt Builder authority.
-<<<
-
-[REQUIREMENT]
-UID: GHOST-SRS-FR-PRM-003
-STATUS: Draft
-TITLE: Final Prompt Builder Boundary
-STATEMENT: >>>
-The dedicated final Prompt Builder/send-boundary remains incomplete and shall be specified later before it is claimed as completed product behavior.
-<<<
-
-[REQUIREMENT]
-UID: GHOST-SRS-FR-PRM-004
-STATUS: Draft
-TITLE: A5 and Hard Rules Boundary
-STATEMENT: >>>
-A5 and full Hard Rules behavior shall remain reserved, postponed, or placeholder behavior until their final controller action and enforcement semantics are approved in later requirements.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.2.2 Orchestration Controller
-
-[TEXT]
-STATEMENT: >>>
-This section stays in the root SRS for now because the Controller connects many child capabilities. A separate child file may be added later if Controller requirements become too large for the root SRS.
-<<<
-
-[REQUIREMENT]
-UID: GHOST-SRS-FR-CTRL-001
-STATUS: Draft
-TITLE: Controller Orchestration Capability
-STATEMENT: >>>
-GHOST shall provide an AppController that owns the active SuperPrompt for a session, manages active project context, calls each implemented pipeline stage in legal order, updates stage/history fields, and returns updated SuperPrompt state to the GUI.
-<<<
-
-[REQUIREMENT]
-UID: GHOST-SRS-FR-CTRL-002
+UID: GHOST-SRS-FR-ORCH-002
 STATUS: Draft
 TITLE: Current Executable Runner Boundary
 STATEMENT: >>>
 The current executable GUI runner shall be described as running through PreProcessing, A2, Retrieval, ReRanker or pass-through, A3, and A4, not as a completed full A0-to-Prompt-Builder target pipeline.
 <<<
 
+[REQUIREMENT]
+UID: GHOST-SRS-FR-ORCH-003
+STATUS: Draft
+TITLE: SuperPrompt Runtime Truth
+STATEMENT: >>>
+The active SuperPrompt shall be treated as the session runtime truth for pipeline state, stage/history fields, retrieval state, memory context state, and prompt-ready rendering state.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FR-ORCH-004
+STATUS: Draft
+TITLE: Final Prompt and Send Boundary
+STATEMENT: >>>
+The dedicated final Prompt Builder/send-boundary and Direct LLM Call behavior shall remain incomplete or boundary-level behavior until detailed child requirements and code evidence define them as completed product behavior.
+<<<
+
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2.3 Agent Stack -> 20_agent_stack.sdoc
+TITLE: 3.2.2 Agent Stack -> 20_agent_stack.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed child file:
+Child file:
 
 doc/01-Requirements/strictdoc/20_agent_stack.sdoc
 
-This file shall later contain detailed requirements for AgentFactory, AgentPrompt, llm_client, JSON agent definitions, structured output parsing, executable modes, aliases, model configuration, and stateless agent behavior.
+This file shall contain detailed requirements for AgentFactory, AgentPrompt, LLMClient, JSON agent configs, config loading/caching, neutral/stateless infrastructure, current JSON-based LLM-agent pattern, and the boundary between generic Agent Stack infrastructure and owning functional modules.
 <<<
 
 [REQUIREMENT]
 UID: GHOST-SRS-FR-AGT-001
 STATUS: Draft
-TITLE: JSON-Defined Agent Stack
+TITLE: JSON-Based Agent Stack
 STATEMENT: >>>
-GHOST shall provide a neutral JSON-defined Agent Stack consisting of AgentFactory, AgentPrompt, and llm_client abstractions for implemented LLM-based stages and future specialist agents.
+GHOST shall provide a neutral JSON-based Agent Stack consisting of AgentFactory, AgentPrompt, and LLMClient abstractions for implemented LLM-based stages and future specialist agents.
 <<<
 
 [REQUIREMENT]
 UID: GHOST-SRS-FR-AGT-002
 STATUS: Draft
-TITLE: Executable AgentPrompt Modes
+TITLE: Current Agent Users
 STATEMENT: >>>
-The current executable AgentPrompt compose modes shall be described as selector, classifier, and synthesizer. Chooser and multi-chooser may be documented as aliases or design vocabulary. Writer and Extractor shall not be claimed as live compose modes without child requirements and code evidence.
+The root SRS shall describe A2 PromptShaper, A3 NLI Gate, A4 Condenser, and ActiveBrief Relation Classifier as current users of the Agent Stack at a summary level. Detailed behavior shall remain in the owning functional child files.
 <<<
 
 [REQUIREMENT]
@@ -998,39 +992,85 @@ UID: GHOST-SRS-FR-AGT-003
 STATUS: Draft
 TITLE: LLM Client Boundary
 STATEMENT: >>>
-LLM-based stages shall access external model providers through the llm_client abstraction rather than direct provider calls from Controller or GUI code.
+LLM-based stages shall access external model providers through the LLMClient abstraction rather than direct provider calls from Controller or GUI code, unless a future custom Python LLM-call path is explicitly approved and documented.
 <<<
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2.4 Document Knowledge -> 30_document_knowledge.sdoc
+TITLE: 3.2.3 PreProcessing and Prompt Functions -> 30_preprocessing_prompt_functions.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed parent child file:
+Child file:
 
-doc/01-Requirements/strictdoc/30_document_knowledge.sdoc
+doc/01-Requirements/strictdoc/30_preprocessing_prompt_functions.sdoc
 
-Proposed deeper child files:
-
-- doc/01-Requirements/strictdoc/31_document_ingestion.sdoc
-- doc/01-Requirements/strictdoc/32_document_retrieval.sdoc
-- doc/01-Requirements/strictdoc/33_evidence_selection_and_condensation.sdoc
-
-The root SRS only states the main elements of document knowledge. Detailed ingestion, retrieval, reranking, A3, and A4 requirements belong in those child files.
+This file shall contain detailed requirements for A0 deterministic PreProcessing, prompt schema/header normalization, MUST/default handling, baseline prompt_ready generation, Prompt Qualifying / ActiveBrief Relation Classifier, A2 PromptShaper, A2 LLM bypass behavior, and reserved/future Hard Rules deterministic fetch-copy behavior.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-DOC-001
+UID: GHOST-SRS-FR-PRM-001
 STATUS: Draft
-TITLE: Document Knowledge Capability
+TITLE: PreProcessing and Prompt Function Capability
 STATEMENT: >>>
-GHOST shall provide project document knowledge through project-scoped document ingestion, chunking, embeddings, sparse representations where enabled, vector stores, retrieval, document-only reranking, relevance filtering, and condensation.
+GHOST shall provide prompt-function behavior that normalizes user input, applies prompt schema/header handling, produces early relation signals where implemented, and shapes prompt metadata needed by downstream pipeline stages.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-DOC-002
+UID: GHOST-SRS-FR-PRM-002
+STATUS: Draft
+TITLE: A2 PromptShaper Capability
+STATEMENT: >>>
+GHOST shall provide A2 PromptShaper behavior for selecting system, audience, tone, depth, confidence, and related prompt-shaping fields, including deterministic/default continuation when A2 LLM usage is bypassed.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FR-PRM-003
+STATUS: Draft
+TITLE: ActiveBrief Relation Classifier Boundary
+STATEMENT: >>>
+GHOST shall preserve ActiveBrief relation classification as a PreProcessing-adjacent prompt function that produces prompt_materiality and topic_relation outputs. Detailed memory-lifecycle behavior belongs in Memory Management child files.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FR-PRM-004
+STATUS: Draft
+TITLE: Hard Rules Boundary
+STATEMENT: >>>
+Full Hard Rules behavior shall remain reserved, postponed, or placeholder behavior until its final deterministic fetch-copy semantics, UI behavior, and final prompt insertion policy are approved in detailed requirements.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2.4 Knowledge Management -> 40_knowledge_management.sdoc
+
+[TEXT]
+STATEMENT: >>>
+Parent child file:
+
+doc/01-Requirements/strictdoc/40_knowledge_management.sdoc
+
+Deeper child files:
+
+- doc/01-Requirements/strictdoc/41_document_ingestion.sdoc
+- doc/01-Requirements/strictdoc/42_document_retrieval_and_reranking.sdoc
+- doc/01-Requirements/strictdoc/43_evidence_selection_and_condensation.sdoc
+
+The root SRS only states the main elements of project/document knowledge. Detailed ingestion, retrieval, reranking, A3, and A4 requirements belong in those child files.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FR-KNOW-001
+STATUS: Draft
+TITLE: Knowledge Management Capability
+STATEMENT: >>>
+GHOST shall provide project document knowledge through project-scoped document ingestion, chunking, embeddings, sparse representations where enabled, vector stores, retrieval, document-only reranking, evidence filtering, and document evidence condensation.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FR-KNOW-002
 STATUS: Draft
 TITLE: Document Import Boundary
 STATEMENT: >>>
@@ -1038,7 +1078,7 @@ The current document upload/import boundary shall be described as limited to .tx
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-DOC-003
+UID: GHOST-SRS-FR-KNOW-003
 STATUS: Draft
 TITLE: Hybrid Document Retrieval
 STATEMENT: >>>
@@ -1046,7 +1086,7 @@ GHOST shall provide deterministic project-aware document retrieval that combines
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-DOC-004
+UID: GHOST-SRS-FR-KNOW-004
 STATUS: Draft
 TITLE: Document-Only ReRanker Boundary
 STATEMENT: >>>
@@ -1054,7 +1094,7 @@ The ReRanker shall be described as operating on document retrieval results. Memo
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-DOC-005
+UID: GHOST-SRS-FR-KNOW-005
 STATUS: Draft
 TITLE: Evidence Selection and Condensation
 STATEMENT: >>>
@@ -1064,29 +1104,27 @@ GHOST shall provide document evidence selection and condensation through ReRanke
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2.5 Memory System -> 40_memory_system.sdoc
+TITLE: 3.2.5 Memory Management -> 50_memory_management.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed parent child file:
+Parent child file:
 
-doc/01-Requirements/strictdoc/40_memory_system.sdoc
+doc/01-Requirements/strictdoc/50_memory_management.sdoc
 
-Proposed deeper child files:
+Deeper child files:
 
-- doc/01-Requirements/strictdoc/41_memory_recording.sdoc
-- doc/01-Requirements/strictdoc/42_memory_ingestion.sdoc
-- doc/01-Requirements/strictdoc/43_memory_retrieval.sdoc
-- doc/01-Requirements/strictdoc/44_memory_merge_and_activebrief.sdoc
-- doc/01-Requirements/strictdoc/45_memory_files_and_import.sdoc
+- doc/01-Requirements/strictdoc/51_memory_recording_and_files.sdoc
+- doc/01-Requirements/strictdoc/52_memory_ingestion_and_retrieval.sdoc
+- doc/01-Requirements/strictdoc/53_memory_merge_activebrief_blackboard.sdoc
 
-Memory is intentionally the deepest proposed area because the existing project already separates durable memory truth, vector ingestion, retrieval, runtime compression/merge, ActiveBrief direction, and server-side memory-file management.
+Memory is intentionally split into durable recording/files, ingestion/retrieval, and runtime merge/ActiveBrief/future Blackboard hooks because the project separates durable memory truth from runtime memory context.
 <<<
 
 [REQUIREMENT]
 UID: GHOST-SRS-FR-MEM-001
 STATUS: Draft
-TITLE: Memory System Capability
+TITLE: Memory Management Capability
 STATEMENT: >>>
 GHOST shall provide a structured engineering memory system for durable memory records, metadata, indexing, vector ingestion, retrieval, compression, merge, ActiveBrief direction, and controlled reuse of prior engineering context.
 <<<
@@ -1118,55 +1156,60 @@ Memory retrieval, runtime compression, and MemoryMerge synthesis exist, but fina
 [REQUIREMENT]
 UID: GHOST-SRS-FR-MEM-005
 STATUS: Draft
-TITLE: ActiveBrief Relation Routing
+TITLE: ActiveRetrievalBrief and Blackboard Boundary
 STATEMENT: >>>
-GHOST shall preserve ActiveBrief relation classification as a root-level capability anchor because it affects memory retrieval direction and comparison-context construction. Detailed routing rules belong in child memory requirements.
+GHOST shall preserve ActiveRetrievalBrief as part of the memory-management direction, while Blackboard memory hooks shall remain future/reserved unless later requirements and implementation evidence define durable product behavior.
 <<<
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2.6 GUI Workbench -> 50_gui_workbench.sdoc
+TITLE: 3.2.6 Human Workbench and Interfaces -> 70_human_workbench_and_interfaces.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed child file:
+Parent child file:
 
-doc/01-Requirements/strictdoc/50_gui_workbench.sdoc
+doc/01-Requirements/strictdoc/70_human_workbench_and_interfaces.sdoc
 
-This file shall later contain detailed requirements for Streamlit GUI layout, workspace behavior, files tab, metrics tab, hard-rules placeholder, general settings placeholder, memory controls, runtime logs, upload limits, and prompt-only mode if approved.
+Deeper child files:
+
+- doc/01-Requirements/strictdoc/71_streamlit_workbench_current.sdoc
+- doc/01-Requirements/strictdoc/72_react_fastapi_interface_future.sdoc
+
+This area separates the current implemented Streamlit workbench from the future React/TypeScript and FastAPI interface architecture.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-GUI-001
+UID: GHOST-SRS-FR-UI-001
 STATUS: Draft
-TITLE: GUI Workbench Capability
+TITLE: Human Workbench Capability
 STATEMENT: >>>
-GHOST shall provide a human-facing Streamlit GUI workbench for prompt input, project selection, ingestion controls, pipeline execution, engineered prompt display, memory controls, runtime logging, file management, and inspection of system state.
+GHOST shall provide a human-facing workbench for prompt input, project selection, ingestion controls, pipeline execution, engineered prompt display, memory controls, runtime logging, file management, and inspection of system state.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-GUI-002
+UID: GHOST-SRS-FR-UI-002
 STATUS: Draft
-TITLE: GUI Pipeline Controls
+TITLE: Streamlit Current Interface Boundary
 STATEMENT: >>>
-The GUI shall expose controls for the implemented pipeline stages so the user can trigger and inspect stage-by-stage execution while the current runner remains bounded to the implemented stages through A4.
+The current implemented user interface shall be described as Streamlit-based and shall include only features supported by current implementation evidence or approved child requirements.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-GUI-003
+UID: GHOST-SRS-FR-UI-003
+STATUS: Draft
+TITLE: React/FastAPI Future Interface Boundary
+STATEMENT: >>>
+React/TypeScript frontend and FastAPI backend architecture shall be treated as future interface direction until detailed requirements and implementation evidence define it as current behavior.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FR-UI-004
 STATUS: Draft
 TITLE: GUI Placeholder Boundary
 STATEMENT: >>>
 GUI elements for Hard Rules, Direct LLM Call, metrics/observability, prompt-only mode, Blackboard Actor, or future behavior shall not be described as completed product behavior unless supported by implementation evidence and approved child requirements.
-<<<
-
-[REQUIREMENT]
-UID: GHOST-SRS-FR-GUI-004
-STATUS: Draft
-TITLE: Prompt-Only Mode Proposal
-STATEMENT: >>>
-GHOST may support a prompt-only mode in which document retrieval and memory retrieval are selectively deactivated and the system behaves as a prompt builder rather than a context generator. This is a proposal and shall require separate child requirements before implementation.
 <<<
 
 [[/SECTION]]
@@ -1176,7 +1219,7 @@ TITLE: 3.2.7 External Interfaces and AI Tooling Boundary
 
 [TEXT]
 STATEMENT: >>>
-This section gives only root-level interface categories. Detailed API endpoints, exact GUI behavior, and deployment interface details belong in child files after approval.
+This section gives only root-level interface categories. Detailed API endpoints, exact GUI behavior, React/FastAPI behavior, and deployment interface details belong in child files after approval.
 <<<
 
 [REQUIREMENT]
@@ -1222,89 +1265,103 @@ GHOST shall use documented project data directories and runtime data directories
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2.8 Runtime Operations -> 60_runtime_operations.sdoc
+TITLE: 3.2.8 Runtime Platform and Operations -> 80_runtime_platform_and_operations.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed child file:
+Child file:
 
-doc/01-Requirements/strictdoc/60_runtime_operations.sdoc
+doc/01-Requirements/strictdoc/80_runtime_platform_and_operations.sdoc
 
-This file shall later contain detailed functional and non-functional runtime requirements for local execution, Docker, AWS, deployment activation, and operational troubleshooting.
+This file shall contain detailed functional and non-functional runtime requirements for local execution, Python/runtime layout, runtime_config.json, data roots, Docker, AWS, deployment activation, and operational troubleshooting.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-OPS-001
+UID: GHOST-SRS-FR-RUN-001
 STATUS: Draft
-TITLE: Runtime Operations Capability
+TITLE: Runtime Platform and Operations Capability
 STATEMENT: >>>
 GHOST shall support local development execution and AWS-compatible deployment through the documented Docker, ECR, EC2, nginx, HTTPS, Route53, SSM Parameter Store, and persistent runtime data path.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-OPS-002
+UID: GHOST-SRS-FR-RUN-002
 STATUS: Draft
 TITLE: Runtime Persistence Capability
 STATEMENT: >>>
-GHOST shall preserve project data, memory data, vector stores, and runtime artifacts through a persistent runtime data path that remains outside the Docker image in deployed mode.
+GHOST shall preserve project data, memory data, vector stores, logs, and runtime artifacts through a persistent runtime data path that remains outside the Docker image in deployed mode.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FR-RUN-003
+STATUS: Draft
+TITLE: Single-User Private Instance Boundary
+STATEMENT: >>>
+The current deployed runtime shall be described as private-instance and single-user/single-workspace unless later requirements and implementation evidence define multi-user SaaS behavior.
 <<<
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2.9 Requirement Traceability Direction -> 80_requirement_traceability_direction.sdoc
+TITLE: 3.2.9 Quality, Governance, and Observability -> 90_quality_governance_and_observability.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed child file:
+Parent child file:
 
-doc/01-Requirements/strictdoc/80_requirement_traceability_direction.sdoc
+doc/01-Requirements/strictdoc/90_quality_governance_and_observability.sdoc
 
-This file shall later contain the controlled requirement-architecture-code-test traceability direction. It shall not invent detailed synchronization-agent implementation behavior before the human maintainer approves it.
+Deeper child files:
+
+- doc/01-Requirements/strictdoc/91_logging_textforge_raglog.sdoc
+- doc/01-Requirements/strictdoc/92_metrics_evaluation_benchmarking.sdoc
+- doc/01-Requirements/strictdoc/93_quality_security_traceability_governance.sdoc
+
+This area is cross-cutting and may contain both functional subsystem requirements, such as logging, and non-functional quality/governance requirements.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-TRC-001
+UID: GHOST-SRS-FR-QGO-001
 STATUS: Draft
-TITLE: Requirement Traceability Direction
+TITLE: Cross-Cutting Quality and Observability Capability
 STATEMENT: >>>
-GHOST shall preserve a future capability direction for deterministic traceability across requirements, architecture, code, and tests using stable IDs.
+GHOST shall preserve a cross-cutting requirement area for implemented logging behavior, future metrics/evaluation behavior, testing, security hardening, source-of-truth governance, change control, and traceability rules.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-TRC-002
+UID: GHOST-SRS-FR-QGO-002
 STATUS: Draft
-TITLE: Future Synchronization Agent Usage Boundary
+TITLE: Functional Logging Subsystem Boundary
 STATEMENT: >>>
-A future synchronization agent may use stable requirement IDs and code-side UID markers to compare connected requirements, architecture, code, and tests, but actual modification of artifacts shall remain subject to human approval and later detailed requirements.
+TextForge/RagLog shall be treated as a functional logging subsystem whose detailed behavior belongs in 91_logging_textforge_raglog.sdoc.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-TRC-003
+UID: GHOST-SRS-FR-QGO-003
 STATUS: Draft
-TITLE: No Current Automation Claim
+TITLE: Metrics and Evaluation Boundary
 STATEMENT: >>>
-The root SRS shall not claim that automatic requirement-architecture-code synchronization is currently implemented unless that claim is supported by implementation-status evidence and approved detailed requirements.
+Metrics, evaluation, benchmarking, token/cost/latency tracking, retrieval counts, memory diagnostics, and quality regression checks shall be treated as future or partially implemented observability/evaluation requirements unless supported by implementation evidence.
 <<<
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2.10 Future Vision Backlog -> 90_future_vision_backlog.sdoc
+TITLE: 3.2.10 Future Vision and Lifecycle Synchronization -> 100_future_vision_and_lifecycle_sync.sdoc
 
 [TEXT]
 STATEMENT: >>>
-Proposed child file:
+Child file:
 
-doc/01-Requirements/strictdoc/90_future_vision_backlog.sdoc
+doc/01-Requirements/strictdoc/100_future_vision_and_lifecycle_sync.sdoc
 
-This file shall later contain Ghost2 and other future ideas that are intentionally not active implementation requirements until promoted.
+This file shall contain Requirement-Architecture-Code Sync reserved capability, Ghost2 boundary, Blackboard architecture boundary, advanced orchestration, future model/backend expansion, and other future capabilities not yet architecturally fixed.
 <<<
 
 [REQUIREMENT]
 UID: GHOST-SRS-FR-FUT-001
 STATUS: Draft
-TITLE: Future Backlog Isolation
+TITLE: Future Capability Isolation
 STATEMENT: >>>
 GHOST shall keep future ideas and backlog features isolated from active behavior unless the human maintainer explicitly promotes them into approved requirements.
 <<<
@@ -1312,13 +1369,21 @@ GHOST shall keep future ideas and backlog features isolated from active behavior
 [REQUIREMENT]
 UID: GHOST-SRS-FR-FUT-002
 STATUS: Draft
+TITLE: Requirement-Architecture-Code Sync Boundary
+STATEMENT: >>>
+GHOST shall preserve a future capability direction for deterministic traceability and synchronization across requirements, architecture, code, and tests using stable IDs, while avoiding claims that this behavior is currently implemented.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FR-FUT-003
+STATUS: Draft
 TITLE: Ghost2 Future Boundary
 STATEMENT: >>>
 GHOST shall keep Ghost2 as a future capability direction for human-mediated multi-brain orchestration, private specialist contexts, shared board behavior, shared memory, and traceability-assisted collaboration until promoted into active child requirements.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-SRS-FR-FUT-003
+UID: GHOST-SRS-FR-FUT-004
 STATUS: Draft
 TITLE: Blackboard Actor Boundary
 STATEMENT: >>>

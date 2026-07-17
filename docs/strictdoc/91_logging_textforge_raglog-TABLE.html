@@ -1,0 +1,4621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <meta charset="UTF-8"/>
+  <meta name="keywords" content="strictdoc, documentation, documentation-tool, requirements-management, requirements, documentation-generator, requirement-specifications, requirements-engineering, technical-documentation, requirements-specification"/>
+  <meta name="description" content="strictdoc. Software for technical documentation and requirements management."/>
+  <meta name="strictdoc-export-type" content="static">
+  <meta name="strictdoc-document-level" content="1">
+
+  <link rel="shortcut icon" href="../_static/favicon.ico" type="image/x-icon"/>
+
+  
+  
+  <link rel="stylesheet" href="../_static/base.css"/>
+  <link rel="stylesheet" href="../_static/layout.css"/>
+  <link rel="stylesheet" href="../_static/content.css"/>
+  <link rel="stylesheet" href="../_static/node.css"/>
+  <link rel="stylesheet" href="../_static/node_content.css"/>
+  <link rel="stylesheet" href="../_static/element.css"/>
+  <link rel="stylesheet" href="../_static/form.css"/>
+  <link rel="stylesheet" href="../_static/requirement__temporary.css"/>
+  <link rel="stylesheet" href="../_static/autogen.css"/>
+  <link rel="stylesheet" href="../_static/pygments.css"/>
+  
+  <link rel="stylesheet" href="../_static/table_view.css"/>
+
+
+  
+  <script src="../_static/stimulus_umd.min.js"></script>
+  <script src="../_static/stimulus_application.js"></script>
+  
+  <script src="../_static/app_core.js"></script>
+  <script src="../_static/dropdown_menu.js"></script>
+  <script src="../_static/resizable_bar.js"></script>
+  <script src="../_static/collapsible_toc.js"></script>
+  <script src="../_static/project_tree_preserve_scroll.js"></script>
+  <script src="../_static/toc_highlighting.js"></script>
+  <script src="../_static/pan_with_space.js"></script>
+  <script src="../_static/table_view.js"></script>
+  <script src="../_static/controllers/modal_controller.js"></script><script id="MathJax-script" async src="../_static/mathjax/tex-mml-chtml.js"></script><script src="../_static/mermaid/mermaid.min.js"></script>
+    <script type="module">
+      mermaid.initialize({ startOnLoad: true });
+    </script>
+  
+  
+
+
+  <title>GHOST TextForge and RagLog Logging Requirements - Table</title>
+
+  
+</head>
+
+<body data-viewtype="table" data-turbo="false">
+
+<div class="mars">
+  
+</div>
+
+  <div class="layout" id="layout">
+
+    <nav class="layout_nav">
+      
+  <div class="nav">
+
+
+
+  <a
+    data-link="index"
+    class="nav_button"
+    href="../index.html"
+    title="Project index"
+    data-testid="project-tree-link-project-index"
+  >
+    <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="9" y1="4" x2="7" y2="4"></line>
+  <line x1="12" y1="9" x2="12" y2="7"></line>
+  <line x1="6" y1="10" x2="10" y2="6"></line>
+  <circle cx="4" cy="12" r="2.25"></circle>
+  <circle cx="12" cy="4" r="2.25"></circle>
+  <circle cx="4" cy="4" r="2.25"></circle>
+  <circle cx="12" cy="12" r="2.25"></circle>
+</svg>
+  </a></div>
+
+    </nav>
+
+    <aside class="layout_tree">
+      
+  
+
+
+
+<div
+  js-resizable_bar="tree"
+  data-state="open"
+  data-position="left"
+>
+
+<div class="project_tree_with_ad">
+  <turbo-frame id="frame_aside_project_tree">
+  <div
+    class="tree"
+    js-project_tree_preserve_scroll="tree"
+    data-project-title="Untitled Project"
+    data-testid="aside-project-tree"
+  >
+    
+        
+          <div
+            class="tree_folder"
+            data-level="0"
+            data-testid="tree-folder-item"
+          >
+          <span class="tree_folder_path">/</span>
+          </div>
+        
+      
+        
+        <a
+          href="../strictdoc/00_ghost_srs-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Software Requirements Specification"
+            data-file_name="00_ghost_srs.sdoc"
+          >GHOST Software Requirements Specification</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/100_future_vision_and_lifecycle_sync-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Future Vision and Lifecycle Synchronization Requirements"
+            data-file_name="100_future_vision_and_lifecycle_sync.sdoc"
+          >GHOST Future Vision and Lifecycle Synchronization Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/10_orchestrator_and_pipeline-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Orchestrator and Runtime Pipeline Requirements"
+            data-file_name="10_orchestrator_and_pipeline.sdoc"
+          >GHOST Orchestrator and Runtime Pipeline Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/20_agent_stack-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Agent Stack Requirements"
+            data-file_name="20_agent_stack.sdoc"
+          >GHOST Agent Stack Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/30_preprocessing_prompt_functions-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Preprocessing and Prompt Functions Requirements"
+            data-file_name="30_preprocessing_prompt_functions.sdoc"
+          >GHOST Preprocessing and Prompt Functions Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/40_knowledge_management-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Knowledge Management Requirements"
+            data-file_name="40_knowledge_management.sdoc"
+          >GHOST Knowledge Management Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/41_document_ingestion-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Document Ingestion Requirements"
+            data-file_name="41_document_ingestion.sdoc"
+          >GHOST Document Ingestion Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/42_document_retrieval_and_reranking-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Document Retrieval and Reranking Requirements"
+            data-file_name="42_document_retrieval_and_reranking.sdoc"
+          >GHOST Document Retrieval and Reranking Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/43_evidence_selection_and_condensation-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Evidence Selection and Condensation Requirements"
+            data-file_name="43_evidence_selection_and_condensation.sdoc"
+          >GHOST Evidence Selection and Condensation Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/50_memory_management-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Memory Management Requirements"
+            data-file_name="50_memory_management.sdoc"
+          >GHOST Memory Management Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/51_memory_recording_and_files-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Memory Recording and Files Requirements"
+            data-file_name="51_memory_recording_and_files.sdoc"
+          >GHOST Memory Recording and Files Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/52_memory_ingestion_and_retrieval-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Memory Ingestion and Retrieval Requirements"
+            data-file_name="52_memory_ingestion_and_retrieval.sdoc"
+          >GHOST Memory Ingestion and Retrieval Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/53_memory_merge_activebrief_blackboard-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Memory Merge, ActiveBrief, and Blackboard Boundary Requirements"
+            data-file_name="53_memory_merge_activebrief_blackboard.sdoc"
+          >GHOST Memory Merge, ActiveBrief, and Blackboard Boundary Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/60_context_integration_and_prompt_assembly-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Context Integration and Prompt Assembly Requirements"
+            data-file_name="60_context_integration_and_prompt_assembly.sdoc"
+          >GHOST Context Integration and Prompt Assembly Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/61_superprompt_projection_and_prompt_builder-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST SuperPrompt Projection and Prompt Builder Requirements"
+            data-file_name="61_superprompt_projection_and_prompt_builder.sdoc"
+          >GHOST SuperPrompt Projection and Prompt Builder Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/62_context_validation_deduplication_and_conflict_resolution-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Context Validation, Deduplication, and Conflict Resolution Requirements"
+            data-file_name="62_context_validation_deduplication_and_conflict_resolution.sdoc"
+          >GHOST Context Validation, Deduplication, and Conflict Resolution Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/63_hard_rule_integration_and_finalization-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Hard Rule Integration and Finalization Requirements"
+            data-file_name="63_hard_rule_integration_and_finalization.sdoc"
+          >GHOST Hard Rule Integration and Finalization Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/70_human_workbench_and_interfaces-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Human Workbench and Interface Requirements"
+            data-file_name="70_human_workbench_and_interfaces.sdoc"
+          >GHOST Human Workbench and Interface Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/71_streamlit_workbench_current-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Current Streamlit Workbench Requirements"
+            data-file_name="71_streamlit_workbench_current.sdoc"
+          >GHOST Current Streamlit Workbench Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/72_react_fastapi_interface_future-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Future React and FastAPI Interface Requirements"
+            data-file_name="72_react_fastapi_interface_future.sdoc"
+          >GHOST Future React and FastAPI Interface Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/80_runtime_platform_and_operations-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Runtime Platform and Operations Requirements"
+            data-file_name="80_runtime_platform_and_operations.sdoc"
+          >GHOST Runtime Platform and Operations Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/90_quality_governance_and_observability-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Quality, Governance, and Observability Requirements"
+            data-file_name="90_quality_governance_and_observability.sdoc"
+          >GHOST Quality, Governance, and Observability Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/91_logging_textforge_raglog-TABLE.html"
+          class="tree_item"
+          
+          active="true"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST TextForge and RagLog Logging Requirements"
+            data-file_name="91_logging_textforge_raglog.sdoc"
+          >GHOST TextForge and RagLog Logging Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/92_metrics_evaluation_benchmarking-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Metrics, Evaluation, and Benchmarking Requirements"
+            data-file_name="92_metrics_evaluation_benchmarking.sdoc"
+          >GHOST Metrics, Evaluation, and Benchmarking Requirements</div>
+        </a>
+        
+        
+        
+        
+      
+        
+        <a
+          href="../strictdoc/93_quality_security_traceability_governance-TABLE.html"
+          class="tree_item"
+          
+          data-folder="strictdoc"
+          data-testid="tree-document-link"
+        >
+          <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+          <div
+            class="document_title"
+            title="GHOST Quality, Security, Traceability, and Governance Requirements"
+            data-file_name="93_quality_security_traceability_governance.sdoc"
+          >GHOST Quality, Security, Traceability, and Governance Requirements</div>
+        </a>
+        
+        
+        
+        
+      </div>
+</turbo-frame>
+  
+  <div id="ethical-ad-placement"></div>
+</div>
+</div>
+
+    </aside><aside
+        data-position="right"
+        class="layout_toc"
+      >
+        
+  
+
+
+
+<div
+  js-resizable_bar="toc"
+  data-state="open"
+  data-position="right"
+>
+<turbo-frame
+  id="frame-toc"
+  style="display: contents"
+>
+      <ul
+      data-testid="toc-list"
+      js-collapsible_list="list"
+      class="toc"
+      id="toc"
+      data-controller="draggable_list"><li data-nodeid="a27455eb64464726b563bd56e1c2ba86">
+        <a
+          href="#1-1-Purpose"
+          anchor="1-1-Purpose"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            1
+          </span>1. Purpose
+            </a></li><li data-nodeid="29d5a99f3c1b4fdbac053ab9daca909e">
+        <a
+          href="#2-2-Scope-and-Boundary"
+          anchor="2-2-Scope-and-Boundary"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            2
+          </span>2. Scope and Boundary
+            </a><ul><li data-nodeid="ec1f54f6c23e4710a25adc887ecf7f75">
+        <a
+          href="#GHOST-LOG-ROOT"
+          anchor="GHOST-LOG-ROOT"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            2.1
+          </span>GHOST TextForge and RagLog Logging Scope
+            </a></li></ul>
+            </li><li data-nodeid="9654d6a9e668494bb6e84fae3a748a19">
+        <a
+          href="#3-3-Initial-Topic-Headings"
+          anchor="3-3-Initial-Topic-Headings"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3
+          </span>3. Initial Topic Headings
+            </a><ul><li data-nodeid="cf11cf96a7294ccb90e9da50d8bc8a2b">
+        <a
+          href="#3.1-3-1-TextForge-RagLog-Functional-Logging-Subsystem"
+          anchor="3.1-3-1-TextForge-RagLog-Functional-Logging-Subsystem"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.1
+          </span>3.1. TextForge / RagLog Functional Logging Subsystem
+            </a></li><li data-nodeid="4160113e9745466ea779b2d0cbccde14">
+        <a
+          href="#3.2-3-2-TextForge-Facade"
+          anchor="3.2-3-2-TextForge-Facade"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.2
+          </span>3.2. TextForge Facade
+            </a></li><li data-nodeid="e1869199cfee42ec99cbbf765890cea7">
+        <a
+          href="#3.3-3-3-TextSink-Base"
+          anchor="3.3-3-3-TextSink-Base"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.3
+          </span>3.3. TextSink Base
+            </a></li><li data-nodeid="8a20052c750042138189a6cc511151e1">
+        <a
+          href="#3.4-3-4-FileSink"
+          anchor="3.4-3-4-FileSink"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.4
+          </span>3.4. FileSink
+            </a></li><li data-nodeid="d033f924331a4c6c9d04a6b1094581bf">
+        <a
+          href="#3.5-3-5-CliSink"
+          anchor="3.5-3-5-CliSink"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.5
+          </span>3.5. CliSink
+            </a></li><li data-nodeid="911451df3a8c49c4ba2d14e64f9d19bd">
+        <a
+          href="#3.6-3-6-GUISink"
+          anchor="3.6-3-6-GUISink"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.6
+          </span>3.6. GUISink
+            </a></li><li data-nodeid="5bbb8ec75c2c44d4865bdeeef181f7c1">
+        <a
+          href="#3.7-3-7-RagLog-Public-Functions"
+          anchor="3.7-3-7-RagLog-Public-Functions"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.7
+          </span>3.7. RagLog Public Functions
+            </a></li><li data-nodeid="0c2fce1c458f49539fe96c8dd4c0f072">
+        <a
+          href="#3.8-3-8-LogALL"
+          anchor="3.8-3-8-LogALL"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.8
+          </span>3.8. LogALL
+            </a></li><li data-nodeid="1636bc57966e4ca3be697c249a653a16">
+        <a
+          href="#3.9-3-9-LogNoGUI"
+          anchor="3.9-3-9-LogNoGUI"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.9
+          </span>3.9. LogNoGUI
+            </a></li><li data-nodeid="325040f4fada475ab30fb6cdbd6df896">
+        <a
+          href="#3.10-3-10-LogConf"
+          anchor="3.10-3-10-LogConf"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.10
+          </span>3.10. LogConf
+            </a></li><li data-nodeid="02bbed5632d64b3ebbe8a721412cf809">
+        <a
+          href="#3.11-3-11-LogDeveloper"
+          anchor="3.11-3-11-LogDeveloper"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.11
+          </span>3.11. LogDeveloper
+            </a></li><li data-nodeid="33fb21df7cf448b690d1ae882c22b412">
+        <a
+          href="#3.12-3-12-GUI-CLI-File-Archive-Sink-Routing"
+          anchor="3.12-3-12-GUI-CLI-File-Archive-Sink-Routing"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.12
+          </span>3.12. GUI / CLI / File / Archive Sink Routing
+            </a></li><li data-nodeid="d5b505fb0c344118b1c0cb5821d2fefa">
+        <a
+          href="#3.13-3-13-Type-and-Sensitivity-Filtering"
+          anchor="3.13-3-13-Type-and-Sensitivity-Filtering"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.13
+          </span>3.13. Type and Sensitivity Filtering
+            </a></li><li data-nodeid="eb4a78c774c44d1faf8f735c4231bfeb">
+        <a
+          href="#3.14-3-14-Developer-Diagnostics"
+          anchor="3.14-3-14-Developer-Diagnostics"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.14
+          </span>3.14. Developer Diagnostics
+            </a></li><li data-nodeid="f01eedc6131e402f87d5162b490cefb3">
+        <a
+          href="#3.15-3-15-Runtime-Log-Display-Support"
+          anchor="3.15-3-15-Runtime-Log-Display-Support"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.15
+          </span>3.15. Runtime Log Display Support
+            </a></li><li data-nodeid="b2d1809f46454e55a2fa8a7933464072">
+        <a
+          href="#3.16-3-16-Retention-Rotation-Future-Hardening"
+          anchor="3.16-3-16-Retention-Rotation-Future-Hardening"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.16
+          </span>3.16. Retention / Rotation Future Hardening
+            </a></li><li data-nodeid="e7b380cdc2a94884a24072cd323e7616">
+        <a
+          href="#3.17-3-17-AWS-Persistence-Future-Hardening"
+          anchor="3.17-3-17-AWS-Persistence-Future-Hardening"
+          data-turbo="false"
+        >
+          <span class="section-number">
+            3.17
+          </span>3.17. AWS Persistence Future Hardening
+            </a></li></ul>
+            </li></ul>
+</turbo-frame>
+</div>
+
+      </aside><header class="layout_header">
+      <div class="header">
+
+  
+  <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <polyline points="14 5 14 10.5 8 15 2 10.5 2 5 8 1 14 5 8 9.5"></polyline>
+  <polyline points="2.5 5.5 8 9.5 8 15"></polyline>
+</svg>
+  <div
+    class="header__project_name"
+    id="header-project-name"
+    title="Untitled Project"
+  >Untitled Project
+  </div>
+
+  
+      <svg
+  class="svg_icon"
+  viewBox="0 0 20 20"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  >
+  <path d="M12.5 4.5l-5 11"></path>
+</svg>
+      <turbo-frame id="header_document_title">
+  <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d=" M13,13 L13,8 C13,7.5 12.6,7 12,7 L9,7 C8.5,7 8,6.5 8,6 L8,3 C8,2.5 7.5,2 7,2 L4,2 C3.5,2 3,2.5 3,3 L3,13 C3,13.5 3.5,14 4,14 L12,14 C12.6,14 13,13.5 13,13 Z M13,9 L13,8 C13,7.5 13,7 12.5,6.5 L8.5,2.5 C8,2 7.5,2 7,2 L6,2"></path>
+</svg>
+  <div
+    class="header__document_title"
+    title="GHOST TextForge and RagLog Logging Requirements"
+  >
+    GHOST TextForge and RagLog Logging Requirements
+  </div>
+</turbo-frame>
+    
+      <svg
+  class="svg_icon"
+  viewBox="0 0 20 20"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  >
+  <path d="M12.5 4.5l-5 11"></path>
+</svg>
+      <turbo-frame
+  id="frame-viewtype-menu"
+  style="display: contents"
+>
+  <div class="viewtype">
+  <div
+    id="viewtype_handler"
+    class="viewtype__handler"
+    data-dropdown-handler
+    aria-expanded="false"
+    aria-controls="viewtype_menu"
+  >
+    <span>Table</span>
+    <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 10l3 3 3-3M5 6l3-3 3 3"></path>
+</svg>
+  </div>
+  <menu
+    id="viewtype_menu"
+    class="dropdown_menu"
+    aria-hidden="true"
+    aria-labelledby="viewtype_handler"
+  >
+    <li class="dropdown_menu_header">VIEWS</li>
+    <li>
+      <a
+        data-viewtype_link="document"
+        class="dropdown_menu_item"
+        title="Go to Document view"
+        href="../strictdoc/91_logging_textforge_raglog.html#GHOST-LOG">
+      Document</a>
+    </li><li>
+      <a
+        data-viewtype_link="table"
+        class="dropdown_menu_item"
+        title="Go to Table view"
+        href="../strictdoc/91_logging_textforge_raglog-TABLE.html#GHOST-LOG">
+      Table</a>
+    </li><li>
+      <a
+        data-viewtype_link="traceability"
+        class="dropdown_menu_item"
+        title="Go to Traceability view"
+        href="../strictdoc/91_logging_textforge_raglog-TRACE.html#GHOST-LOG">
+      Traceability</a>
+    </li><li>
+      <a
+        data-viewtype_link="deep_traceability"
+        class="dropdown_menu_item"
+        title="Go to Deep Traceability view"
+        href="../strictdoc/91_logging_textforge_raglog-DEEP-TRACE.html#GHOST-LOG">
+      Deep Traceability</a>
+    </li></menu>
+</div>
+</turbo-frame>
+    
+  <div class="header__placeholder" data-testid="header-placeholder" id="header-placeholder"></div>
+
+  <div class="table-toolbar" data-testid="table-toolbar">
+  <div class="table-toolbar__dock">
+  <div class="table-toolbar__sort-reset" hidden>
+    <button class="table-toolbar__btn action_button"
+            data-testid="table-toolbar-sort-reset">
+            <span class="table-toolbar__btn-text">Reset sort</span></button>
+  </div><div class="table-toolbar__columns">
+    <button class="table-toolbar__btn action_button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            data-label="Columns"
+            data-testid="table-toolbar-columns-btn"><svg
+  class="svg_icon icon_collapse_expand"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <polyline class="collapsed" points="12 6 8 10 4 6"></polyline>
+  <line class="expanded" x1="4" y1="8" x2="12" y2="8"></line>
+</svg><span class="table-toolbar__btn-text">Columns<span class="table-toolbar__btn-info"></span></span>
+    </button>
+    <div class="table-toolbar__dropdown dropdown_menu"
+          hidden
+          aria-hidden="true"
+          role="dialog"
+          aria-label="Column visibility"
+          data-testid="table-toolbar-columns-panel">
+      <div class="table-toolbar__dropdown-header">
+        <span class="table-toolbar__dropdown-title">Visible:</span>
+        <button class="table-toolbar__reset compact action_button"
+                data-testid="table-toolbar-columns-reset">Show all</button>
+      </div>
+      <ul class="table-toolbar__list" data-testid="table-toolbar-columns-list"></ul>
+    </div>
+  </div>
+  <div class="table-toolbar__rows">
+    <button class="table-toolbar__btn action_button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            data-testid="table-toolbar-rows-btn"><svg
+  class="svg_icon icon_collapse_expand"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <polyline class="collapsed" points="12 6 8 10 4 6"></polyline>
+  <line class="expanded" x1="4" y1="8" x2="12" y2="8"></line>
+</svg><span class="table-toolbar__btn-text">Nodes<span class="table-toolbar__btn-info"></span></span>
+    </button>
+    <div class="table-toolbar__dropdown dropdown_menu"
+          hidden
+          aria-hidden="true"
+          role="dialog"
+          aria-label="Row visibility"
+          data-testid="table-toolbar-rows-panel">
+      <div class="table-toolbar__dropdown-header">
+        <span class="table-toolbar__dropdown-title">Visible:</span>
+        <button class="table-toolbar__reset compact action_button"
+                data-testid="table-toolbar-rows-reset">Show all</button>
+      </div>
+      <ul class="table-toolbar__list" data-testid="table-toolbar-rows-list"></ul>
+    </div>
+    </div>
+    <div class="table-toolbar__tips">
+      <button class="table-toolbar__btn action_button"
+              data-testid="table-toolbar-tips-btn">
+              <span class="table-toolbar__btn-text">?</span></button>
+    </div>
+  </div>
+</div>
+<template id="template-icon-checkbox">
+  
+    <label class="icon-checkbox">
+      <input type="checkbox"><svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="svg_icon__opened">
+    <path d="M 8,4 C 5,4 2,7 2,8 2,9 5,12 8,12 11,12 14,9 14,8 14,7 11,4 8,4 Z" />
+    <path d="M 8,4 V 2"/>
+    <path d="M 13,4 12,5"/>
+    <path d="M 3,4 4,5"/>
+    <circle cy="8" cx="8" r="1" />
+  </g>
+  <g class="svg_icon__closed">
+    <path d="m 2,6 c 0,1 3,4 6,4 3,0 6,-3 6,-4" />
+    <path d="M 8,12 V 10" />
+    <path d="M 13,10 12,9" />
+    <path d="M 3,10 4,9" />
+  </g>
+</svg><span></span>
+    </label>
+  
+</template><template id="table-tips-modal-template"><turbo-frame data-controller="modal_controller">
+  <sdoc-backdrop>
+    <sdoc-modal>
+      <sdoc-modal-container data-testid="table-tips-content">
+        <h3>TABLE screen tips</h3>
+        <p><b>Filter view</b></p>
+        <ul>
+          <li>Use the <strong>Columns</strong> panel to show or hide individual fields in the table.</li>
+          <li>Use the <strong>Nodes</strong> panel to filter which node types are displayed in the table.</li>
+        </ul>
+        <p><b>Edit mode</b></p>
+        <ul>
+          <li>Enable <b>Edit mode</b> to edit document content directly in the table.</li>
+          <li>Click a field to edit it. Save with <code>Ctrl/Cmd+Enter</code> or by <i>leaving the field</i>. Press <code>Escape</code> to cancel without changes.</li>
+          <li>Use <b>Add</b> separators between rows to create new nodes.</li>
+          <li>Use the <b>Delete</b> action in the <code>Type</code> column to remove nodes.</li>
+          <li><b>Add Node</b> is unavailable while sorting or row filtering is active.</li>
+        </ul>
+        <p><b>Pan the page</b></p>
+        <ul>
+          <li>Hold <code>Space</code> and drag to move around the table.</li>
+          <li>While editing a text field, <code>Space</code> inserts a space character instead of activating pan mode.</li>
+        </ul>
+
+      </sdoc-modal-container><button
+    stimulus-modal-cancel-button
+    type="button"
+    class="action_button"
+    data-action-type="cancel"
+    data-testid="form-cancel-action"
+  >Close</button></sdoc-modal>
+  </sdoc-backdrop>
+</turbo-frame></template>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelector('[data-testid="table-toolbar-tips-btn"]').addEventListener('click', function() {
+    var template = document.getElementById('table-tips-modal-template');
+    document.getElementById('modal').innerHTML = template.innerHTML;
+  });
+});
+</script></div>
+    </header>
+
+    <main class="layout_main">
+      
+  
+  <div class="main"
+       js-pan_with_space="true"
+       js-table_view_edit
+  >
+    
+
+<div class="tags"></div>
+      <div class="content">
+        <div id="table-add-node-feedback" hidden></div>
+
+        
+        
+        
+        
+        
+
+
+<sdoc-node>
+  <h1 data-testid="document-title"><div
+     data-testid="document-title-field"
+     data-field-name="TITLE"
+>
+  <div id="doc-field-ab63f6e7bdbc4a7bb04d0ccd8948e7da-TITLE" wrapper-field-type="contenteditable"><sdoc-autogen>GHOST TextForge and RagLog Logging Requirements</sdoc-autogen></div>
+</div><span style="position: absolute; left: 0;" id="GHOST-LOG" data-uid="GHOST-LOG" data-anchor="GHOST-LOG"></span>
+  </h1>
+
+  
+
+  <sdoc-meta>
+    <sdoc-meta-label
+  data-testid="document-config-uid-label">UID:</sdoc-meta-label>
+<sdoc-meta-field
+  data-testid="document-config-uid-field"
+  data-field-name="UID"
+>
+  <div
+    id="doc-field-ab63f6e7bdbc4a7bb04d0ccd8948e7da-UID"
+  ><sdoc-autogen>GHOST-LOG</sdoc-autogen></div>
+</sdoc-meta-field><sdoc-meta-label
+  data-testid="document-config-version-label">VERSION:</sdoc-meta-label>
+<sdoc-meta-field
+  data-testid="document-config-version-field"
+  data-field-name="VERSION"
+>
+  <div
+    id="doc-field-ab63f6e7bdbc4a7bb04d0ccd8948e7da-VERSION"
+  ><sdoc-autogen>0.1-draft</sdoc-autogen></div>
+</sdoc-meta-field><sdoc-meta-label
+  data-testid="document-config-classification-label">CLASSIFICATION:</sdoc-meta-label>
+<sdoc-meta-field
+  data-testid="document-config-classification-field"
+  data-field-name="CLASSIFICATION"
+>
+  <div
+    id="doc-field-ab63f6e7bdbc4a7bb04d0ccd8948e7da-CLASSIFICATION"
+  ></div>
+</sdoc-meta-field><sdoc-meta-label
+  data-testid="document-config-prefix-label">PREFIX:</sdoc-meta-label>
+<sdoc-meta-field
+  data-testid="document-config-prefix-field"
+  data-field-name="PREFIX"
+>
+  <div
+    id="doc-field-ab63f6e7bdbc4a7bb04d0ccd8948e7da-PREFIX"
+  ></div>
+</sdoc-meta-field></sdoc-meta>
+
+</sdoc-node>
+
+        
+        
+        
+        <table class="content-view-table" js-table_view_edit-table>
+
+          
+          <thead class="content-view-table_sticky-header">
+            <tr>
+              <th class="content-view-th" data-testid="col-header-Type">
+                <div class="content-view-th__content">
+                  <span class="content-view-th__label">Type</span>
+                  <button class="content-view-th__sort-btn" aria-label="Sort by Type"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                </div>
+              </th>
+              <th class="content-view-th" data-testid="col-header-Level">
+                <div class="content-view-th__content">
+                  <span class="content-view-th__label">Level</span>
+                  <button class="content-view-th__sort-btn" aria-label="Sort by Level"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                </div>
+              </th><th class="content-view-th" data-testid="col-header-UID">
+                  <div class="content-view-th__content">
+                    <span class="content-view-th__label">UID</span>
+                    <button class="content-view-th__sort-btn" aria-label="Sort by UID"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                  </div>
+                </th><th class="content-view-th" data-testid="col-header-PREFIX">
+                  <div class="content-view-th__content">
+                    <span class="content-view-th__label">PREFIX</span>
+                    <button class="content-view-th__sort-btn" aria-label="Sort by PREFIX"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                  </div>
+                </th><th class="content-view-th" data-testid="col-header-STATUS">
+                  <div class="content-view-th__content">
+                    <span class="content-view-th__label">STATUS</span>
+                    <button class="content-view-th__sort-btn" aria-label="Sort by STATUS"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                  </div>
+                </th><th class="content-view-th" data-testid="col-header-TAGS">
+                  <div class="content-view-th__content">
+                    <span class="content-view-th__label">TAGS</span>
+                    <button class="content-view-th__sort-btn" aria-label="Sort by TAGS"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                  </div>
+                </th><th class="content-view-th" data-testid="col-header-REFS">
+                  <div class="content-view-th__content">
+                    <span class="content-view-th__label">REFS</span>
+                    <button class="content-view-th__sort-btn" aria-label="Sort by REFS"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                  </div>
+                </th><th class="content-view-th" data-testid="col-header-Title">
+                  <div class="content-view-th__content">
+                    <span class="content-view-th__label">Title</span>
+                    <button class="content-view-th__sort-btn" aria-label="Sort by Title"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                  </div>
+                </th><th class="content-view-th" data-testid="col-header-Statement">
+                  <div class="content-view-th__content">
+                    <span class="content-view-th__label">Statement</span>
+                    <button class="content-view-th__sort-btn" aria-label="Sort by Statement"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                  </div>
+                </th><th class="content-view-th" data-testid="col-header-Rationale">
+                  <div class="content-view-th__content">
+                    <span class="content-view-th__label">Rationale</span>
+                    <button class="content-view-th__sort-btn" aria-label="Sort by Rationale"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                  </div>
+                </th><th class="content-view-th" data-testid="col-header-Comment">
+                  <div class="content-view-th__content">
+                    <span class="content-view-th__label">Comment</span>
+                    <button class="content-view-th__sort-btn" aria-label="Sort by Comment"><svg
+  class="svg_icon icon_sort"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <g class="sort-none">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+  <g class="sort-desc">
+    <polyline points="5 10 8 13 11 10"></polyline>
+    <line x1="8" y1="5" x2="8" y2="13"></line>
+  </g>
+  <g class="sort-asc">
+    <line x1="8" y1="11" x2="8" y2="3"></line>
+    <polyline points="5 6 8 3 11 6"></polyline>
+  </g>
+</svg></button>
+                  </div>
+                </th></tr>
+          </thead>
+
+          
+          <tbody id="table-content-body" data-testid="table-content-body">
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="a27455eb64464726b563bd56e1c2ba86"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-a27455eb64464726b563bd56e1c2ba86-LEVEL" class="content-view-td content-view-td-level">
+    1
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-a27455eb64464726b563bd56e1c2ba86-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-a27455eb64464726b563bd56e1c2ba86-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-a27455eb64464726b563bd56e1c2ba86-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-a27455eb64464726b563bd56e1c2ba86-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="1-1-Purpose"
+  data-anchor="1-1-Purpose"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>1. Purpose</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="0d3bbaf3f70a4bdc8f42c554bdd023c1"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-0d3bbaf3f70a4bdc8f42c554bdd023c1-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-0d3bbaf3f70a4bdc8f42c554bdd023c1-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-0d3bbaf3f70a4bdc8f42c554bdd023c1-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-0d3bbaf3f70a4bdc8f42c554bdd023c1-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Defines the TextForge/RagLog functional logging subsystem and its observability role, including TextForge facade, TextSink base, FileSink, CliSink, GUISink, RagLog public functions, sink routing, type/sensitivity filtering, developer diagnostics, runtime log display, and future hardening.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="29d5a99f3c1b4fdbac053ab9daca909e"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-29d5a99f3c1b4fdbac053ab9daca909e-LEVEL" class="content-view-td content-view-td-level">
+    2
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-29d5a99f3c1b4fdbac053ab9daca909e-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-29d5a99f3c1b4fdbac053ab9daca909e-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-29d5a99f3c1b4fdbac053ab9daca909e-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-29d5a99f3c1b4fdbac053ab9daca909e-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="2-2-Scope-and-Boundary"
+  data-anchor="2-2-Scope-and-Boundary"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>2. Scope and Boundary</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="REQUIREMENT" data-node-mid="ec1f54f6c23e4710a25adc887ecf7f75"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>REQUIREMENT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-ec1f54f6c23e4710a25adc887ecf7f75-LEVEL" class="content-view-td content-view-td-level">
+    2.1
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-ec1f54f6c23e4710a25adc887ecf7f75-UID" wrapper-field-type="contenteditable"><sdoc-autogen>GHOST-LOG-ROOT</sdoc-autogen>
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="STATUS"
+>
+  <div id="cell-ec1f54f6c23e4710a25adc887ecf7f75-STATUS" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="TAGS"
+>
+  <div id="cell-ec1f54f6c23e4710a25adc887ecf7f75-TAGS" wrapper-field-type="contenteditable">
+  </div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-ec1f54f6c23e4710a25adc887ecf7f75-RELATIONS" wrapper-field-type="contenteditable">
+  Parents:
+  <ul class="requirement__link">
+      <li>
+        <a class="requirement__link-parent"
+           href="../strictdoc/90_quality_governance_and_observability-TABLE.html#GHOST-QGO-ROOT"
+        >
+            <span class="requirement__parent-uid">GHOST-QGO-ROOT</span>
+          GHOST Quality, Governance, and Observability Scope
+        </a>
+      </li>
+  </ul>
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-ec1f54f6c23e4710a25adc887ecf7f75-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="GHOST-LOG-ROOT"
+  data-anchor="GHOST-LOG-ROOT"
+  node-role="requirement"
+  data-uid="GHOST-LOG-ROOT"
+  
+  
+>
+  
+  <div class="anchor_block" data-testid="anchor_hover_button">
+    
+      
+<div
+  class="anchor_button"
+  title="Click to copy"
+  data-testid="section-anchor-button"
+  data-copy-clipboard-target="button"
+  data-anchor-id="GHOST-LOG-ROOT"
+>
+  <span
+    class="anchor_base_icon"
+    style="display: contents; line-height: 0.1;"
+    data-copy-clipboard-target="copyIcon"
+  >
+    <span class="svg_icon_not_hover_visible"><svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="8" cy="3" r="1"></circle>
+  <line x1="8" y1="4" x2="8" y2="14.5"></line>
+  <path d="M5.5,6 C5.5,6 7,6 10.5,6 C10.5,6 5.5,6 5.5,6 Z"/>
+  <path d="M2,11 C3,10 3.5,9.5 3.5,9.5 C3.5,12 5,13 8,13 C11,13 12.5,12 12.5,9.5 C12.5,9.5 13,10 14,11"/>
+</svg></span>
+    <span class="svg_icon_hover_visible"><svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M8,2 L12,2 C13,2 14,3 14,4 L14,8 C14,9 13,10 12,10 L8,10 C7,10 6,9 6,8 L6,4 C6,3 7,2 8,2 Z"/>
+  <path d="M10,12 C10,13 9,14 8,14 L4,14 C3,14 2,13 2,12 L2,8 C2,7 3,6 4,6"/>
+</svg></span>
+  </span>
+  <span
+    class="anchor_check_icon"
+    style="display: none; line-height: 0.1;"
+    data-copy-clipboard-target="doneIcon"
+  >
+    <svg
+  class="svg_icon"
+  viewBox="0 0 16 16"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2.5,8.5 C2.5,8.5 3.5,9.5 6,12 C11,7 13.5,4.5 13.5,4.5" />
+</svg>
+  </span>
+  <div class="copy_to_clipboard-cover" data-copy-clipboard-target="cover"></div>
+  <span class="anchor_button_text">GHOST-LOG-ROOT</span>
+</div>
+    </div></sdoc-anchor>
+<sdoc-autogen>GHOST TextForge and RagLog Logging Scope</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-ec1f54f6c23e4710a25adc887ecf7f75-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>This file is a draft child requirement file in the GHOST StrictDoc requirement tree.<br/>
+<br/>
+It defines ownership, scope, and placeholder headings for this capability area. Detailed atomic requirements shall be migrated here from legacy requirements, implementation status, architecture notes, UML files, and code evidence after human approval.<br/>
+<br/>
+This file shall not duplicate detailed requirements owned by sibling files.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="RATIONALE"
+          >
+            <div id="cell-ec1f54f6c23e4710a25adc887ecf7f75-RATIONALE" wrapper-field-type="contenteditable"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="COMMENT"
+          >
+            <div id="cell-ec1f54f6c23e4710a25adc887ecf7f75-COMMENT" wrapper-field-type="comments"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="9654d6a9e668494bb6e84fae3a748a19"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-9654d6a9e668494bb6e84fae3a748a19-LEVEL" class="content-view-td content-view-td-level">
+    3
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-9654d6a9e668494bb6e84fae3a748a19-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-9654d6a9e668494bb6e84fae3a748a19-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-9654d6a9e668494bb6e84fae3a748a19-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-9654d6a9e668494bb6e84fae3a748a19-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3-3-Initial-Topic-Headings"
+  data-anchor="3-3-Initial-Topic-Headings"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3. Initial Topic Headings</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="cf11cf96a7294ccb90e9da50d8bc8a2b"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-cf11cf96a7294ccb90e9da50d8bc8a2b-LEVEL" class="content-view-td content-view-td-level">
+    3.1
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-cf11cf96a7294ccb90e9da50d8bc8a2b-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-cf11cf96a7294ccb90e9da50d8bc8a2b-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-cf11cf96a7294ccb90e9da50d8bc8a2b-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-cf11cf96a7294ccb90e9da50d8bc8a2b-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.1-3-1-TextForge-RagLog-Functional-Logging-Subsystem"
+  data-anchor="3.1-3-1-TextForge-RagLog-Functional-Logging-Subsystem"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.1. TextForge / RagLog Functional Logging Subsystem</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="1aac2d19dd5c437eb4570f9afe02160c"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-1aac2d19dd5c437eb4570f9afe02160c-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-1aac2d19dd5c437eb4570f9afe02160c-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-1aac2d19dd5c437eb4570f9afe02160c-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-1aac2d19dd5c437eb4570f9afe02160c-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="4160113e9745466ea779b2d0cbccde14"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-4160113e9745466ea779b2d0cbccde14-LEVEL" class="content-view-td content-view-td-level">
+    3.2
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-4160113e9745466ea779b2d0cbccde14-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-4160113e9745466ea779b2d0cbccde14-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-4160113e9745466ea779b2d0cbccde14-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-4160113e9745466ea779b2d0cbccde14-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.2-3-2-TextForge-Facade"
+  data-anchor="3.2-3-2-TextForge-Facade"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.2. TextForge Facade</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="ee861f3b3fe84887b05ba6ba682083b2"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-ee861f3b3fe84887b05ba6ba682083b2-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-ee861f3b3fe84887b05ba6ba682083b2-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-ee861f3b3fe84887b05ba6ba682083b2-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-ee861f3b3fe84887b05ba6ba682083b2-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="e1869199cfee42ec99cbbf765890cea7"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-e1869199cfee42ec99cbbf765890cea7-LEVEL" class="content-view-td content-view-td-level">
+    3.3
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-e1869199cfee42ec99cbbf765890cea7-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-e1869199cfee42ec99cbbf765890cea7-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-e1869199cfee42ec99cbbf765890cea7-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-e1869199cfee42ec99cbbf765890cea7-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.3-3-3-TextSink-Base"
+  data-anchor="3.3-3-3-TextSink-Base"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.3. TextSink Base</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="124f36ad21dd40e9bb9a95b1eabd0299"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-124f36ad21dd40e9bb9a95b1eabd0299-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-124f36ad21dd40e9bb9a95b1eabd0299-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-124f36ad21dd40e9bb9a95b1eabd0299-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-124f36ad21dd40e9bb9a95b1eabd0299-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="8a20052c750042138189a6cc511151e1"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-8a20052c750042138189a6cc511151e1-LEVEL" class="content-view-td content-view-td-level">
+    3.4
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-8a20052c750042138189a6cc511151e1-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-8a20052c750042138189a6cc511151e1-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-8a20052c750042138189a6cc511151e1-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-8a20052c750042138189a6cc511151e1-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.4-3-4-FileSink"
+  data-anchor="3.4-3-4-FileSink"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.4. FileSink</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="2bc0649fea6946138350126caa901dd6"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-2bc0649fea6946138350126caa901dd6-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-2bc0649fea6946138350126caa901dd6-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-2bc0649fea6946138350126caa901dd6-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-2bc0649fea6946138350126caa901dd6-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="d033f924331a4c6c9d04a6b1094581bf"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-d033f924331a4c6c9d04a6b1094581bf-LEVEL" class="content-view-td content-view-td-level">
+    3.5
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-d033f924331a4c6c9d04a6b1094581bf-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-d033f924331a4c6c9d04a6b1094581bf-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-d033f924331a4c6c9d04a6b1094581bf-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-d033f924331a4c6c9d04a6b1094581bf-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.5-3-5-CliSink"
+  data-anchor="3.5-3-5-CliSink"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.5. CliSink</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="67c3e780720043ffb088dfd4a3db1108"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-67c3e780720043ffb088dfd4a3db1108-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-67c3e780720043ffb088dfd4a3db1108-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-67c3e780720043ffb088dfd4a3db1108-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-67c3e780720043ffb088dfd4a3db1108-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="911451df3a8c49c4ba2d14e64f9d19bd"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-911451df3a8c49c4ba2d14e64f9d19bd-LEVEL" class="content-view-td content-view-td-level">
+    3.6
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-911451df3a8c49c4ba2d14e64f9d19bd-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-911451df3a8c49c4ba2d14e64f9d19bd-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-911451df3a8c49c4ba2d14e64f9d19bd-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-911451df3a8c49c4ba2d14e64f9d19bd-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.6-3-6-GUISink"
+  data-anchor="3.6-3-6-GUISink"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.6. GUISink</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="d96fb891ee204c65984c5af774bc4647"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-d96fb891ee204c65984c5af774bc4647-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-d96fb891ee204c65984c5af774bc4647-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-d96fb891ee204c65984c5af774bc4647-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-d96fb891ee204c65984c5af774bc4647-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="5bbb8ec75c2c44d4865bdeeef181f7c1"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-5bbb8ec75c2c44d4865bdeeef181f7c1-LEVEL" class="content-view-td content-view-td-level">
+    3.7
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-5bbb8ec75c2c44d4865bdeeef181f7c1-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-5bbb8ec75c2c44d4865bdeeef181f7c1-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-5bbb8ec75c2c44d4865bdeeef181f7c1-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-5bbb8ec75c2c44d4865bdeeef181f7c1-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.7-3-7-RagLog-Public-Functions"
+  data-anchor="3.7-3-7-RagLog-Public-Functions"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.7. RagLog Public Functions</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="271bd5c95614450cb27e742ec422cc12"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-271bd5c95614450cb27e742ec422cc12-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-271bd5c95614450cb27e742ec422cc12-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-271bd5c95614450cb27e742ec422cc12-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-271bd5c95614450cb27e742ec422cc12-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="0c2fce1c458f49539fe96c8dd4c0f072"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-0c2fce1c458f49539fe96c8dd4c0f072-LEVEL" class="content-view-td content-view-td-level">
+    3.8
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-0c2fce1c458f49539fe96c8dd4c0f072-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-0c2fce1c458f49539fe96c8dd4c0f072-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-0c2fce1c458f49539fe96c8dd4c0f072-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-0c2fce1c458f49539fe96c8dd4c0f072-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.8-3-8-LogALL"
+  data-anchor="3.8-3-8-LogALL"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.8. LogALL</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="ce0b75f04b94462da0a62c1e14f6b8e7"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-ce0b75f04b94462da0a62c1e14f6b8e7-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-ce0b75f04b94462da0a62c1e14f6b8e7-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-ce0b75f04b94462da0a62c1e14f6b8e7-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-ce0b75f04b94462da0a62c1e14f6b8e7-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="1636bc57966e4ca3be697c249a653a16"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-1636bc57966e4ca3be697c249a653a16-LEVEL" class="content-view-td content-view-td-level">
+    3.9
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-1636bc57966e4ca3be697c249a653a16-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-1636bc57966e4ca3be697c249a653a16-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-1636bc57966e4ca3be697c249a653a16-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-1636bc57966e4ca3be697c249a653a16-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.9-3-9-LogNoGUI"
+  data-anchor="3.9-3-9-LogNoGUI"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.9. LogNoGUI</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="0204253aca3a46acb22ad6e27260da70"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-0204253aca3a46acb22ad6e27260da70-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-0204253aca3a46acb22ad6e27260da70-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-0204253aca3a46acb22ad6e27260da70-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-0204253aca3a46acb22ad6e27260da70-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="325040f4fada475ab30fb6cdbd6df896"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-325040f4fada475ab30fb6cdbd6df896-LEVEL" class="content-view-td content-view-td-level">
+    3.10
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-325040f4fada475ab30fb6cdbd6df896-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-325040f4fada475ab30fb6cdbd6df896-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-325040f4fada475ab30fb6cdbd6df896-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-325040f4fada475ab30fb6cdbd6df896-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.10-3-10-LogConf"
+  data-anchor="3.10-3-10-LogConf"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.10. LogConf</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="7a4955edcb76483db07f8485946cd32a"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-7a4955edcb76483db07f8485946cd32a-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-7a4955edcb76483db07f8485946cd32a-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-7a4955edcb76483db07f8485946cd32a-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-7a4955edcb76483db07f8485946cd32a-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="02bbed5632d64b3ebbe8a721412cf809"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-02bbed5632d64b3ebbe8a721412cf809-LEVEL" class="content-view-td content-view-td-level">
+    3.11
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-02bbed5632d64b3ebbe8a721412cf809-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-02bbed5632d64b3ebbe8a721412cf809-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-02bbed5632d64b3ebbe8a721412cf809-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-02bbed5632d64b3ebbe8a721412cf809-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.11-3-11-LogDeveloper"
+  data-anchor="3.11-3-11-LogDeveloper"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.11. LogDeveloper</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="9f79348368304cf69be7354e1047514d"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-9f79348368304cf69be7354e1047514d-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-9f79348368304cf69be7354e1047514d-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-9f79348368304cf69be7354e1047514d-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-9f79348368304cf69be7354e1047514d-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="33fb21df7cf448b690d1ae882c22b412"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-33fb21df7cf448b690d1ae882c22b412-LEVEL" class="content-view-td content-view-td-level">
+    3.12
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-33fb21df7cf448b690d1ae882c22b412-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-33fb21df7cf448b690d1ae882c22b412-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-33fb21df7cf448b690d1ae882c22b412-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-33fb21df7cf448b690d1ae882c22b412-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.12-3-12-GUI-CLI-File-Archive-Sink-Routing"
+  data-anchor="3.12-3-12-GUI-CLI-File-Archive-Sink-Routing"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.12. GUI / CLI / File / Archive Sink Routing</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="59ab58ba0a7640e2880b448c8b66b233"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-59ab58ba0a7640e2880b448c8b66b233-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-59ab58ba0a7640e2880b448c8b66b233-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-59ab58ba0a7640e2880b448c8b66b233-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-59ab58ba0a7640e2880b448c8b66b233-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="d5b505fb0c344118b1c0cb5821d2fefa"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-d5b505fb0c344118b1c0cb5821d2fefa-LEVEL" class="content-view-td content-view-td-level">
+    3.13
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-d5b505fb0c344118b1c0cb5821d2fefa-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-d5b505fb0c344118b1c0cb5821d2fefa-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-d5b505fb0c344118b1c0cb5821d2fefa-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-d5b505fb0c344118b1c0cb5821d2fefa-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.13-3-13-Type-and-Sensitivity-Filtering"
+  data-anchor="3.13-3-13-Type-and-Sensitivity-Filtering"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.13. Type and Sensitivity Filtering</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="45235f3102be4cd5bc3d7f03eea9edaa"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-45235f3102be4cd5bc3d7f03eea9edaa-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-45235f3102be4cd5bc3d7f03eea9edaa-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-45235f3102be4cd5bc3d7f03eea9edaa-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-45235f3102be4cd5bc3d7f03eea9edaa-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="eb4a78c774c44d1faf8f735c4231bfeb"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-eb4a78c774c44d1faf8f735c4231bfeb-LEVEL" class="content-view-td content-view-td-level">
+    3.14
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-eb4a78c774c44d1faf8f735c4231bfeb-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-eb4a78c774c44d1faf8f735c4231bfeb-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-eb4a78c774c44d1faf8f735c4231bfeb-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-eb4a78c774c44d1faf8f735c4231bfeb-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.14-3-14-Developer-Diagnostics"
+  data-anchor="3.14-3-14-Developer-Diagnostics"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.14. Developer Diagnostics</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="7d75a906efbd444983282b8a497963c3"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-7d75a906efbd444983282b8a497963c3-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-7d75a906efbd444983282b8a497963c3-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-7d75a906efbd444983282b8a497963c3-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-7d75a906efbd444983282b8a497963c3-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="f01eedc6131e402f87d5162b490cefb3"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-f01eedc6131e402f87d5162b490cefb3-LEVEL" class="content-view-td content-view-td-level">
+    3.15
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-f01eedc6131e402f87d5162b490cefb3-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-f01eedc6131e402f87d5162b490cefb3-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-f01eedc6131e402f87d5162b490cefb3-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-f01eedc6131e402f87d5162b490cefb3-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.15-3-15-Runtime-Log-Display-Support"
+  data-anchor="3.15-3-15-Runtime-Log-Display-Support"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.15. Runtime Log Display Support</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="96da92d5032d42f5a96edbe1fd53e5e2"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-96da92d5032d42f5a96edbe1fd53e5e2-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-96da92d5032d42f5a96edbe1fd53e5e2-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-96da92d5032d42f5a96edbe1fd53e5e2-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-96da92d5032d42f5a96edbe1fd53e5e2-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="b2d1809f46454e55a2fa8a7933464072"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-b2d1809f46454e55a2fa8a7933464072-LEVEL" class="content-view-td content-view-td-level">
+    3.16
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-b2d1809f46454e55a2fa8a7933464072-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-b2d1809f46454e55a2fa8a7933464072-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-b2d1809f46454e55a2fa8a7933464072-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-b2d1809f46454e55a2fa8a7933464072-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.16-3-16-Retention-Rotation-Future-Hardening"
+  data-anchor="3.16-3-16-Retention-Rotation-Future-Hardening"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.16. Retention / Rotation Future Hardening</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="d4c85b9a598e4c17955a80c89483a182"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-d4c85b9a598e4c17955a80c89483a182-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-d4c85b9a598e4c17955a80c89483a182-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-d4c85b9a598e4c17955a80c89483a182-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-d4c85b9a598e4c17955a80c89483a182-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="SECTION" data-node-mid="e7b380cdc2a94884a24072cd323e7616"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>SECTION</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-e7b380cdc2a94884a24072cd323e7616-LEVEL" class="content-view-td content-view-td-level">
+    3.17
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-e7b380cdc2a94884a24072cd323e7616-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="PREFIX"
+>
+  <div id="cell-e7b380cdc2a94884a24072cd323e7616-PREFIX" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-e7b380cdc2a94884a24072cd323e7616-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title"
+              data-field-name="TITLE"
+          >
+            <div id="cell-e7b380cdc2a94884a24072cd323e7616-TITLE" wrapper-field-type="contenteditable"><sdoc-anchor
+  id="3.17-3-17-AWS-Persistence-Future-Hardening"
+  data-anchor="3.17-3-17-AWS-Persistence-Future-Hardening"
+  node-role="requirement"
+  
+  
+>
+  </sdoc-anchor>
+<sdoc-autogen>3.17. AWS Persistence Future Hardening</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="STATEMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+
+  
+  
+  
+    <tr data-row-type="TEXT" data-node-mid="330123fc804247dfbd281f20793b8705"><td class="content-view-td content-view-td-type">
+  <div class="content-view-td-type__content">
+    <span>TEXT</span>
+    <div class="content-view-td-type__actions">
+      
+    </div>
+  </div>
+</td>
+  <td id="cell-330123fc804247dfbd281f20793b8705-LEVEL" class="content-view-td content-view-td-level content-view-td--dimmed">
+    <div class="content-view-td--dimmed_tips"></div>
+  </td>
+<td class="content-view-td content-view-td-meta"
+    data-field-name="UID"
+>
+  <div id="cell-330123fc804247dfbd281f20793b8705-UID" wrapper-field-type="contenteditable">
+  </div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="PREFIX">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="STATUS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+
+<td class="content-view-td content-view-td-meta content-view-td--dimmed"
+    data-field-name="TAGS">
+  <div class="content-view-td--dimmed_tips"></div>
+</td>
+          <td class="content-view-td content-view-td-meta content-view-td-related"
+              data-field-name="RELATIONS"
+          >
+            <div id="cell-330123fc804247dfbd281f20793b8705-RELATIONS" wrapper-field-type="contenteditable">
+            </div>
+          </td>
+          <td class="content-view-td content-view-td-title content-view-td--dimmed"
+              data-field-name="TITLE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content"
+              data-field-name="STATEMENT"
+          >
+            <div id="cell-330123fc804247dfbd281f20793b8705-STATEMENT" wrapper-field-type="contenteditable"><sdoc-autogen>Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.<br/>
+</sdoc-autogen></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="RATIONALE">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+          <td class="content-view-td content-view-td-content content-view-td--dimmed"
+              data-field-name="COMMENT">
+            <div class="content-view-td--dimmed_tips"></div>
+          </td>
+
+    </tr>
+
+  
+  
+  
+</tbody>
+        </table>
+      </div>
+      
+  </div>
+  
+
+    </main>
+
+    <footer class="layout_footer">
+      <div class="footer">
+        Built with
+        <a
+          class="strictdoc__link"
+          href="https://github.com/strictdoc-project/strictdoc"
+          target="_blank"
+        >StrictDoc</a>
+        <a
+          class="strictdoc__version"
+          href="https://github.com/strictdoc-project/strictdoc/releases/tag/0.25.0"
+          target="_blank"
+        >
+          <svg height="16" viewBox="0 0 16 16" version="1.1" width="16" >
+            <path fill-rule="evenodd" d="M2.5 7.775V2.75a.25.25 0 01.25-.25h5.025a.25.25 0 01.177.073l6.25 6.25a.25.25 0 010 .354l-5.025 5.025a.25.25 0 01-.354 0l-6.25-6.25a.25.25 0 01-.073-.177zm-1.5 0V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 010 2.474l-5.026 5.026a1.75 1.75 0 01-2.474 0l-6.25-6.25A1.75 1.75 0 011 7.775zM6 5a1 1 0 100 2 1 1 0 000-2z"/>
+          </svg>
+          0.25.0
+        </a>
+      </div>
+    </footer>
+
+    <aside class="layout_aside">
+      
+    </aside>
+
+  </div>
+  
+  <div id="modal"></div>
+  <div id="confirm"></div>
+  
+
+</body>
+</html>

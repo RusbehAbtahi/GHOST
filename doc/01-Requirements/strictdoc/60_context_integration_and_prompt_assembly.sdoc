@@ -1,0 +1,94 @@
+[DOCUMENT]
+TITLE: GHOST Context Integration and Prompt Assembly Requirements
+UID: GHOST-CONTEXT-INTEGRATION-PROMPT-ASSEMBLY
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose
+
+[TEXT]
+STATEMENT: >>>
+Defines the integration of prepared user instructions, Knowledge Context, Memory Context, applicable rules, and final prompt-assembly artifacts.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Scope and Boundary
+
+[REQUIREMENT]
+UID: GHOST-CIPA-ROOT
+TITLE: GHOST Context Integration and Prompt Assembly Scope
+STATEMENT: >>>
+This file is a draft parent requirement file in the GHOST StrictDoc requirement tree.
+
+It defines ownership, scope, and placeholder headings for Context Integration and Prompt Assembly.
+
+Detailed SuperPrompt projection, context validation, conflict handling, Hard Rule integration, and finalization requirements shall be owned by the corresponding child files.
+
+This file shall not duplicate detailed requirements owned by child or sibling files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Initial Topic Headings
+
+[[SECTION]]
+TITLE: 3.1. Capability Inputs and Outputs
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation and approved architecture.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2. Knowledge and Memory Context Integration
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation and approved architecture.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.3. Prompt Assembly Ownership
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation and approved architecture.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.4. Child Requirement Ownership
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Detailed requirements for files 61, 62, and 63 shall be added after their current and future capability boundaries have been approved.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.5. Current and Future Boundary
+
+[TEXT]
+STATEMENT: >>>
+Placeholder section. Current implemented behavior and reserved future capabilities shall remain explicitly separated.
+<<<
+
+[[/SECTION]]
+
+[[/SECTION]]

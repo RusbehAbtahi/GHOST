@@ -1,0 +1,2165 @@
+[DOCUMENT]
+TITLE: GHOST Memory Recording and Files Requirements
+UID: GHOST-MEMORY-RECORDING-FILES
+VERSION: 0.1
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines durable MemoryRecord creation, memory-history persistence, editable metadata, SQLite mirroring, file lifecycle operations, and ChatGPT shared-link import.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-ROOT
+STATUS: Draft
+TITLE: Memory Recording and Files Scope
+STATEMENT: >>>
+GHOST shall record accepted input/output pairs as MemoryRecords, maintain one active memory history, persist stable bodies and current metadata through separate files, mirror metadata into SQLite, and provide controlled history-file operations.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST; current Python implementation paths may remain under ragstream.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-MEMORY-PARENT
+STATUS: Draft
+TITLE: Memory Management Parent
+STATEMENT: >>>
+Memory Recording and Files shall be governed by the authority model, capability boundaries, configuration governance, and sibling ownership defined in 50_memory_management.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-BOUNDARY
+STATUS: Draft
+TITLE: Recording and File Boundary
+STATEMENT: >>>
+This document shall own MemoryRecord structure, active-history state, capture actions, .ragmem persistence, .ragmeta.json persistence, SQLite metadata mirroring, history create/load/rename/delete operations, and current ChatGPT shared-link import.
+
+It shall not own semantic retrieval scoring, runtime compression, final Memory Context synthesis, or document Knowledge Management.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CURRENT-COMPONENTS
+STATUS: Draft
+TITLE: Current Recording Components
+STATEMENT: >>>
+The current capability shall be organized around MemoryRecord, MemoryManager, capture_memory_pair, MemoryFileManager, the ChatGPT shared-link importer, Streamlit file actions, and session initialization.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-DURABLE-FIRST
+STATUS: Draft
+TITLE: Durable Recording Priority
+STATEMENT: >>>
+Durable MemoryRecord creation shall complete before optional derivative vector ingestion is scheduled.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Implementation and Data Location Map
+
+[TEXT]
+STATEMENT: >>>
+The memory recording capability spans core models, storage operations, importers, GUI actions, and the data/memory hierarchy.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PATH-RECORD
+STATUS: Draft
+TITLE: MemoryRecord Path
+STATEMENT: >>>
+MemoryRecord implementation shall be traceable to ragstream/memory/memory_record.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PATH-MANAGER
+STATUS: Draft
+TITLE: MemoryManager Path
+STATEMENT: >>>
+Active history, persistence, and SQLite synchronization shall be traceable to ragstream/memory/memory_manager.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PATH-ACTIONS
+STATUS: Draft
+TITLE: Capture Action Path
+STATEMENT: >>>
+Reusable pair-capture workflow shall be traceable to ragstream/memory/memory_actions.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PATH-FILE-MANAGER
+STATUS: Draft
+TITLE: File Manager Path
+STATEMENT: >>>
+History-level create, load, rename, and delete operations shall be traceable to ragstream/memory/storage/memory_file_manager.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PATH-IMPORTERS
+STATUS: Draft
+TITLE: Importer Paths
+STATEMENT: >>>
+Current ChatGPT import behavior shall be traceable to ragstream/memory/importers/chatgpt_shared_link_importer.py and chatgpt_shared_link_importer_helpers.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PATH-UI
+STATUS: Draft
+TITLE: UI Wiring Paths
+STATEMENT: >>>
+Current manual-feed and file-action wiring shall be traceable to ragstream/app/ui_actions.py, ragstream/app/ui_actions_files.py, and ragstream/app/ui_streamlit.py.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-DATA-ROOT
+STATUS: Draft
+TITLE: Memory Data Root
+STATEMENT: >>>
+Current runtime memory data shall be rooted at data/memory/.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILES-ROOT
+STATUS: Draft
+TITLE: Memory Files Directory
+STATEMENT: >>>
+Memory history body and metadata files shall be stored under data/memory/files/.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-DATA-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-PATH
+STATUS: Draft
+TITLE: Memory SQLite Path
+STATEMENT: >>>
+The current metadata index shall be stored at data/memory/memory_index.sqlite3.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-DATA-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-VECTOR-BOUNDARY
+STATUS: Draft
+TITLE: Vector Directory Boundary
+STATEMENT: >>>
+data/memory/vector_db/ shall be owned by Memory Ingestion and Retrieval requirements rather than by durable file truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-DATA-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. MemoryRecord Identity and Field Model
+
+[TEXT]
+STATEMENT: >>>
+One MemoryRecord represents one accepted input/output memory unit and carries stable body plus current metadata in RAM.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-ID
+STATUS: Draft
+TITLE: Record Identifier
+STATEMENT: >>>
+Each new MemoryRecord shall receive a record_id; the current generated form shall be a UUID hexadecimal string when no record_id is supplied.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PARENT-ID
+STATUS: Draft
+TITLE: Parent Identifier
+STATEMENT: >>>
+MemoryRecord shall support an optional parent_id without using parent_id as the record identity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CREATED-UTC
+STATUS: Draft
+TITLE: Creation Timestamp
+STATEMENT: >>>
+MemoryRecord shall store created_at_utc in UTC ISO-8601 form with a Z suffix when generated by the current implementation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-INPUT
+STATUS: Draft
+TITLE: Input Text
+STATEMENT: >>>
+MemoryRecord shall preserve the accepted input_text as stable body content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-OUTPUT
+STATUS: Draft
+TITLE: Output Text
+STATEMENT: >>>
+MemoryRecord shall preserve the accepted output_text as stable body content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SOURCE
+STATUS: Draft
+TITLE: Source Field
+STATEMENT: >>>
+MemoryRecord shall preserve a source string identifying the capture or import origin.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-INPUT-HASH
+STATUS: Draft
+TITLE: Input Hash
+STATEMENT: >>>
+MemoryRecord shall store SHA-256 of input_text unless a persisted input_hash is supplied during loading.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-INPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-OUTPUT-HASH
+STATUS: Draft
+TITLE: Output Hash
+STATEMENT: >>>
+MemoryRecord shall store SHA-256 of output_text unless a persisted output_hash is supplied during loading.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-OUTPUT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-TAG
+STATUS: Draft
+TITLE: Record Tag
+STATEMENT: >>>
+MemoryRecord shall carry a current tag whose capture default is Green.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-TAG-CATALOG
+STATUS: Draft
+TITLE: Current Tag Catalog
+STATEMENT: >>>
+MemoryManager shall expose the current tag catalog Gold, Green, and Black.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-TAG
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-USER-KEYWORDS
+STATUS: Draft
+TITLE: User Keywords
+STATEMENT: >>>
+MemoryRecord shall store an ordered case-insensitively deduplicated list of non-empty user_keywords.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AUTO-KEYWORDS
+STATUS: Draft
+TITLE: Automatic Keywords
+STATEMENT: >>>
+MemoryRecord shall store automatic keywords generated from combined input/output text or loaded from persisted data.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PROJECT
+STATUS: Draft
+TITLE: Active Project Snapshot Name
+STATEMENT: >>>
+MemoryRecord shall support active_project_name as current metadata describing the project active during capture or import.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-SNAPSHOT
+STATUS: Draft
+TITLE: Embedded File Snapshot
+STATEMENT: >>>
+MemoryRecord shall support embedded_files_snapshot as an ordered list captured with the interaction.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SOURCE-MODE
+STATUS: Draft
+TITLE: Retrieval Source Mode
+STATEMENT: >>>
+MemoryRecord shall support retrieval_source_mode values QA, Q, or A; invalid or absent values shall normalize to QA.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-DIRECT-KEY
+STATUS: Draft
+TITLE: Direct Recall Key
+STATEMENT: >>>
+MemoryRecord shall support a trimmed direct_recall_key string whose capture default is empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-ACTIVEBRIEF-TITLE
+STATUS: Draft
+TITLE: ActiveBrief Title Field
+STATEMENT: >>>
+MemoryRecord shall support active_retrieval_brief_title as stable body content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-ACTIVEBRIEF-BODY
+STATUS: Draft
+TITLE: ActiveBrief Body Field
+STATEMENT: >>>
+MemoryRecord shall support active_retrieval_brief as stable body content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-ACTIVEBRIEF-CONTRIBUTORS
+STATUS: Draft
+TITLE: ActiveBrief Contributor Identifiers
+STATEMENT: >>>
+MemoryRecord shall support an ordered deduplicated active_retrieval_brief_contributor_ids list as stable body content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-LIST-NORMALIZATION
+STATUS: Draft
+TITLE: List Normalization
+STATEMENT: >>>
+MemoryRecord list normalization shall trim values, remove empty values, and remove case-insensitive duplicates while preserving first occurrence order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Automatic Keywords and Editable Metadata
+
+[TEXT]
+STATEMENT: >>>
+Automatic keywords are derivative metadata; user-facing edits modify metadata rather than stable Q/A body.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-YAKE
+STATUS: Draft
+TITLE: Current Automatic Keyword Generator
+STATEMENT: >>>
+The current automatic keyword generator shall attempt YAKE extraction over input_text and output_text combined.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-AUTO-KEYWORDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-YAKE-BASELINE
+STATUS: Draft
+TITLE: Current YAKE Baseline
+STATEMENT: >>>
+The current YAKE call shall use English, maximum n-gram length 3, deduplication limit 0.9, and top 5 results.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-YAKE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-YAKE-UNAVAILABLE
+STATUS: Draft
+TITLE: YAKE Unavailable Behavior
+STATEMENT: >>>
+If YAKE cannot be imported or keyword extraction fails, automatic keyword generation shall return an empty list without preventing MemoryRecord creation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-YAKE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-EDITABLE-FIELDS
+STATUS: Draft
+TITLE: Editable Metadata Fields
+STATEMENT: >>>
+Current editable per-record metadata shall include tag, user_keywords, retrieval_source_mode, and direct_recall_key.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-METADATA-UPDATE
+STATUS: Draft
+TITLE: Editable Metadata Update
+STATEMENT: >>>
+Updating editable metadata shall not change record_id, stable Q/A text, hashes, source, creation timestamp, or persisted ActiveBrief body fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-EDITABLE-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-GUI-TAG-VALIDATION
+STATUS: Draft
+TITLE: GUI Tag Validation
+STATEMENT: >>>
+MemoryManager.sync_gui_edits shall accept a tag update only when the value belongs to the current tag catalog.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-EDITABLE-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-GUI-KEYWORDS-TYPE
+STATUS: Draft
+TITLE: GUI Keyword Type Handling
+STATEMENT: >>>
+A non-list user_keywords value supplied to MemoryManager.sync_gui_edits shall normalize to an empty list.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-EDITABLE-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-GUI-SOURCE-MODE
+STATUS: Draft
+TITLE: GUI Source Mode Normalization
+STATEMENT: >>>
+GUI retrieval_source_mode shall normalize to QA, Q, or A, with invalid non-null values becoming QA.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-EDITABLE-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-GUI-DIRECT-KEY
+STATUS: Draft
+TITLE: GUI Direct Key Normalization
+STATEMENT: >>>
+GUI direct_recall_key shall be converted to a trimmed string when supplied.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-EDITABLE-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-GUI-CHANGE-DETECTION
+STATUS: Draft
+TITLE: Metadata Change Detection
+STATEMENT: >>>
+MemoryManager shall compare before and after index views and shall rewrite metadata and refresh SQLite only when at least one matched record changes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-EDITABLE-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-NO-AUTO-REINGEST-EDIT
+STATUS: Draft
+TITLE: No Current Automatic Vector Re-Ingestion after Edit
+STATEMENT: >>>
+Changing editable metadata through sync_gui_edits shall not currently schedule memory-vector re-ingestion by itself.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-EDITABLE-FIELDS
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Active History Initialization and Capture Workflow
+
+[TEXT]
+STATEMENT: >>>
+MemoryManager owns one active history, its record list, file names, metadata, SQLite path, and RAM-only pending-topic state.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-MANAGER-INIT
+STATUS: Draft
+TITLE: MemoryManager Initialization
+STATEMENT: >>>
+MemoryManager initialization shall create memory_root and files_root directories and initialize the SQLite schema.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-INIT-NO-FILE
+STATUS: Draft
+TITLE: No Automatic History File without Title
+STATEMENT: >>>
+Constructing MemoryManager with an empty title shall not create a .ragmem or .ragmeta.json history file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-MANAGER-INIT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-INIT-ID
+STATUS: Draft
+TITLE: Initial Manager Identifier
+STATEMENT: >>>
+MemoryManager shall hold a generated file_id even before an active history file is created.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-MANAGER-INIT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-START-TITLE
+STATUS: Draft
+TITLE: New History Title Validation
+STATEMENT: >>>
+start_new_history shall reject an empty title.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-MANAGER-INIT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-START-RESET
+STATUS: Draft
+TITLE: New History State Reset
+STATEMENT: >>>
+start_new_history shall generate a new file_id and reset records, metainfo, pending_activebrief_topic_buffer, and b_file_created.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-START-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILENAME-PATTERN
+STATUS: Draft
+TITLE: History Filename Pattern
+STATEMENT: >>>
+The current new-history filename stem shall combine local date/time to minute precision with a sanitized title.
+
+The paired filenames shall end in .ragmem and .ragmeta.json.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-START-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SAFE-TITLE
+STATUS: Draft
+TITLE: Filename Title Sanitization
+STATEMENT: >>>
+Filename title sanitation shall replace non-alphanumeric/non-dot/non-underscore/non-hyphen sequences with hyphens, collapse repeated hyphens, strip boundary punctuation, and use Untitled when empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILENAME-PATTERN
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILENAME-COLLISION
+STATUS: Draft
+TITLE: Filename Collision Handling
+STATEMENT: >>>
+When the generated .ragmem filename already exists, the stem shall append the first eight characters of file_id before assigning paired filenames.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILENAME-PATTERN
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CAPTURE-ACTION
+STATUS: Draft
+TITLE: Reusable Capture Action
+STATEMENT: >>>
+capture_memory_pair shall provide the reusable workflow used by manual memory feed and other callers.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CAPTURE-INPUT
+STATUS: Draft
+TITLE: Capture Input Validation
+STATEMENT: >>>
+capture_memory_pair shall return unsuccessful status and create no record when input_text is empty after trimming.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-ACTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CAPTURE-OUTPUT
+STATUS: Draft
+TITLE: Capture Output Validation
+STATEMENT: >>>
+capture_memory_pair shall return unsuccessful status and create no record when output_text is empty after trimming.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-ACTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CAPTURE-SYNC-FIRST
+STATUS: Draft
+TITLE: Synchronize Existing Edits Before Capture
+STATEMENT: >>>
+capture_memory_pair shall synchronize supplied GUI record edits before creating the new MemoryRecord.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-ACTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CAPTURE-DEFAULTS
+STATUS: Draft
+TITLE: Captured Record Defaults
+STATEMENT: >>>
+MemoryManager.capture_pair shall create the new record with tag Green, retrieval_source_mode QA, and empty direct_recall_key.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-ACTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AUTO-HISTORY
+STATUS: Draft
+TITLE: Automatic History on First Capture
+STATEMENT: >>>
+If no active title exists, the first capture shall start a history whose current automatic title is memory-record.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-ACTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-ACTIVEBRIEF-BEFORE-APPEND
+STATUS: Draft
+TITLE: ActiveBrief Before Durable Append
+STATEMENT: >>>
+MemoryManager shall attempt ActiveRetrievalBrief creation before the new record is appended to .ragmem so the resulting brief fields can be included in the stable body.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-ACTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CAPTURE-PERSIST-SEQUENCE
+STATUS: Draft
+TITLE: Capture Persistence Sequence
+STATEMENT: >>>
+After ActiveBrief processing, MemoryManager shall append the record to its in-memory list, append one record block to .ragmem, rewrite .ragmeta.json, and refresh SQLite.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-ACTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CAPTURE-RETURN
+STATUS: Draft
+TITLE: Capture Result
+STATEMENT: >>>
+A successful capture action shall return success, the MemoryRecord, record_id, file_id, and active .ragmem filename.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-ACTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-INGEST-SCHEDULE
+STATUS: Draft
+TITLE: Optional Ingestion Scheduling
+STATEMENT: >>>
+When a memory_ingestion_manager is supplied, capture_memory_pair shall attempt to schedule asynchronous ingestion after durable capture completes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-ACTION
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-INGEST-SCHEDULE-FAIL
+STATUS: Draft
+TITLE: Ingestion Scheduling Failure
+STATEMENT: >>>
+If vector-ingestion scheduling raises an exception, the action shall retain the saved MemoryRecord and report a warning rather than undo durable capture.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-INGEST-SCHEDULE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Stable .ragmem Body Persistence
+
+[TEXT]
+STATEMENT: >>>
+The .ragmem file is an append-oriented sequence of explicit JSON record blocks containing stable body fields.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-AUTHORITY
+STATUS: Draft
+TITLE: .ragmem Stable Body Authority
+STATEMENT: >>>
+The .ragmem file shall remain the authority for stable MemoryRecord body fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-MARKERS
+STATUS: Draft
+TITLE: Record Block Markers
+STATEMENT: >>>
+Each .ragmem record block shall be delimited by the exact current start and end markers defined by MemoryRecord.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-JSON
+STATUS: Draft
+TITLE: Record Block JSON
+STATEMENT: >>>
+The content between record markers shall be one UTF-8 JSON object serialized with ensure_ascii disabled and indentation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-FIELDS
+STATUS: Draft
+TITLE: Stable Body Fields
+STATEMENT: >>>
+The current .ragmem body shall contain record_id, parent_id, created_at_utc, input_text, output_text, source, input_hash, output_hash, active_retrieval_brief_title, active_retrieval_brief, and active_retrieval_brief_contributor_ids.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-NO-EDITABLE
+STATUS: Draft
+TITLE: Editable Metadata Exclusion
+STATEMENT: >>>
+Current tag, retrieval_source_mode, direct_recall_key, automatic keywords, user keywords, active project name, and embedded-file snapshot shall not be duplicated into newly written body-only .ragmem blocks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-APPEND
+STATUS: Draft
+TITLE: Record Append Behavior
+STATEMENT: >>>
+Normal pair capture shall open the active .ragmem file in append mode, write one complete MemoryRecord block, and preserve existing blocks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-CREATED-FLAG
+STATUS: Draft
+TITLE: File-Created Flag
+STATEMENT: >>>
+After a record block is appended, MemoryManager shall mark b_file_created true.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-APPEND
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-READ
+STATUS: Draft
+TITLE: Record Block Loading
+STATEMENT: >>>
+Loading a history shall locate marker-delimited blocks, parse JSON objects, and construct MemoryRecords in file order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-MALFORMED-BLOCK
+STATUS: Draft
+TITLE: Malformed Block Handling
+STATEMENT: >>>
+A marker-delimited block that cannot be parsed into a JSON object shall be skipped by the current loader without preventing other valid blocks from loading.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-READ
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-BACKWARD
+STATUS: Draft
+TITLE: Older Full-Block Compatibility
+STATEMENT: >>>
+MemoryRecord.from_dict shall accept older .ragmem blocks that contain metadata in addition to stable body fields; current .ragmeta.json metadata shall be overlaid later when available.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-READ
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-RAGMEM-NO-VECTORS
+STATUS: Draft
+TITLE: No Vector Data in .ragmem
+STATEMENT: >>>
+The .ragmem body shall not store embedding vectors, similarity scores, runtime candidates, compression output, or synthesized Memory Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-RAGMEM-AUTHORITY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. .ragmeta.json Metadata Persistence
+
+[TEXT]
+STATEMENT: >>>
+The paired .ragmeta.json file represents the current file-level summary and current per-record metadata view.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-AUTHORITY
+STATUS: Draft
+TITLE: .ragmeta.json Metadata Authority
+STATEMENT: >>>
+The paired .ragmeta.json file shall represent current editable/readable metadata for one memory history.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-REBUILD
+STATUS: Draft
+TITLE: Metadata Rebuild from Records
+STATEMENT: >>>
+MemoryManager.save_metainfo shall rebuild metainfo from the current in-memory record list before writing the file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-FILE-FIELDS
+STATUS: Draft
+TITLE: File-Level Metadata Fields
+STATEMENT: >>>
+The current metadata file shall include file_id, title, paired filenames, created_at_utc, updated_at_utc, record_count, record_ids, parent_ids, tag_summary, aggregate automatic keywords, aggregate user keywords, and per-record metadata views.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-CREATED
+STATUS: Draft
+TITLE: Metadata Created Timestamp
+STATEMENT: >>>
+For a non-empty history, created_at_utc shall be taken from the first MemoryRecord; for an empty in-memory history built by MemoryManager it may be empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-FILE-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-UPDATED
+STATUS: Draft
+TITLE: Metadata Updated Timestamp
+STATEMENT: >>>
+For a non-empty history, updated_at_utc shall be refreshed to current UTC when metainfo is rebuilt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-FILE-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-AGGREGATES
+STATUS: Draft
+TITLE: Metadata Aggregate Deduplication
+STATEMENT: >>>
+Aggregate parent identifiers and keyword lists shall be deduplicated while preserving first occurrence order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-FILE-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-RECORD-VIEW
+STATUS: Draft
+TITLE: Per-Record Metadata View
+STATEMENT: >>>
+Each per-record metadata entry shall use MemoryRecord.to_index_dict and shall not duplicate full input/output or full ActiveBrief text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-OVERLAY
+STATUS: Draft
+TITLE: Metadata Overlay on Load
+STATEMENT: >>>
+When loading a history with an existing metadata file, MemoryManager shall apply metadata entries to matching record_id values after loading stable bodies from .ragmem.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-NO-STABLE-OVERWRITE
+STATUS: Draft
+TITLE: Stable Field Overlay Protection
+STATEMENT: >>>
+Metadata overlay shall not modify record_id, parent_id, created_at_utc, input/output text, source, hashes, or stable ActiveBrief fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-OVERLAY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-MISSING
+STATUS: Draft
+TITLE: Missing Metadata File
+STATEMENT: >>>
+When a history is loaded and its .ragmeta.json file is missing, MemoryManager shall rebuild and save metainfo from loaded records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-MALFORMED
+STATUS: Draft
+TITLE: Malformed Metadata File
+STATEMENT: >>>
+Malformed .ragmeta.json input shall not be silently interpreted as valid metadata by MemoryManager.load_history; the JSON loading failure shall remain visible to the caller.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-META-NO-RUNTIME
+STATUS: Draft
+TITLE: Runtime Artifact Exclusion
+STATEMENT: >>>
+The metadata file shall not store raw vector hits, MemoryContextPack, compression results, synthesis diagnostics, or synthesized Memory Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-AUTHORITY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. SQLite Metadata Mirror
+
+[TEXT]
+STATEMENT: >>>
+SQLite provides file listing and deterministic record lookup without becoming the full memory-body authority.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-SCHEMA
+STATUS: Draft
+TITLE: SQLite Schema Initialization
+STATEMENT: >>>
+MemoryManager shall create memory_files and memory_records tables when absent.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-FILE-PK
+STATUS: Draft
+TITLE: Memory File Primary Key
+STATEMENT: >>>
+memory_files.file_id shall be the table primary key.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-RECORD-PK
+STATUS: Draft
+TITLE: Memory Record Composite Key
+STATEMENT: >>>
+memory_records shall use the composite primary key file_id and record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-FILE-COLUMNS
+STATUS: Draft
+TITLE: File Table Columns
+STATEMENT: >>>
+memory_files shall store file_id, title, filename_ragmem, filename_meta, created_at_utc, updated_at_utc, and record_count.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-RECORD-COLUMNS
+STATUS: Draft
+TITLE: Record Table Columns
+STATEMENT: >>>
+memory_records shall store file_id, record_id, parent_id, created_at_utc, source, tag, retrieval_source_mode, direct_recall_key, keyword JSON, project/file snapshot JSON, and input/output hashes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-NO-BODY
+STATUS: Draft
+TITLE: No Full Q/A in SQLite
+STATEMENT: >>>
+memory_records shall not store full input_text, output_text, or full ActiveRetrievalBrief text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-UPsert-FILE
+STATUS: Draft
+TITLE: File Row Upsert
+STATEMENT: >>>
+refresh_sqlite_index shall insert or update the active memory_files row by file_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-UPsert-RECORD
+STATUS: Draft
+TITLE: Record Row Upsert
+STATEMENT: >>>
+refresh_sqlite_index shall insert or update every current MemoryRecord row by file_id and record_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-MIRROR-DELETE
+STATUS: Draft
+TITLE: Mirror Row Cleanup
+STATEMENT: >>>
+After upserting the active record list, SQLite rows for the active file_id whose record_id is no longer present shall be deleted.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-EMPTY-CLEAN
+STATUS: Draft
+TITLE: Empty Active Record Cleanup
+STATEMENT: >>>
+When the active MemoryManager record list is empty, refresh shall delete all memory_records rows for the active file_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-MIRROR-DELETE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-INDEX-TAG
+STATUS: Draft
+TITLE: Tag Index
+STATEMENT: >>>
+The current schema shall create an index on memory_records.tag.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-INDEX-PROJECT
+STATUS: Draft
+TITLE: Project Index
+STATEMENT: >>>
+The current schema shall create an index on memory_records.active_project_name.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-INDEX-KEY
+STATUS: Draft
+TITLE: Direct Recall Key Index
+STATEMENT: >>>
+The current schema shall create an index on memory_records.direct_recall_key.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-MIGRATION
+STATUS: Draft
+TITLE: Current Column Migration
+STATEMENT: >>>
+Schema initialization shall add retrieval_source_mode and direct_recall_key columns with current defaults when loading an older memory_records table that lacks them.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SQLITE-LIST
+STATUS: Draft
+TITLE: History Listing Order
+STATEMENT: >>>
+MemoryManager.list_histories shall return memory_files rows ordered by updated_at_utc descending.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-SQLITE-SCHEMA
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. Loading, Closing, and Active State
+
+[TEXT]
+STATEMENT: >>>
+History loading reconstructs stable bodies, overlays current metadata, and re-synchronizes SQLite.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-LOAD-ID
+STATUS: Draft
+TITLE: History Lookup by file_id
+STATEMENT: >>>
+MemoryManager.load_history shall resolve the requested history through memory_files.file_id and shall fail when no matching row exists.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-LOAD-FIELDS
+STATUS: Draft
+TITLE: Loaded File-Level State
+STATEMENT: >>>
+Loading shall set file_id, title, filename_ragmem, and filename_meta from the SQLite file row.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-LOAD-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-LOAD-RECORDS
+STATUS: Draft
+TITLE: Loaded Record State
+STATEMENT: >>>
+Loading shall replace the current record list with MemoryRecords read from the selected .ragmem file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-LOAD-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-LOAD-PENDING-RESET
+STATUS: Draft
+TITLE: Pending Buffer Reset on Load
+STATEMENT: >>>
+Loading a history shall reset pending_activebrief_topic_buffer to empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-LOAD-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-LOAD-CREATED-FLAG
+STATUS: Draft
+TITLE: Loaded File-Created Flag
+STATEMENT: >>>
+After load, b_file_created shall indicate whether the selected .ragmem path exists.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-LOAD-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-LOAD-REFRESH
+STATUS: Draft
+TITLE: SQLite Refresh after Load
+STATEMENT: >>>
+After loading bodies and metadata, MemoryManager shall refresh the SQLite mirror for the active history.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-LOAD-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CLOSE
+STATUS: Draft
+TITLE: MemoryManager Close
+STATEMENT: >>>
+MemoryManager.close shall save current metainfo and refresh the SQLite index.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Memory History File Operations
+
+[TEXT]
+STATEMENT: >>>
+MemoryFileManager owns explicit file-level operations while delegating active record semantics to MemoryManager.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-LIST
+STATUS: Draft
+TITLE: List Histories
+STATEMENT: >>>
+MemoryFileManager.list_histories shall return the MemoryManager SQLite history listing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-CREATE-TITLE
+STATUS: Draft
+TITLE: Create History Title Validation
+STATEMENT: >>>
+MemoryFileManager.create_history shall reject an empty title.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-CREATE
+STATUS: Draft
+TITLE: Create Empty History
+STATEMENT: >>>
+Creating an empty history shall make it active, create an empty .ragmem file, create paired .ragmeta.json content, and create or update the memory_files row with record_count zero.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-CREATE-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-CREATE-TIMES
+STATUS: Draft
+TITLE: Empty History Timestamps
+STATEMENT: >>>
+An explicitly created empty history shall use current UTC for both created_at_utc and updated_at_utc in its initial metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-CREATE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-LOAD
+STATUS: Draft
+TITLE: File Manager Load
+STATEMENT: >>>
+MemoryFileManager.load_history shall validate file_id and delegate active-history loading to MemoryManager.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-RENAME-TITLE
+STATUS: Draft
+TITLE: Rename Title Validation
+STATEMENT: >>>
+MemoryFileManager.rename_history shall reject an empty file_id or new title and shall reject unknown file_id values.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-RENAME-ID
+STATUS: Draft
+TITLE: Rename Preserves file_id
+STATEMENT: >>>
+Renaming a memory history shall preserve file_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-RENAME-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-RENAME-PAIR
+STATUS: Draft
+TITLE: Rename Paired Files
+STATEMENT: >>>
+Renaming shall rename the physical .ragmem and .ragmeta.json files when they exist and update their stored filename fields.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-RENAME-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-RENAME-TIMESTAMP
+STATUS: Draft
+TITLE: Rename Timestamp Prefix
+STATEMENT: >>>
+Renaming shall preserve an existing YYYY-MM-DD-HH-MM filename prefix when present; otherwise it shall use the current minute prefix.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-RENAME-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-RENAME-COLLISION
+STATUS: Draft
+TITLE: Rename Collision Handling
+STATEMENT: >>>
+When either target filename already exists, rename shall append the first eight characters of file_id to the new stem.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-RENAME-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-RENAME-SQLITE
+STATUS: Draft
+TITLE: Rename SQLite Update
+STATEMENT: >>>
+Renaming shall update title, paired filenames, and updated_at_utc in memory_files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-RENAME-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-RENAME-ACTIVE
+STATUS: Draft
+TITLE: Rename Active History
+STATEMENT: >>>
+When the renamed history is active, MemoryManager file-level state shall be updated and its metadata and SQLite mirror shall be refreshed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-RENAME-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-RENAME-INACTIVE
+STATUS: Draft
+TITLE: Rename Inactive History
+STATEMENT: >>>
+When the renamed history is not active, the renamed metadata file shall have its file-level title, paired filenames, and updated timestamp updated without loading the history.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-RENAME-TITLE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-DELETE-VALIDATE
+STATUS: Draft
+TITLE: Delete History Validation
+STATEMENT: >>>
+MemoryFileManager.delete_history shall reject an empty or unknown file_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-DELETE-VECTORS
+STATUS: Draft
+TITLE: Delete History Vectors
+STATEMENT: >>>
+When a compatible MemoryVectorStore is supplied, deleting a history shall request deletion of vectors by file_id before deleting SQLite rows and files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-DELETE-VALIDATE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-DELETE-SQLITE
+STATUS: Draft
+TITLE: Delete History SQLite Rows
+STATEMENT: >>>
+Deleting a history shall remove matching rows from memory_records and memory_files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-DELETE-VALIDATE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-DELETE-PHYSICAL
+STATUS: Draft
+TITLE: Delete History Physical Files
+STATEMENT: >>>
+Deleting a history shall unlink its .ragmem and .ragmeta.json files when present.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-DELETE-VALIDATE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-DELETE-ACTIVE
+STATUS: Draft
+TITLE: Delete Active History State
+STATEMENT: >>>
+When the deleted history is active, the current implementation shall replace file_id, clear title and filenames, clear records and metainfo, and mark b_file_created false.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-DELETE-VALIDATE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-DELETE-REPORT
+STATUS: Draft
+TITLE: Delete History Report
+STATEMENT: >>>
+The delete result shall report file identity, prior filenames, title, and number of vectors deleted when available.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-DELETE-VALIDATE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-UI-DELETE-CONFIRM
+STATUS: Draft
+TITLE: Typed Delete Confirmation
+STATEMENT: >>>
+The current Streamlit file action shall require the exact trimmed text delete before confirming history deletion.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-DELETE-VALIDATE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. ChatGPT Shared-Link Import
+
+[TEXT]
+STATEMENT: >>>
+The current importer reads one public ChatGPT shared conversation and converts it into an ordinary memory history.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-URL
+STATUS: Draft
+TITLE: Shared URL Validation
+STATEMENT: >>>
+The current importer shall accept only a non-empty URL matching https://chatgpt.com/share/<conversation-id> with the supported identifier characters and optional query string.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-TITLE
+STATUS: Draft
+TITLE: Import Title Validation
+STATEMENT: >>>
+The current importer shall require a non-empty title.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-PLAYWRIGHT
+STATUS: Draft
+TITLE: Playwright Dependency
+STATEMENT: >>>
+Current shared-page extraction shall use Playwright Chromium and shall report an explicit dependency error when Playwright is unavailable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-NAVIGATION
+STATUS: Draft
+TITLE: Shared Page Navigation
+STATEMENT: >>>
+The importer shall navigate with domcontentloaded, bounded timeout, and current retry handling for specified transient network errors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-EXTRACTION-ORDER
+STATUS: Draft
+TITLE: Message Extraction Sources
+STATEMENT: >>>
+The importer shall attempt visible DOM message extraction and embedded structured-message extraction and shall retain body text as fallback input.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-STABILITY
+STATUS: Draft
+TITLE: Message Stability Wait
+STATEMENT: >>>
+When enabled, current extraction shall scroll and wait for visible message count stability before selecting the message source.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-ROLES
+STATUS: Draft
+TITLE: Supported Imported Roles
+STATEMENT: >>>
+Only user and assistant messages shall participate in Q/A pair creation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-PAIRING
+STATUS: Draft
+TITLE: Imported Message Pairing
+STATEMENT: >>>
+Ordered user content followed by assistant content shall be combined into one input/output pair; a later user message shall flush the completed prior pair.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-RAW-FALLBACK
+STATUS: Draft
+TITLE: Raw Text Pair Fallback
+STATEMENT: >>>
+When no structured Q/A pair is produced but cleaned body text exists, the importer shall create one pair whose input identifies the imported conversation and whose output is the body text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-NO-CONTENT
+STATUS: Draft
+TITLE: No Importable Content
+STATEMENT: >>>
+When neither pairs nor usable fallback text exist, the import shall fail explicitly.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-RECORDS
+STATUS: Draft
+TITLE: Imported MemoryRecord Construction
+STATEMENT: >>>
+Each imported pair shall become a normal MemoryRecord with source prefixed chatgpt_shared_link:, tag Green, retrieval source mode QA, empty Direct Recall Key, and user keyword chatgpt_shared_link.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-PARENT-CHAIN
+STATUS: Draft
+TITLE: Imported Parent Chain
+STATEMENT: >>>
+Imported records shall set each record parent_id to the immediately preceding imported record_id, with the first parent_id empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-IMPORT-RECORDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-PROJECT-SNAPSHOT
+STATUS: Draft
+TITLE: Imported Project Snapshot
+STATEMENT: >>>
+The importer shall apply the supplied active project name and embedded-file snapshot to each imported record.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-IMPORT-RECORDS
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-BRIEF
+STATUS: Draft
+TITLE: Optional Shared Memory Brief
+STATEMENT: >>>
+When a non-empty import memory_brief is supplied, the importer shall assign that brief and its title to every imported record and shall use all imported record IDs as contributor IDs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-PERSIST
+STATUS: Draft
+TITLE: Imported History Persistence
+STATEMENT: >>>
+Imported records shall be persisted as a new ordinary memory history by writing all record blocks to a new .ragmem file, saving metadata, and refreshing SQLite.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-PENDING-RESET
+STATUS: Draft
+TITLE: Imported Pending Buffer Reset
+STATEMENT: >>>
+Persisting an imported history shall reset pending_activebrief_topic_buffer to empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-IMPORT-PERSIST
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-INGEST
+STATUS: Draft
+TITLE: Optional Imported Vector Ingestion
+STATEMENT: >>>
+When MemoryIngestionManager is available, the importer shall call ingest_all after durable history persistence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-IMPORT-PERSIST
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-IMPORT-REPORT
+STATUS: Draft
+TITLE: Import Result Report
+STATEMENT: >>>
+A successful import shall report URL, title, file identity, paired filenames, record/pair/message counts, raw text character count, extraction method, brief assignment status, and optional vector-ingestion result.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 12. Streamlit Session and Action Wiring
+
+[TEXT]
+STATEMENT: >>>
+Streamlit session state instantiates memory services once per session and delegates actions to server-side components.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SESSION-MANAGER
+STATUS: Draft
+TITLE: Session MemoryManager Initialization
+STATEMENT: >>>
+Current Streamlit startup shall create one MemoryManager in session state with data/memory as memory_root and memory_index.sqlite3 as sqlite_path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SESSION-CHUNKER
+STATUS: Draft
+TITLE: Session MemoryChunker Initialization
+STATEMENT: >>>
+Current Streamlit startup shall create one MemoryChunker in session state when absent.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SESSION-STORE
+STATUS: Draft
+TITLE: Session MemoryVectorStore Initialization
+STATEMENT: >>>
+Current Streamlit startup shall create one MemoryVectorStore in session state under data/memory/vector_db with collection memory_vectors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SESSION-INGEST
+STATUS: Draft
+TITLE: Session MemoryIngestionManager Initialization
+STATEMENT: >>>
+Current Streamlit startup shall construct MemoryIngestionManager from the session MemoryManager, MemoryChunker, and MemoryVectorStore.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-MANUAL-FEED
+STATUS: Draft
+TITLE: Manual Memory Feed
+STATEMENT: >>>
+The current manual memory-feed action shall read prompt_text and manual_memory_feed_text, reject either empty value, capture active project/file snapshot, collect editable record metadata, and call capture_memory_pair with source manual_memory_feed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILES-ACTIONS
+STATUS: Draft
+TITLE: Files Page Actions
+STATEMENT: >>>
+The current files action layer shall delegate create, load, rename, delete, and import operations to MemoryFileManager or the ChatGPT importer rather than implement persistence directly.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-WIDGET-CLEAR
+STATUS: Draft
+TITLE: Memory Widget State Reset
+STATEMENT: >>>
+After file create, load, delete, or import, the current UI shall clear per-record tag, retrieval-mode, user-keyword, and Direct Recall widget state keys.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-ACTIVE-PROJECT-SNAPSHOT
+STATUS: Draft
+TITLE: UI Active Project Snapshot
+STATEMENT: >>>
+When an active project exists, the current UI shall attempt to capture the project name and controller-reported embedded file list for new or imported records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-UI-NO-PROJECT
+STATUS: Draft
+TITLE: No Active Project Snapshot
+STATEMENT: >>>
+When no active project exists, current capture/import wiring shall use no project name and an empty embedded-file snapshot.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ACTIVE-PROJECT-SNAPSHOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 13. Error Handling, Security, and Quality
+
+[TEXT]
+STATEMENT: >>>
+Recording errors must remain visible without converting derivative failures into loss of durable truth.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-NO-EMPTY-PAIR
+STATUS: Draft
+TITLE: No Empty Memory Pair
+STATEMENT: >>>
+The recording action shall not create a MemoryRecord from an empty prompt or empty response.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-ID-VALIDATION
+STATUS: Draft
+TITLE: File Identifier Validation
+STATEMENT: >>>
+File-level operations shall reject empty file_id values rather than execute broad file or database operations.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PATH-SANITATION
+STATUS: Draft
+TITLE: Filename Path Sanitization
+STATEMENT: >>>
+User-provided history titles shall not be used directly as path fragments; the current safe-title transformation shall be applied.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SOURCE-PRESERVATION
+STATUS: Draft
+TITLE: Source Preservation
+STATEMENT: >>>
+Memory recording and import shall preserve source metadata sufficient to distinguish manual capture from imported shared conversations.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-HASH-INTEGRITY
+STATUS: Draft
+TITLE: Body Hash Integrity
+STATEMENT: >>>
+New MemoryRecords shall compute input/output hashes from exact stored text and shall preserve loaded persisted hashes when present.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-NO-SECRET
+STATUS: Draft
+TITLE: No Secret Persistence
+STATEMENT: >>>
+Memory body and metadata persistence shall not intentionally store provider API keys or browser credentials.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-PUBLIC-LOG
+STATUS: Draft
+TITLE: Public Recording Logs
+STATEMENT: >>>
+Public recording logs shall use concise file or record identifiers and status messages and shall not emit full MemoryRecord bodies by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CONFIDENTIAL-LOG
+STATUS: Draft
+TITLE: Confidential Developer Logs
+STATEMENT: >>>
+Complete memory payloads or detailed importer diagnostics shall remain behind explicitly enabled confidential developer logging.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-FILE-DELETE-ORDER
+STATUS: Draft
+TITLE: Delete Ordering
+STATEMENT: >>>
+Current history deletion shall attempt vector cleanup, then delete SQLite rows, then unlink physical files, preserving the actual execution order for diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-NO-VECTOR-TRUTH
+STATUS: Draft
+TITLE: No Vector Authority
+STATEMENT: >>>
+Successful or failed vector ingestion shall not change which stable input/output body is authoritative.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-TESTABILITY
+STATUS: Draft
+TITLE: Recording Testability
+STATEMENT: >>>
+MemoryRecord serialization, title sanitation, metadata rebuild, SQLite mirroring, load overlay, and file operations shall be testable without provider LLM calls.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 14. Traceability and Acceptance Criteria
+
+[TEXT]
+STATEMENT: >>>
+These criteria verify the current durable recording and file-management contracts.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-CODE-OWNERSHIP
+STATUS: Draft
+TITLE: Recording Code Ownership
+STATEMENT: >>>
+MemoryRecord, MemoryManager, memory actions, file manager, import helpers, and file UI actions shall map to the deepest applicable UIDs in this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-SIBLING-BOUNDARY
+STATUS: Draft
+TITLE: Sibling Ownership Boundary
+STATEMENT: >>>
+Memory vector ingestion and retrieval shall remain owned by 52; ActiveBrief algorithms, runtime compression, and synthesis shall remain owned by 53.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-CAPTURE
+STATUS: Draft
+TITLE: AC: Durable Pair Capture
+STATEMENT: >>>
+Given non-empty input and output, capture shall produce one MemoryRecord, append one stable .ragmem block, update .ragmeta.json, and mirror the record in SQLite.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CAPTURE-PERSIST-SEQUENCE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-EMPTY
+STATUS: Draft
+TITLE: AC: Empty Pair Rejection
+STATEMENT: >>>
+Given empty input or output after trimming, no record, file append, metadata rewrite, SQLite row, or vector-ingestion schedule shall be produced.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-NO-EMPTY-PAIR
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-AUTHORITY
+STATUS: Draft
+TITLE: AC: Body and Metadata Authority
+STATEMENT: >>>
+Editing a tag shall change .ragmeta.json and SQLite metadata while leaving the corresponding .ragmem stable body unchanged.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-NO-STABLE-OVERWRITE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-LOAD
+STATUS: Draft
+TITLE: AC: History Load
+STATEMENT: >>>
+Given a valid indexed history, loading shall restore record order and stable bodies, overlay current metadata, reset pending-topic state, and refresh SQLite.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-LOAD-REFRESH
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-CREATE
+STATUS: Draft
+TITLE: AC: Empty History Creation
+STATEMENT: >>>
+Creating a named empty history shall produce paired empty/body metadata files and a file-level SQLite row with zero records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-CREATE
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-RENAME
+STATUS: Draft
+TITLE: AC: Stable Rename Identity
+STATEMENT: >>>
+Renaming a history shall preserve file_id while updating paired filenames, title, metadata file fields, and the SQLite file row.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-RENAME-ID
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-DELETE
+STATUS: Draft
+TITLE: AC: Complete History Delete
+STATEMENT: >>>
+Deleting a selected history shall remove its SQLite rows, physical paired files, and memory vectors when the vector store is connected.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-FILE-DELETE-PHYSICAL
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-IMPORT
+STATUS: Draft
+TITLE: AC: Shared Conversation Import
+STATEMENT: >>>
+Given a valid public shared conversation with importable user/assistant content, import shall create a new ordinary memory history whose Q/A pairs are normal MemoryRecords and may be vector-ingested after persistence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-IMPORT-PERSIST
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-IMPORT-FALLBACK
+STATUS: Draft
+TITLE: AC: Import Body Fallback
+STATEMENT: >>>
+Given no structured Q/A pairs but usable body text, import shall create exactly one fallback pair rather than silently report a structured extraction success.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-IMPORT-RAW-FALLBACK
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-VECTOR-FAIL
+STATUS: Draft
+TITLE: AC: Vector Failure Isolation
+STATEMENT: >>>
+If asynchronous vector ingestion cannot be scheduled after capture, the .ragmem body, metadata, and SQLite row shall remain saved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-INGEST-SCHEDULE-FAIL
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-NO-RUNTIME-PERSIST
+STATUS: Draft
+TITLE: AC: Runtime Artifact Exclusion
+STATEMENT: >>>
+MemoryContextPack, query-dependent compression, and synthesized Memory Context shall not appear in newly written .ragmem or .ragmeta.json data.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-META-NO-RUNTIME
+
+[REQUIREMENT]
+UID: GHOST-MEM-REC-AC-SYNC
+STATUS: Draft
+TITLE: AC: Requirement-Code Synchronization
+STATEMENT: >>>
+A recording baseline shall not be accepted when stable-body fields, metadata authority, file identity, capture order, SQLite mirror semantics, or history operations contradict this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MEM-REC-CODE-OWNERSHIP
+
+[[/SECTION]]

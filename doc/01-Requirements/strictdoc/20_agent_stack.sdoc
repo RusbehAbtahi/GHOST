@@ -1,30 +1,1678 @@
 [DOCUMENT]
-TITLE: Agent Stack Requirements
-UID: GHOST-REQ-AGENT-STACK
-VERSION: 0.1-dummy
+TITLE: GHOST Agent Stack Requirements
+UID: GHOST-AGENT-STACK
+VERSION: 0.1
 OPTIONS:
   MARKUP: Text
   AUTO_LEVELS: On
   NODE_IN_TOC: True
 
 [[SECTION]]
-TITLE: Placeholder
+TITLE: 1. Purpose and Scope
 
 [TEXT]
 STATEMENT: >>>
-This is a placeholder child requirements document for the GHOST Agent Stack.
+This document defines the requirements for the GHOST Agent Stack.
 
-Planned scope:
-- AgentFactory
-- AgentPrompt
-- llm_client
-- JSON agent configuration
-- executable modes
-- aliases
-- model configuration
-- structured output parsing
+The Agent Stack is the neutral infrastructure used by GHOST components that build structured LLM prompts, invoke an LLM provider, and parse structured responses.
 
-Detailed atomic requirements shall be added later after human approval.
+The current Agent Stack consists of:
+- AgentFactory;
+- AgentPrompt;
+- AgentPrompt helper modules;
+- LLMClient;
+- JSON agent configurations and external option catalogs.
+
+Concrete agents use this infrastructure but retain ownership of their own functional behavior, deterministic preprocessing, runtime payload construction, result interpretation, SuperPrompt mutation, and stage-specific fallback behavior.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-ROOT
+STATUS: Draft
+TITLE: Agent Stack Scope
+STATEMENT: >>>
+The GHOST Agent Stack shall provide reusable infrastructure for configuration-driven prompt composition, structured-output parsing, and external LLM invocation.
+
+The Agent Stack shall remain independent of concrete pipeline-stage business rules.
+
+The Agent Stack shall support concrete agents without owning their functional decisions, pipeline order, SuperPrompt lifecycle, document retrieval behavior, memory behavior, GUI behavior, or final prompt composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST.
+
+The existing Python package namespace may remain ragstream in current source code and implementation paths.
+
+Requirements shall not treat ragstream as the product identity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-CURRENT-COMPONENTS
+STATUS: Draft
+TITLE: Current Agent Stack Components
+STATEMENT: >>>
+The current Agent Stack shall be organized around the following runtime components:
+
+1. AgentFactory for ordinary configuration resolution, external option-catalog resolution, AgentPrompt construction, and configuration-level caching.
+2. AgentPrompt for neutral prompt composition and structured-result parsing.
+3. AgentPrompt helper modules for generic text composition, configuration extraction, output-schema mapping, JSON extraction, and enum normalization.
+4. LLMClient for provider-facing LLM calls and usage metadata extraction.
+
+Concrete agent modules shall consume these components through explicit interfaces.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Architectural Model and Responsibility Boundaries
+
+[TEXT]
+STATEMENT: >>>
+The Agent Stack separates reusable LLM infrastructure from agent-specific behavior.
+
+The generic interaction model is:
+
+Concrete agent
+-> obtain or create AgentPrompt
+-> prepare runtime payload
+-> AgentPrompt.compose(...)
+-> LLMClient.chat(...) or LLMClient.responses(...)
+-> AgentPrompt.parse(...)
+-> concrete agent deterministic processing and write-back
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS
+STATUS: Draft
+TITLE: Separation of Agent Responsibilities
+STATEMENT: >>>
+The Agent Stack shall enforce the following responsibility separation:
+
+- the concrete agent shall own domain-specific input preparation, business rules, deterministic checks, result interpretation, and state write-back;
+- AgentFactory shall own ordinary agent-configuration resolution and AgentPrompt construction;
+- AgentPrompt shall own neutral prompt composition and structured-result parsing;
+- LLMClient shall own provider-facing API invocation and provider response extraction.
+
+No Agent Stack component shall absorb responsibilities assigned to another layer merely to support one concrete agent.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-NEUTRALITY
+STATUS: Draft
+TITLE: Agent Stack Neutrality
+STATEMENT: >>>
+AgentFactory, AgentPrompt, AgentPrompt helper modules, and LLMClient shall remain neutral with respect to concrete agents.
+
+They shall not contain A2-specific, ActiveBrief-specific, A3-specific, A4-specific, MemoryMerge-specific, retrieval-specific, or GUI-specific business rules.
+
+Generic support for selector, classifier, and synthesizer contracts shall not be treated as concrete-agent business logic.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-STATELESS-RUNS
+STATUS: Draft
+TITLE: Stateless Per-Run Agent Stack Behavior
+STATEMENT: >>>
+AgentPrompt and LLMClient shall not retain concrete-agent business state between executions.
+
+Every LLM execution shall receive its complete runtime payload through explicit call arguments.
+
+Configuration reuse and provider-client reuse may persist across calls, but they shall not create hidden per-run decisions or hidden pipeline state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-CONFIG-CACHE-BOUNDARY
+STATUS: Draft
+TITLE: Configuration Cache Boundary
+STATEMENT: >>>
+AgentFactory may cache constructed AgentPrompt instances by agent identifier and version.
+
+This cache shall represent configuration-level reuse only.
+
+The cache shall not store LLM outputs, SuperPrompt state, agent decisions, retrieval candidates, memory candidates, or other run-specific business data.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-STATELESS-RUNS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-SUPERPROMPT-BOUNDARY
+STATUS: Draft
+TITLE: SuperPrompt Ownership Boundary
+STATEMENT: >>>
+The Agent Stack shall not own or persist the active SuperPrompt.
+
+Concrete agents may read from and write to SuperPrompt according to their functional requirements.
+
+AgentFactory, AgentPrompt, and LLMClient shall operate on configuration data, runtime payloads, messages, and structured results without becoming an alternative SuperPrompt state owner.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-ORCHESTRATION-BOUNDARY
+STATUS: Draft
+TITLE: Orchestration Boundary
+STATEMENT: >>>
+The Agent Stack shall not decide pipeline stage order, legal stage transitions, retry order, or runtime sequencing.
+
+The orchestrator and concrete functional components shall determine when an AgentPrompt is obtained, which LLM call path is used, and how the parsed result affects runtime state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-DETERMINISTIC-POSTPROCESSING-BOUNDARY
+STATUS: Draft
+TITLE: Deterministic Post-Processing Boundary
+STATEMENT: >>>
+AgentPrompt shall provide generic schema and enum normalization only.
+
+Concrete-agent rules such as candidate mapping, chunk sanitization, useful-item limits, class regrouping, fallback selection, SuperPrompt field updates, and stage completion shall remain outside AgentPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Agent Configuration Contract
+
+[TEXT]
+STATEMENT: >>>
+GHOST agents are configured through JSON data rather than hard-coded prompt text inside the neutral Agent Stack.
+
+A configuration may contain static prompt sections, dynamic runtime bindings, decision targets, output-schema mappings, model settings, and optional ordered composition instructions.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-JSON
+STATUS: Draft
+TITLE: JSON Agent Configuration
+STATEMENT: >>>
+Executable AgentPrompt configurations shall be represented as JSON objects.
+
+The Agent Stack shall not require YAML as an alternative configuration format for the current runtime.
+
+Each configuration shall be loadable into a Python dictionary before AgentPrompt construction.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-IDENTITY
+STATUS: Draft
+TITLE: Agent Configuration Identity
+STATEMENT: >>>
+Each agent configuration shall identify the configured agent and its version through agent metadata.
+
+The effective identity shall support an agent identifier and a version string that can be used for configuration resolution, cache keys, logging, and traceability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-LLM-SETTINGS
+STATUS: Draft
+TITLE: LLM Settings in Agent Configuration
+STATEMENT: >>>
+Each executable agent configuration shall provide the model settings required by its LLM call path.
+
+Supported settings shall include:
+- model name;
+- temperature where applicable;
+- maximum output-token allowance.
+
+Concrete agents shall obtain these settings through the constructed AgentPrompt rather than duplicating model defaults in their business logic.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-STATIC-PROMPT
+STATUS: Draft
+TITLE: Static Prompt Configuration
+STATEMENT: >>>
+Agent configurations shall be able to define reusable static prompt content.
+
+Static prompt content may include a preamble, agent purpose, task instructions, hard rules, decision guidance, and other named sections required by the configured agent.
+
+The neutral Agent Stack shall render configured content without inventing concrete-agent instructions that are absent from configuration or runtime payload.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-DYNAMIC-BINDINGS
+STATUS: Draft
+TITLE: Dynamic Runtime Bindings
+STATEMENT: >>>
+Agent configurations shall be able to declare dynamic bindings that connect named runtime payload values to visible prompt sections.
+
+Each dynamic binding shall be able to declare:
+- a binding identifier;
+- optional visible prompt text;
+- expected runtime value type metadata;
+- whether the binding is required;
+- whether the binding is visible in the composed prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-DECISION-TARGETS
+STATUS: Draft
+TITLE: Decision Target Configuration
+STATEMENT: >>>
+Selector and classifier configurations shall be able to declare decision targets.
+
+A decision target shall be able to define:
+- a stable field identifier;
+- a human-readable label;
+- enum type information;
+- minimum and maximum selection cardinality;
+- allowed option identifiers;
+- an optional default value.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-OPTION-METADATA
+STATUS: Draft
+TITLE: Decision Option Metadata
+STATEMENT: >>>
+Each configured enum option shall have a stable option identifier.
+
+An option may additionally provide a human-readable label and description.
+
+The stable option identifier shall remain the machine-facing value used for structured LLM output and deterministic validation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-DECISION-TARGETS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-OUTPUT-SCHEMA
+STATUS: Draft
+TITLE: Structured Output Mapping
+STATEMENT: >>>
+Each executable AgentPrompt configuration shall define the structured result fields expected from the LLM.
+
+The output schema shall be able to map internal field identifiers to result keys used in the returned JSON object.
+
+Classifier and item-oriented synthesizer configurations shall additionally be able to define a root collection key, an item identifier key, and item-field mappings.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-ELEMENTS-ORDER
+STATUS: Draft
+TITLE: Ordered Prompt Composition
+STATEMENT: >>>
+An agent configuration may define an elements_order sequence for explicit prompt-element placement.
+
+When elements_order is present, AgentPrompt shall render referenced static sections, runtime bindings, and decision-target content in the configured order while preserving the configured preamble as the first static prompt element when present.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-EXTERNAL-CATALOGS
+STATUS: Draft
+TITLE: External Option Catalog References
+STATEMENT: >>>
+A decision target may reference an external JSON option catalog instead of embedding its option list directly.
+
+The referenced path shall be resolved relative to the directory of the main agent configuration.
+
+The resolved option list and catalog default shall be available to AgentPrompt before prompt composition and parsing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-DECISION-TARGETS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-CATALOG-SHAPES
+STATUS: Draft
+TITLE: Supported External Catalog Shapes
+STATEMENT: >>>
+External option-catalog resolution shall support the following neutral structures:
+
+1. a block keyed by the decision-target identifier;
+2. a direct root block containing options;
+3. a catalog containing exactly one valid option block when no exact target-key block exists.
+
+A catalog with multiple ambiguous valid blocks and no exact target match shall be rejected.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-EXTERNAL-CATALOGS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-VERSION-SELECTION
+STATUS: Draft
+TITLE: Explicit Configuration Version Selection
+STATEMENT: >>>
+Ordinary agent consumers shall identify the required configuration by agent identifier and version.
+
+A default version may be provided by the AgentFactory interface, but a concrete agent shall be able to request an explicit version when its functional contract depends on that version.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-IDENTITY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-CURRENT-MODES
+STATUS: Draft
+TITLE: Current Executable AgentPrompt Modes
+STATEMENT: >>>
+The current executable AgentPrompt contract shall support these modes:
+
+- selector;
+- classifier;
+- synthesizer.
+
+A mode shall not be described as executable merely because its name is accepted as configuration metadata. It shall be treated as executable only when both prompt composition and result parsing support that mode.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-JSON
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-MODE-ALIASES
+STATUS: Draft
+TITLE: Agent Type Aliases
+STATEMENT: >>>
+AgentPrompt configuration loading shall map the agent type Chooser to selector behavior.
+
+It shall map Multi-Chooser or multi_chooser to classifier behavior.
+
+These aliases shall not create separate runtime engines.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-CURRENT-MODES
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-FUTURE-MODES
+STATUS: Draft
+TITLE: Non-Executable Mode Boundary
+STATEMENT: >>>
+Writer, Extractor, Scorer, and other future mode labels shall not be claimed as current executable AgentPrompt modes unless compose and parse behavior is implemented, validated, and assigned to an approved functional requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-CURRENT-MODES
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONFIG-COMPATIBILITY
+STATUS: Draft
+TITLE: Supported Configuration Compatibility
+STATEMENT: >>>
+AgentPrompt construction may support explicitly defined compatibility aliases for earlier configuration structures.
+
+Compatibility handling shall remain generic and shall not introduce concrete-agent business behavior.
+
+Primary current configuration blocks shall take precedence over compatibility aliases when both are present.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-JSON
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. AgentFactory Requirements
+
+[TEXT]
+STATEMENT: >>>
+AgentFactory is the ordinary construction entry point for versioned AgentPrompt configurations.
+
+It hides ordinary configuration path construction and external catalog resolution from concrete agents.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AGENT-FACTORY-CONFIG-PATH
+STATUS: Draft
+TITLE: Ordinary Agent Configuration Path
+STATEMENT: >>>
+AgentFactory shall resolve ordinary agent configurations using the logical path:
+
+data/agents/<agent_id>/<version>.json
+
+Concrete agents using the ordinary factory path shall not construct this file-system path themselves.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-FACTORY-ROOT-OVERRIDE
+STATUS: Draft
+TITLE: Configurable Agent Configuration Root
+STATEMENT: >>>
+AgentFactory shall support an explicitly supplied agent-configuration root for testing or alternate runtime setup.
+
+When no explicit root is supplied, AgentFactory shall resolve the default data/agents root from the current repository structure.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-FACTORY-CONFIG-PATH
+
+[REQUIREMENT]
+UID: GHOST-AGENT-FACTORY-JSON-LOAD
+STATUS: Draft
+TITLE: Agent JSON Loading
+STATEMENT: >>>
+AgentFactory shall load the selected configuration as UTF-8 JSON.
+
+The loaded top-level value shall be a JSON object.
+
+A missing file, unreadable file, invalid JSON document, or non-object top-level value shall produce an explicit failure.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-FACTORY-CONFIG-PATH
+
+[REQUIREMENT]
+UID: GHOST-AGENT-FACTORY-CATALOG-RESOLUTION
+STATUS: Draft
+TITLE: Catalog Resolution Before Construction
+STATEMENT: >>>
+AgentFactory shall resolve external decision-target option catalogs before constructing AgentPrompt.
+
+Each resolved decision target shall contain an inline option list suitable for generic enum extraction and validation.
+
+A default supplied by the resolved catalog shall be copied into the resolved decision target.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-EXTERNAL-CATALOGS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-FACTORY-CONSTRUCTION
+STATUS: Draft
+TITLE: AgentPrompt Construction
+STATEMENT: >>>
+AgentFactory shall construct AgentPrompt through the neutral AgentPrompt configuration-construction interface.
+
+AgentFactory shall not add prompt wording, agent decisions, runtime payload values, or domain-specific fallback behavior during construction.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-NEUTRALITY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-FACTORY-CACHE-KEY
+STATUS: Draft
+TITLE: AgentPrompt Cache Key
+STATEMENT: >>>
+AgentFactory shall identify cached AgentPrompt instances by the pair:
+
+(agent_id, version)
+
+Requests for the same pair shall return the cached configuration object until the cache is cleared or a new AgentFactory instance is created.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-CONFIG-CACHE-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-FACTORY-CACHE-CLEAR
+STATUS: Draft
+TITLE: AgentPrompt Cache Reset
+STATEMENT: >>>
+AgentFactory shall provide a cache-clear operation.
+
+After cache clearing, the next request for an agent identifier and version shall reload and reconstruct the corresponding AgentPrompt from configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-FACTORY-CACHE-KEY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-FACTORY-NO-LLM-CALL
+STATUS: Draft
+TITLE: No Provider Calls from AgentFactory
+STATEMENT: >>>
+AgentFactory shall not invoke an LLM provider.
+
+It shall return configured AgentPrompt objects to concrete consumers, which shall explicitly decide when and how an LLM call is made.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-FACTORY-NO-AGENT-SEMANTICS
+STATUS: Draft
+TITLE: No Concrete Agent Semantics in AgentFactory
+STATEMENT: >>>
+AgentFactory shall not branch on concrete agent identities to implement A2, ActiveBrief, A3, A4, MemoryMerge, or other domain behavior.
+
+Neutral catalog-shape handling and configuration-version lookup shall not depend on a concrete agent's functional meaning.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-NEUTRALITY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. AgentPrompt Requirements
+
+[TEXT]
+STATEMENT: >>>
+AgentPrompt is the neutral configuration-backed prompt engine.
+
+It receives a resolved configuration once and receives run-specific values through compose and parse calls.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-FROM-CONFIG
+STATUS: Draft
+TITLE: AgentPrompt Construction from Configuration
+STATEMENT: >>>
+AgentPrompt shall be constructible from a resolved agent configuration.
+
+Construction shall derive:
+- agent identity and version;
+- executable mode;
+- static prompt content;
+- dynamic bindings;
+- decision targets;
+- output-schema mappings;
+- enum values, defaults, and cardinality;
+- option labels and descriptions;
+- model settings;
+- optional element ordering.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-RUN-INPUTS
+STATUS: Draft
+TITLE: Explicit Runtime Input Payload
+STATEMENT: >>>
+AgentPrompt.compose shall receive run-specific content through an explicit input payload.
+
+AgentPrompt shall not obtain concrete-agent input from global GUI state, global SuperPrompt state, retrieval stores, memory stores, or hidden module state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-STATELESS-RUNS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-REQUIRED-BINDINGS
+STATUS: Draft
+TITLE: Required Binding Validation
+STATEMENT: >>>
+Before composing an LLM request, AgentPrompt shall verify that every dynamic binding marked as required is present in the runtime payload.
+
+A missing required binding shall produce an explicit AgentPrompt validation failure instead of silently composing an incomplete request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-RUN-INPUTS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-SYSTEM-COMPOSITION
+STATUS: Draft
+TITLE: System Message Composition
+STATEMENT: >>>
+AgentPrompt shall compose the system message from configured static prompt content, configured decision-target descriptions, and any runtime bindings explicitly placed into the system message by elements_order.
+
+The composed system message shall not contain concrete-agent wording invented by the neutral Agent Stack.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-STATIC-PROMPT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-USER-COMPOSITION
+STATUS: Draft
+TITLE: User Message Composition
+STATEMENT: >>>
+AgentPrompt shall compose the user message from visible dynamic bindings that have not already been consumed into the system message.
+
+A runtime binding consumed by elements_order into the system message shall not be duplicated in the user message.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-DYNAMIC-BINDINGS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-PREAMBLE-ORDER
+STATUS: Draft
+TITLE: Preamble Placement
+STATEMENT: >>>
+When a configured preamble is present, AgentPrompt shall render it before the remaining configured system-message sections.
+
+The preamble shall remain first even when elements_order is used for the rest of the prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-SYSTEM-COMPOSITION
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-DECISION-TARGET-RENDERING
+STATUS: Draft
+TITLE: Decision Target Rendering
+STATEMENT: >>>
+For active selector or classifier fields, AgentPrompt shall be able to render:
+- the result key;
+- selection cardinality;
+- allowed option identifiers;
+- available labels and descriptions.
+
+Only configured and active decision targets shall be rendered as selectable choices.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-DECISION-TARGETS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-ACTIVE-FIELDS
+STATUS: Draft
+TITLE: Active Field Restriction
+STATEMENT: >>>
+Selector and classifier composition shall support an optional active-fields list.
+
+When active fields are supplied, AgentPrompt shall restrict decision-target rendering and selector parsing to configured fields contained in that list.
+
+Unknown active-field identifiers shall not create new decision targets.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-DECISION-TARGET-RENDERING
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-MESSAGE-CONTRACT
+STATUS: Draft
+TITLE: Composed Message Contract
+STATEMENT: >>>
+AgentPrompt.compose shall return an ordered message collection suitable for LLMClient.
+
+The collection shall contain one system message and may contain one user message when visible user content remains after ordered composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-SYSTEM-COMPOSITION
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-RESPONSE-FORMAT
+STATUS: Draft
+TITLE: JSON Response Format Request
+STATEMENT: >>>
+AgentPrompt.compose shall request one JSON object as the structured provider response format for the current runtime contract.
+
+The concrete shape and allowed values of the JSON object shall be governed by the configured output schema and decision targets.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-OUTPUT-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-JSON-EXTRACTION
+STATUS: Draft
+TITLE: JSON Object Extraction
+STATEMENT: >>>
+AgentPrompt parsing shall accept a dictionary result directly or attempt to extract one JSON object from a text result.
+
+When no valid JSON object can be extracted, the generic parser shall return an empty parsed object for deterministic downstream handling and shall not invent result content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-RESPONSE-FORMAT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-SELECTOR-PARSE
+STATUS: Draft
+TITLE: Selector Result Parsing
+STATEMENT: >>>
+In selector mode, AgentPrompt shall parse configured active result fields and normalize each field against its configured enum and cardinality.
+
+Single-selection fields shall produce one normalized option identifier.
+
+Multi-selection fields shall produce a de-duplicated list of normalized option identifiers.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-CURRENT-MODES
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-SELECTOR-FALLBACK
+STATUS: Draft
+TITLE: Generic Selector Normalization Fallback
+STATEMENT: >>>
+When selector output does not contain a valid configured option, generic AgentPrompt normalization shall use a valid configured default where available.
+
+If no valid default is available, it may use the first configured allowed option.
+
+The generic fallback shall never produce an option identifier that is absent from the configured allowed set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-SELECTOR-PARSE
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-CLASSIFIER-PARSE
+STATUS: Draft
+TITLE: Classifier Result Parsing
+STATEMENT: >>>
+In classifier mode, AgentPrompt shall be able to parse:
+- configured top-level result fields;
+- an item collection under the configured root key;
+- the configured item identifier for each valid item;
+- configured enum-classification fields for each item.
+
+Items without a usable item identifier shall not be returned as valid classified items.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-CURRENT-MODES
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-SYNTHESIZER-PARSE
+STATUS: Draft
+TITLE: Synthesizer Result Parsing
+STATEMENT: >>>
+In synthesizer mode, AgentPrompt shall support either:
+- configured top-level text fields; or
+- a configured item collection with item-field mappings.
+
+Synthesizer parsing shall return configured result values without adding domain-specific interpretation or SuperPrompt write-back behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-CURRENT-MODES
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-RESULT-KEY-MAPPING
+STATUS: Draft
+TITLE: Result Key Mapping
+STATEMENT: >>>
+AgentPrompt shall use output-schema mappings to translate provider-facing JSON result keys into internal field identifiers.
+
+A missing explicit result-key mapping shall default to the internal field identifier where the configured schema permits that behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-OUTPUT-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-UNSUPPORTED-MODE
+STATUS: Draft
+TITLE: Unsupported Compose or Parse Mode
+STATEMENT: >>>
+When compose or parse is requested for a mode that is not executable in the current AgentPrompt contract, AgentPrompt shall fail explicitly.
+
+It shall not silently reinterpret the unsupported mode as selector, classifier, or synthesizer behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-FUTURE-MODES
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-NO-PROVIDER-CALL
+STATUS: Draft
+TITLE: No Provider Invocation from AgentPrompt
+STATEMENT: >>>
+AgentPrompt shall not invoke the LLM provider.
+
+It shall return composed messages and response-format information to the concrete consumer, which shall explicitly call LLMClient.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-PROMPT-NO-WRITEBACK
+STATUS: Draft
+TITLE: No Runtime State Write-Back from AgentPrompt
+STATEMENT: >>>
+AgentPrompt shall not update SuperPrompt, memory records, retrieval views, GUI session state, or pipeline stage history.
+
+The concrete agent shall own all domain-state write-back after parsing and deterministic validation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SUPERPROMPT-BOUNDARY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. LLMClient Requirements
+
+[TEXT]
+STATEMENT: >>>
+LLMClient is the provider-facing gateway for current GHOST agent calls.
+
+The current provider implementation uses the OpenAI Python client while keeping provider invocation details outside concrete agent business logic and outside AgentPrompt.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-PROVIDER-BOUNDARY
+STATUS: Draft
+TITLE: Provider Gateway Boundary
+STATEMENT: >>>
+LLMClient shall provide the provider-facing invocation boundary for Agent Stack consumers.
+
+Concrete agents shall pass messages and explicit call settings to LLMClient without directly constructing provider SDK calls.
+
+LLMClient shall not know the functional meaning of A2, ActiveBrief, A3, A4, MemoryMerge, or other concrete agents.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-CURRENT-PROVIDER
+STATUS: Draft
+TITLE: Current OpenAI Provider Support
+STATEMENT: >>>
+The current LLMClient implementation shall support OpenAI as the active external LLM provider.
+
+The consumer-facing Agent Stack boundary shall remain expressed in messages, model settings, response-format data, and result values rather than in concrete-agent use of provider SDK objects.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-PROVIDER-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-CREDENTIAL
+STATUS: Draft
+TITLE: Provider Credential Input
+STATEMENT: >>>
+LLMClient shall obtain the active provider credential from an explicitly supplied constructor value or the runtime OPENAI_API_KEY environment variable.
+
+Agent JSON configurations shall not contain the provider secret.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-CURRENT-PROVIDER
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-UNAVAILABLE
+STATUS: Draft
+TITLE: Unavailable Provider Client Behavior
+STATEMENT: >>>
+If the provider SDK or required credential is unavailable, LLMClient shall remain uninitialized for provider calls.
+
+An attempted LLM call without an initialized provider client shall fail explicitly rather than returning fabricated model output.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-CURRENT-PROVIDER
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-CHAT
+STATUS: Draft
+TITLE: Chat Completions Call Path
+STATEMENT: >>>
+LLMClient shall provide a chat call path that accepts:
+- ordered messages;
+- model name;
+- temperature where supported;
+- maximum output-token allowance;
+- optional response-format data;
+- optional prompt-cache routing data;
+- optional metadata-return selection.
+
+The default chat result shall be the model's text content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-PROVIDER-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-CHAT-MODEL-PARAMETERS
+STATUS: Draft
+TITLE: Chat Model Parameter Handling
+STATEMENT: >>>
+The chat call path shall pass the configured maximum output-token allowance through the provider's current completion-token parameter.
+
+For model families that do not support the configured temperature parameter, LLMClient shall omit temperature rather than submitting an incompatible provider request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-CHAT
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-RESPONSES
+STATUS: Draft
+TITLE: Responses API Call Path
+STATEMENT: >>>
+LLMClient shall provide a Responses API call path that accepts:
+- ordered messages;
+- model name;
+- maximum output-token allowance;
+- optional reasoning effort;
+- optional prompt-cache routing data;
+- optional metadata-return selection.
+
+The default Responses API result shall be the extracted visible text content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-PROVIDER-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-RESPONSES-MESSAGE-MAPPING
+STATUS: Draft
+TITLE: Responses Message Mapping
+STATEMENT: >>>
+For a Responses API call, LLMClient shall map the first system message to provider instructions and shall combine remaining visible messages into the provider input text.
+
+If the composed request contains only a system message, LLMClient shall move that content into the required provider input field so the request remains executable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-RESPONSES
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-TEXT-EXTRACTION
+STATUS: Draft
+TITLE: Provider Text Extraction
+STATEMENT: >>>
+LLMClient shall extract text from the provider response into a stable string result for AgentPrompt parsing.
+
+For Responses API results, text extraction shall support the provider's direct output-text value and message content items when direct output text is unavailable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-PROVIDER-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-METADATA-RETURN
+STATUS: Draft
+TITLE: Optional Provider Metadata Return
+STATEMENT: >>>
+LLMClient shall support an optional metadata result in addition to the default raw text result.
+
+The metadata result shall include the extracted content and available provider metadata required by current consumers, including model identity and token usage.
+
+Responses API metadata shall additionally be able to expose completion status and incomplete-reason information.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-PROVIDER-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-CHAT-USAGE
+STATUS: Draft
+TITLE: Chat Usage Metadata
+STATEMENT: >>>
+When the provider supplies chat usage data, LLMClient shall expose:
+- input or prompt tokens;
+- cached input tokens where available;
+- output or completion tokens;
+- total tokens where available.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-METADATA-RETURN
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-RESPONSES-USAGE
+STATUS: Draft
+TITLE: Responses Usage Metadata
+STATEMENT: >>>
+When the provider supplies Responses API usage data, LLMClient shall expose:
+- input tokens;
+- cached input tokens where available;
+- output tokens;
+- reasoning tokens where available;
+- total tokens where available.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-METADATA-RETURN
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-PROMPT-CACHE-KEY
+STATUS: Draft
+TITLE: Prompt Cache Routing Key
+STATEMENT: >>>
+LLMClient call paths shall accept an optional stable prompt-cache key supplied by the concrete consumer.
+
+The key shall be passed to the provider when supported and shall not change the semantic content of the composed prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-PROVIDER-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-ERROR-PROPAGATION
+STATUS: Draft
+TITLE: Provider Error Propagation
+STATEMENT: >>>
+LLMClient shall not convert provider-call failures into fabricated successful content.
+
+Provider initialization errors, invocation errors, and incompatible request errors shall remain observable to the calling concrete agent or orchestrator for stage-specific handling.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-PROVIDER-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-LLM-CLIENT-LOGGING-BOUNDARY
+STATUS: Draft
+TITLE: LLM Usage Logging Boundary
+STATEMENT: >>>
+LLMClient shall make model identity, token usage, status, incomplete reason, and provider-call errors available to the project logging path where those values are available.
+
+Detailed sink routing, sensitivity filtering, retention, and observability policy shall be defined by the logging and quality-governance requirements rather than by this Agent Stack file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-PROVIDER-BOUNDARY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Concrete Agent Integration Contract
+
+[TEXT]
+STATEMENT: >>>
+Concrete agents demonstrate the Agent Stack interfaces but do not transfer their functional ownership into this document.
+
+Current examples include:
+- A2 PromptShaper as a selector consumer;
+- ActiveBrief relation classification as a classifier-oriented preprocessing consumer;
+- A3 NLI Gate as a classifier consumer;
+- A4 Condenser as a multi-prompt synthesizer workflow;
+- MemoryMergeSynthesizer as a memory-path consumer where configured.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-GENERIC-FLOW
+STATUS: Draft
+TITLE: Generic Concrete Agent Flow
+STATEMENT: >>>
+A concrete Agent Stack consumer shall perform the following generic flow:
+
+1. identify or construct the required AgentPrompt configuration;
+2. build its domain-specific runtime payload;
+3. call AgentPrompt.compose;
+4. invoke the selected LLMClient call path;
+5. call AgentPrompt.parse;
+6. apply concrete-agent deterministic validation and business rules;
+7. write the approved result to its owned runtime state.
+
+The concrete agent may omit the provider call only when its own functional requirement defines a deterministic bypass or fallback.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-ORDINARY-FACTORY-PATH
+STATUS: Draft
+TITLE: Ordinary Factory-Based Consumer
+STATEMENT: >>>
+An ordinary concrete agent shall obtain its configured AgentPrompt through AgentFactory using an agent identifier and version.
+
+The concrete agent shall not need to know the default data/agents path layout when using this ordinary path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONSUMER-GENERIC-FLOW
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-EXACT-PATH-EXCEPTION
+STATUS: Draft
+TITLE: Explicit Exact-Path Construction Exception
+STATEMENT: >>>
+A concrete workflow may construct fresh AgentPrompt instances directly from explicitly defined JSON paths when that workflow requires multiple nested configurations or run-local prompt adaptation that shall not affect factory-cached instances.
+
+Such an exception shall remain explicit in the owning functional requirement and shall still use AgentPrompt for neutral composition and parsing.
+
+The A4 Condenser three-configuration workflow is the current example of this exception.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONSUMER-GENERIC-FLOW
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-CACHED-IMMUTABILITY
+STATUS: Draft
+TITLE: Factory-Cached AgentPrompt Protection
+STATEMENT: >>>
+Concrete agents shall not apply run-specific mutations to an AgentPrompt instance obtained from the shared AgentFactory cache.
+
+Run-local adaptation shall use a fresh, non-cached AgentPrompt instance or an explicitly isolated configuration object.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-FACTORY-CACHE-KEY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-PAYLOAD-OWNERSHIP
+STATUS: Draft
+TITLE: Concrete Runtime Payload Ownership
+STATEMENT: >>>
+Each concrete agent shall build the runtime payload required by its functional contract.
+
+The concrete agent shall own domain-specific payload structures such as prompt-under-evaluation blocks, evidence blocks, local identifier mappings, class definitions, required-output examples, and context packages.
+
+The neutral Agent Stack shall render supplied payload values without owning their domain meaning.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-DETERMINISTIC-POSTPROCESSING-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-MODEL-SETTINGS
+STATUS: Draft
+TITLE: Consumer Use of Configured Model Settings
+STATEMENT: >>>
+A concrete agent shall use the model name and output-token limit provided by its AgentPrompt configuration.
+
+It shall use the configured temperature for call paths where temperature applies.
+
+Call-path-specific settings such as reasoning effort and prompt-cache key may be supplied by the concrete workflow when required by its approved behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONFIG-LLM-SETTINGS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-RESULT-OWNERSHIP
+STATUS: Draft
+TITLE: Concrete Result Interpretation
+STATEMENT: >>>
+The concrete agent shall interpret the parsed AgentPrompt result according to its functional requirement.
+
+Agent-specific rules for preserving existing values, mapping local identifiers, enforcing maximum selections, handling empty results, grouping evidence, selecting fallbacks, and updating SuperPrompt shall not be moved into the neutral Agent Stack.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-DETERMINISTIC-POSTPROCESSING-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-A2-REFERENCE
+STATUS: Draft
+TITLE: A2 PromptShaper Ownership Reference
+STATEMENT: >>>
+A2 PromptShaper shall use the Agent Stack as a selector consumer.
+
+Its concrete selection fields, deterministic bypass, sanitization rules, SuperPrompt updates, and PromptShaper behavior shall be defined in 30_preprocessing_prompt_functions.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONSUMER-GENERIC-FLOW
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-ACTIVEBRIEF-REFERENCE
+STATUS: Draft
+TITLE: ActiveBrief Relation Classifier Ownership Reference
+STATEMENT: >>>
+The ActiveBrief relation classifier may use the Agent Stack for structured classification.
+
+Its prompt-materiality labels, topic-relation labels, preprocessing integration, routing meaning, and SuperPrompt metadata shall be defined in 30_preprocessing_prompt_functions.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONSUMER-GENERIC-FLOW
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-A3-REFERENCE
+STATUS: Draft
+TITLE: A3 Evidence Selection Ownership Reference
+STATEMENT: >>>
+A3 NLI Gate shall use the Agent Stack as a classifier consumer for structured candidate decisions.
+
+Its candidate-source rules, evidence preparation, usefulness labels, selection limits, local-to-real identifier mapping, SuperPrompt updates, and empty-selection behavior shall be defined in 43_evidence_selection_and_condensation.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONSUMER-GENERIC-FLOW
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-A4-REFERENCE
+STATUS: Draft
+TITLE: A4 Evidence Condensation Ownership Reference
+STATEMENT: >>>
+A4 Condenser shall use AgentPrompt and LLMClient for its configured synthesis calls.
+
+Its multi-call workflow, exact configuration paths, deterministic preparation, class grouping, budget behavior, fallback behavior, and S_CTX_MD write-back shall be defined in 43_evidence_selection_and_condensation.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONSUMER-GENERIC-FLOW
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-MEMORY-REFERENCE
+STATUS: Draft
+TITLE: Memory Synthesis Ownership Reference
+STATEMENT: >>>
+A memory synthesis component may use AgentPrompt and LLMClient as neutral Agent Stack services.
+
+Memory candidate ownership, ActiveBrief use, memory compression, MemoryMerge behavior, and memory-context write-back shall be defined in 53_memory_merge_activebrief_blackboard.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONSUMER-GENERIC-FLOW
+
+[REQUIREMENT]
+UID: GHOST-AGENT-CONSUMER-ORCHESTRATION-REFERENCE
+STATUS: Draft
+TITLE: Runtime Orchestration Ownership Reference
+STATEMENT: >>>
+The ordering and coordination of concrete agent calls shall be defined by 10_orchestrator_and_pipeline.sdoc and the relevant functional child requirements.
+
+This Agent Stack shall provide callable infrastructure and shall not redefine the five-stage functional runtime hierarchy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ORCHESTRATION-BOUNDARY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Error Handling, Security, and Quality Boundaries
+
+[TEXT]
+STATEMENT: >>>
+The Agent Stack provides generic failures and structured outputs. Concrete stages determine whether a failure aborts, skips, retries, preserves prior state, or uses an approved fallback.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-CONFIG-ERRORS
+STATUS: Draft
+TITLE: Configuration Error Integrity
+STATEMENT: >>>
+The Agent Stack shall fail explicitly when an agent configuration file is missing, unreadable, invalid JSON, structurally incompatible with required construction, or dependent on an unresolved ambiguous catalog.
+
+It shall not fabricate a configuration or silently substitute an unrelated agent version.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-PARSE-INTEGRITY
+STATUS: Draft
+TITLE: Structured Parse Integrity
+STATEMENT: >>>
+AgentPrompt parsing shall restrict generic normalized selector and classifier values to configured enum identifiers.
+
+Parsed values outside configured allowed sets shall not become valid normalized Agent Stack decisions.
+
+Concrete-agent validation may further restrict or reject a generically parsed result.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-JSON-EXTRACTION
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-NO-FABRICATED-SUCCESS
+STATUS: Draft
+TITLE: No Fabricated Successful LLM Result
+STATEMENT: >>>
+The Agent Stack shall not convert missing provider access, provider invocation failure, or unsupported execution mode into fabricated successful LLM content.
+
+Any deterministic fallback shall be explicit, configuration-bounded, and owned by the concrete functional requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-SECRET-SEPARATION
+STATUS: Draft
+TITLE: Secret Separation
+STATEMENT: >>>
+Agent configurations and external option catalogs shall not store active provider credentials.
+
+Provider credentials shall enter through runtime secret or environment configuration outside the agent-prompt content model.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-CREDENTIAL
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-LOGGING-REFERENCE
+STATUS: Draft
+TITLE: Logging Requirement Boundary
+STATEMENT: >>>
+The Agent Stack shall emit or expose configuration-loading events, composition diagnostics, provider usage data, and failures through the project logging interfaces where required.
+
+Log types, sensitivity classes, sinks, filtering, persistence, and user-visible rendering shall be defined in 81_logging_textforge_raglog.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-LOGGING-BOUNDARY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-METRICS-REFERENCE
+STATUS: Draft
+TITLE: Metrics and Evaluation Boundary
+STATEMENT: >>>
+The Agent Stack shall make available the model and usage metadata needed by current observability and evaluation paths when the provider supplies that data.
+
+Benchmark definitions, quality thresholds, cost analysis, latency evaluation, and dashboard behavior shall be defined in 82_metrics_evaluation_benchmarking.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-METADATA-RETURN
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-SECURITY-GOVERNANCE-REFERENCE
+STATUS: Draft
+TITLE: Security and Governance Boundary
+STATEMENT: >>>
+Operational secret storage, provider-access governance, sensitive prompt logging, retention, access control, and deployment hardening shall be defined in 70_runtime_platform_and_operations.sdoc and 83_quality_security_traceability_governance.sdoc.
+
+This Agent Stack shall respect those controls without duplicating their detailed policies.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SECRET-SEPARATION
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-TESTABILITY
+STATUS: Draft
+TITLE: Agent Stack Testability
+STATEMENT: >>>
+AgentFactory, AgentPrompt, helper modules, and LLMClient shall expose deterministic boundaries that can be tested independently from concrete agent business logic.
+
+Tests shall be able to provide temporary configuration roots, controlled JSON payloads, representative provider response objects, and invalid inputs without requiring GUI execution or document retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. Traceability and Sibling Requirement Ownership
+
+[TEXT]
+STATEMENT: >>>
+The current implementation trace anchors for this requirement area are:
+
+- ragstream/orchestration/agent_factory.py
+- ragstream/orchestration/agent_prompt.py
+- ragstream/orchestration/agent_prompt_helpers/
+- ragstream/orchestration/llm_client.py
+- data/agents/<agent_id>/<version>.json
+- data/agents/... external option-catalog JSON files
+
+Concrete agent modules are trace examples and remain governed by their functional child requirements.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-CODE-TRACE-ANCHORS
+STATUS: Draft
+TITLE: Agent Stack Code Trace Anchors
+STATEMENT: >>>
+Agent Stack requirements shall remain traceable to the neutral orchestration modules that implement configuration resolution, prompt composition, parsing, normalization, and provider invocation.
+
+Concrete-agent implementation files shall not be treated as owners of neutral Agent Stack behavior merely because they call these services.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-SIBLING-OWNERSHIP
+STATUS: Draft
+TITLE: Sibling Requirement Ownership
+STATEMENT: >>>
+Detailed behavior shall remain in the following sibling requirement areas:
+
+- preprocessing, PromptShaper, and ActiveBrief relation classification in 30_preprocessing_prompt_functions.sdoc;
+- document evidence selection and condensation in 43_evidence_selection_and_condensation.sdoc;
+- memory synthesis, ActiveBrief, and Blackboard direction in 53_memory_merge_activebrief_blackboard.sdoc;
+- current Streamlit interaction in 61_streamlit_workbench_current.sdoc;
+- runtime platform and provider-secret operation in 70_runtime_platform_and_operations.sdoc;
+- logging in 81_logging_textforge_raglog.sdoc;
+- metrics and evaluation in 82_metrics_evaluation_benchmarking.sdoc;
+- security, traceability, and governance in 83_quality_security_traceability_governance.sdoc;
+- future agent modes and lifecycle synchronization in 90_future_vision_and_lifecycle_sync.sdoc.
+
+This Agent Stack shall define only the shared infrastructure contracts needed by those functional areas.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-ROOT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-CHANGE-SYNCHRONIZATION
+STATUS: Draft
+TITLE: Requirement and Implementation Synchronization
+STATEMENT: >>>
+An approved change to Agent Stack behavior, configuration contracts, public interfaces, provider-call contracts, parsing behavior, or responsibility boundaries shall update the affected requirements and verification assets together with the implementation change.
+
+Private refactoring that preserves required behavior and interfaces shall not require new functional requirements.
+
+Code that contradicts an approved Agent Stack requirement shall be treated as a defect or an unapproved change until the contradiction is resolved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-CODE-TRACE-ANCHORS
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Acceptance Criteria
+
+[TEXT]
+STATEMENT: >>>
+These acceptance criteria validate the shared Agent Stack contracts without duplicating the detailed acceptance criteria of concrete agents.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-FACTORY-CONSTRUCTION
+STATUS: Draft
+TITLE: AC: Factory Construction and Cache
+STATEMENT: >>>
+Given a valid ordinary agent identifier and version, AgentFactory shall load the corresponding JSON configuration, resolve any valid external option catalogs, construct one AgentPrompt, and cache it under the requested identifier/version pair.
+
+A second request for the same pair shall return the cached instance until the cache is cleared.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-FACTORY-CACHE-KEY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-CATALOG-RESOLUTION
+STATUS: Draft
+TITLE: AC: External Catalog Resolution
+STATEMENT: >>>
+Given a decision target whose options field references a valid external catalog, AgentFactory shall replace the reference with the catalog's allowed option list before AgentPrompt construction.
+
+An ambiguous catalog without an exact target match shall fail rather than selecting an arbitrary block.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-FACTORY-CATALOG-RESOLUTION
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-REQUIRED-BINDING
+STATUS: Draft
+TITLE: AC: Required Runtime Binding
+STATEMENT: >>>
+Given a configuration with a required dynamic binding, AgentPrompt.compose shall fail explicitly when the runtime payload omits that binding.
+
+It shall compose normally when the required binding is present.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-REQUIRED-BINDINGS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-SELECTOR
+STATUS: Draft
+TITLE: AC: Selector Mode
+STATEMENT: >>>
+Given a selector configuration with allowed option identifiers and output mappings, AgentPrompt shall compose a JSON-oriented request and parse the returned configured fields into normalized allowed option identifiers.
+
+A normalized selector result shall not contain an option identifier outside the configured allowed set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-SELECTOR-PARSE
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-CLASSIFIER
+STATUS: Draft
+TITLE: AC: Classifier Mode
+STATEMENT: >>>
+Given a classifier configuration with an item root, item identifier, and enum item field, AgentPrompt shall parse valid returned items, preserve usable item identifiers, and normalize the configured classification value.
+
+Items without a usable identifier shall not appear as valid classified items.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-CLASSIFIER-PARSE
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-SYNTHESIZER
+STATUS: Draft
+TITLE: AC: Synthesizer Mode
+STATEMENT: >>>
+Given a synthesizer configuration with top-level or item-level output mappings, AgentPrompt shall return the configured text fields without applying concrete-agent interpretation or runtime write-back.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-SYNTHESIZER-PARSE
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-ELEMENT-ORDER
+STATUS: Draft
+TITLE: AC: Ordered Composition Without Duplication
+STATEMENT: >>>
+Given an elements_order configuration that places a dynamic binding into the system message, AgentPrompt shall render that binding in the configured system position and shall not repeat the same binding in the user message.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-PROMPT-USER-COMPOSITION
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-CHAT
+STATUS: Draft
+TITLE: AC: Chat Provider Path
+STATEMENT: >>>
+Given initialized provider access and valid chat call arguments, LLMClient.chat shall submit the composed messages through the current provider chat path and return extracted text by default.
+
+When metadata return is requested, it shall return content together with available model and usage metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-CHAT
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-RESPONSES
+STATUS: Draft
+TITLE: AC: Responses Provider Path
+STATEMENT: >>>
+Given initialized provider access and valid Responses API call arguments, LLMClient.responses shall map the composed messages into provider instructions/input fields, submit the request, and return extracted text by default.
+
+When metadata return is requested, it shall additionally return available usage, model, status, and incomplete-reason data.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-LLM-CLIENT-RESPONSES
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-NO-AGENT-LOGIC
+STATUS: Draft
+TITLE: AC: Neutral Infrastructure
+STATEMENT: >>>
+AgentFactory, AgentPrompt, AgentPrompt helper modules, and LLMClient shall be usable by more than one concrete agent without containing conditional business behavior for A2, ActiveBrief, A3, A4, or MemoryMerge.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-NEUTRALITY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-STATE-ISOLATION
+STATUS: Draft
+TITLE: AC: Run State Isolation
+STATEMENT: >>>
+Two sequential AgentPrompt executions with different runtime payloads shall derive their composed messages from the respective payloads without retaining the previous run's concrete-agent input or parsed result as hidden state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-STATELESS-RUNS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-CACHED-PROTECTION
+STATUS: Draft
+TITLE: AC: Cached Prompt Protection
+STATEMENT: >>>
+A factory-cached AgentPrompt used by one concrete agent execution shall remain suitable for a later execution of the same configured agent/version without inheriting run-specific mutations.
+
+A workflow that requires run-local configuration mutation shall use a fresh isolated AgentPrompt instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-CONSUMER-CACHED-IMMUTABILITY
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-PROVIDER-FAILURE
+STATUS: Draft
+TITLE: AC: Provider Failure Integrity
+STATEMENT: >>>
+An unavailable provider client or failed provider request shall not produce fabricated successful model content.
+
+The failure shall remain observable to the concrete agent or orchestrator for behavior defined by the owning functional requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-NO-FABRICATED-SUCCESS
+
+[REQUIREMENT]
+UID: GHOST-AGENT-STACK-AC-OWNERSHIP
+STATUS: Draft
+TITLE: AC: Functional Ownership Separation
+STATEMENT: >>>
+The Agent Stack requirement shall remain limited to shared configuration, composition, parsing, and provider-call contracts.
+
+Concrete A2, ActiveBrief, A3, A4, memory, orchestration, GUI, logging, metrics, and security behavior shall remain traceable to their owning sibling requirements without being duplicated here.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AGENT-STACK-SIBLING-OWNERSHIP
 
 [[/SECTION]]

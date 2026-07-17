@@ -1,0 +1,1139 @@
+[DOCUMENT]
+TITLE: GHOST Knowledge Management Requirements
+UID: GHOST-KNOWLEDGE-MANAGEMENT
+VERSION: 0.1
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines the top-level requirements for GHOST Knowledge Management.
+
+Knowledge Management is the document-evidence context path that begins after prompt preparation and ends when document evidence has been selected, condensed, and written into the shared SuperPrompt for final prompt composition.
+
+Detailed ingestion, retrieval/reranking, and evidence-selection/condensation behavior is owned by child requirement files 41, 42, and 43.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-ROOT
+STATUS: Draft
+TITLE: Knowledge Management Scope
+STATEMENT: >>>
+GHOST shall provide a Knowledge Management capability that transforms project documents into query-relevant, traceable document context for the current request.
+
+The capability shall include document ingestion, document retrieval, optional reranking, semantic evidence selection, evidence condensation, and SuperPrompt write-back.
+
+The capability shall not own prompt preprocessing, memory retrieval, memory recording, final answer generation, GUI rendering, or future guardrail enforcement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-KM-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST.
+
+The existing Python package namespace may remain ragstream in current source code and implementation paths.
+
+Requirements shall not treat ragstream as the product identity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-CHILD-DOCUMENTS
+STATUS: Draft
+TITLE: Knowledge Management Child Documents
+STATEMENT: >>>
+Knowledge Management shall be decomposed into these child requirement documents:
+
+1. 41_document_ingestion.sdoc.
+2. 42_document_retrieval_and_reranking.sdoc.
+3. 43_evidence_selection_and_condensation.sdoc.
+
+Each child document shall own its detailed atomic requirements and shall inherit from the Knowledge Management root requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-CURRENT-CAPABILITIES
+STATUS: Draft
+TITLE: Current Executable Knowledge Capabilities
+STATEMENT: >>>
+The current executable Knowledge Management baseline shall include:
+- project-based raw-document ingestion;
+- deterministic content hashing and manifest comparison;
+- overlapping character-based chunking;
+- dense OpenAI embeddings and persistent Chroma storage;
+- optional SPLADE sparse encoding and storage;
+- query projection and deterministic query splitting;
+- dense candidate generation;
+- optional SPLADE rescoring and weighted reciprocal-rank fusion;
+- optional ColBERT reranking and a second weighted reciprocal-rank fusion;
+- A3 usefulness classification and deterministic useful-only selection;
+- A4 three-call evidence classification and condensation;
+- document evidence write-back into SuperPrompt.
+
+Unimplemented knowledge graphs, cross-context overlap removal, A5, guardrails, and background synchronization agents shall not be presented as current Knowledge Management behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-REQUIREMENT-NATURE
+STATUS: Draft
+TITLE: Requirement Nature
+STATEMENT: >>>
+This document and its child documents shall define required behavior, interfaces, constraints, and verification criteria.
+
+They shall not be written as implementation-status reports, design diaries, or speculative feature catalogs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Functional Architecture and Responsibility Boundaries
+
+[TEXT]
+STATEMENT: >>>
+The conceptual GHOST context-generation architecture is:
+
+PreProcessing
+-> Knowledge Management and Memory Management as logically independent context paths
+-> Final Prompt Composition
+
+Knowledge Management contains internal stages but is one top-level document-evidence capability.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-ARCHITECTURE
+STATUS: Draft
+TITLE: Knowledge Management Architectural Position
+STATEMENT: >>>
+Knowledge Management shall receive a prepared SuperPrompt from PreProcessing and shall produce document-derived supporting context for final prompt composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-INTERNAL-STAGES
+STATUS: Draft
+TITLE: Internal Knowledge Management Stages
+STATEMENT: >>>
+Document ingestion, retrieval, reranking, A3 evidence selection, and A4 condensation shall be modeled as internal Knowledge Management functions rather than separate top-level GHOST pipelines.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ARCHITECTURE
+
+[REQUIREMENT]
+UID: GHOST-KM-OLD-PIPELINE-BOUNDARY
+STATUS: Draft
+TITLE: Old Eight-Stage Pipeline Boundary
+STATEMENT: >>>
+The former learning-oriented eight-stage pipeline model shall not define the current top-level requirements hierarchy.
+
+Legacy stage names may remain in code, lifecycle values, logs, metrics, and diagnostic views when they accurately identify internal processing steps.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ARCHITECTURE
+
+[REQUIREMENT]
+UID: GHOST-KM-PREPROCESS-DEPENDENCY
+STATUS: Draft
+TITLE: PreProcessing Dependency
+STATEMENT: >>>
+Knowledge Management shall consume the structured request and effective retrieval-query state prepared under 30_preprocessing_prompt_functions.sdoc.
+
+Knowledge Management shall not reparse the original raw user prompt or repeat A2 prompt shaping.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ARCHITECTURE
+
+[REQUIREMENT]
+UID: GHOST-KM-MEMORY-PEER
+STATUS: Draft
+TITLE: Memory Management Peer Boundary
+STATEMENT: >>>
+Knowledge Management and Memory Management shall be treated as peer context-generation paths.
+
+Knowledge Management shall not require the result of Memory Management in order to retrieve, rerank, select, or condense document evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ARCHITECTURE
+
+[REQUIREMENT]
+UID: GHOST-KM-NO-MEMORY-MUTATION
+STATUS: Draft
+TITLE: No Memory-State Mutation
+STATEMENT: >>>
+Knowledge Management shall not create, edit, tag, persist, retrieve, score, compress, or merge MemoryRecord data.
+
+Memory-specific behavior shall remain owned by 50_memory_management.sdoc and its child files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-MEMORY-PEER
+
+[REQUIREMENT]
+UID: GHOST-KM-PROMPT-COMPOSITION-BOUNDARY
+STATUS: Draft
+TITLE: Final Prompt Composition Boundary
+STATEMENT: >>>
+Knowledge Management shall produce document context artifacts but shall not generate the final user-facing answer.
+
+The final prompt-composition capability shall decide how the current request, document context, memory context, attachments, and later policy blocks are assembled for the answer model.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ARCHITECTURE
+
+[REQUIREMENT]
+UID: GHOST-KM-AGENT-STACK-BOUNDARY
+STATUS: Draft
+TITLE: Agent Stack Boundary
+STATEMENT: >>>
+A3 and A4 shall use the neutral Agent Stack contracts defined in 20_agent_stack.sdoc.
+
+This requirement family shall own A3/A4 functional semantics, deterministic processing, evidence decisions, and SuperPrompt write-back without duplicating generic AgentFactory, AgentPrompt, or LLMClient requirements.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ARCHITECTURE
+
+[REQUIREMENT]
+UID: GHOST-KM-CONTROLLER-BOUNDARY
+STATUS: Draft
+TITLE: Controller Boundary
+STATEMENT: >>>
+The application controller may coordinate ingestion, retrieval, reranking, A3, and A4 calls.
+
+The controller shall not absorb document loading, hashing, chunking, scoring, fusion, classification, condensation, or evidence-selection business rules.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ARCHITECTURE
+
+[REQUIREMENT]
+UID: GHOST-KM-GUI-BOUNDARY
+STATUS: Draft
+TITLE: GUI Boundary
+STATEMENT: >>>
+The GUI may initiate Knowledge Management operations, select projects, expose optional-stage controls, and display stage results.
+
+Detailed GUI layout, widget state, session state, and action behavior shall remain owned by interface requirement files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ARCHITECTURE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. End-to-End Knowledge Flow and Dependencies
+
+[TEXT]
+STATEMENT: >>>
+The Knowledge Management flow separates offline/project ingestion from per-request context generation.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-OFFLINE-ONLINE-SEPARATION
+STATUS: Draft
+TITLE: Ingestion and Query-Time Separation
+STATEMENT: >>>
+Document ingestion shall prepare persistent project indexes independently of any individual user request.
+
+Retrieval, reranking, A3, and A4 shall operate at request time against the active project and current SuperPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-FLOW-INGEST
+STATUS: Draft
+TITLE: Ingestion Output Dependency
+STATEMENT: >>>
+Document Retrieval shall depend on successfully created project document stores and the raw source files needed for chunk hydration.
+
+A project without the required dense store or raw-document source shall not be represented as fully retrievable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-OFFLINE-ONLINE-SEPARATION
+
+[REQUIREMENT]
+UID: GHOST-KM-FLOW-QUERY
+STATUS: Draft
+TITLE: Prepared Query Dependency
+STATEMENT: >>>
+Document Retrieval shall consume the effective query projection derived from the current SuperPrompt and ActiveBrief routing state.
+
+A suppressed document-retrieval route shall not be replaced by an unrelated fallback query.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-OFFLINE-ONLINE-SEPARATION
+
+[REQUIREMENT]
+UID: GHOST-KM-FLOW-RETRIEVAL
+STATUS: Draft
+TITLE: Retrieval Candidate Contract
+STATEMENT: >>>
+Document Retrieval shall write hydrated candidate chunks, ordered retrieval views, and current selection identifiers into the same SuperPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-OFFLINE-ONLINE-SEPARATION
+
+[REQUIREMENT]
+UID: GHOST-KM-FLOW-RERANK
+STATUS: Draft
+TITLE: Reranking Dependency
+STATEMENT: >>>
+Real reranking shall consume the candidates produced by Document Retrieval.
+
+When reranking is bypassed, downstream evidence selection shall receive an explicit retrieval-order passthrough rather than fabricated ColBERT evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-OFFLINE-ONLINE-SEPARATION
+
+[REQUIREMENT]
+UID: GHOST-KM-FLOW-A3
+STATUS: Draft
+TITLE: A3 Dependency
+STATEMENT: >>>
+A3 evidence selection shall consume reranked candidates when available and shall otherwise consume the documented retrieval passthrough candidate view.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-OFFLINE-ONLINE-SEPARATION
+
+[REQUIREMENT]
+UID: GHOST-KM-FLOW-A4
+STATUS: Draft
+TITLE: A4 Dependency
+STATEMENT: >>>
+A4 condensation shall consume only A3 candidates classified as useful and successfully mapped to hydrated document chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-OFFLINE-ONLINE-SEPARATION
+
+[REQUIREMENT]
+UID: GHOST-KM-FLOW-HANDOFF
+STATUS: Draft
+TITLE: Knowledge Context Handoff
+STATEMENT: >>>
+At Knowledge Management completion, the SuperPrompt shall contain the authoritative condensed document-context artifact, final retained document identifiers, stage views, and traceability metadata required by final prompt composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-OFFLINE-ONLINE-SEPARATION
+
+[REQUIREMENT]
+UID: GHOST-KM-SEQUENTIAL-CURRENT
+STATUS: Draft
+TITLE: Current Sequential Invocation
+STATEMENT: >>>
+The current controller may invoke document retrieval and memory retrieval sequentially.
+
+Sequential invocation shall not be interpreted as a semantic dependency between their results.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-MEMORY-PEER
+
+[REQUIREMENT]
+UID: GHOST-KM-PARALLEL-FUTURE
+STATUS: Draft
+TITLE: Future Concurrent Coordination Boundary
+STATEMENT: >>>
+Future orchestration may execute Knowledge Management and Memory Management concurrently when their input contracts and shared-state safety permit it.
+
+Concurrent execution shall be treated as a future orchestration refinement and shall not be required by the current Knowledge Management baseline.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SEQUENTIAL-CURRENT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Shared Knowledge Artifacts and SuperPrompt Contract
+
+[TEXT]
+STATEMENT: >>>
+SuperPrompt remains the authoritative per-request state carrier for document evidence.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-SUPERPROMPT-AUTHORITY
+STATUS: Draft
+TITLE: SuperPrompt Authority
+STATEMENT: >>>
+Knowledge Management shall mutate and return the same active SuperPrompt instance rather than creating an independent document-context state owner.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-BASE-CHUNKS
+STATUS: Draft
+TITLE: Hydrated Base Chunk Contract
+STATEMENT: >>>
+SuperPrompt.base_context_chunks shall contain hydrated document Chunk objects for the current request in the applicable retrieval order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SUPERPROMPT-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-STAGE-VIEWS
+STATUS: Draft
+TITLE: Stage View Contract
+STATEMENT: >>>
+SuperPrompt.views_by_stage shall retain ordered stage-specific rows sufficient to distinguish retrieval, reranked, A3, and A4 outcomes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SUPERPROMPT-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-FINAL-IDS
+STATUS: Draft
+TITLE: Final Selection Identifier Contract
+STATEMENT: >>>
+SuperPrompt.final_selection_ids shall represent the ordered document identifiers currently surviving the latest completed Knowledge Management stage.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SUPERPROMPT-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-SCTX
+STATUS: Draft
+TITLE: Condensed Document Context Contract
+STATEMENT: >>>
+SuperPrompt.S_CTX_MD shall contain the A4-condensed document evidence summary when A4 succeeds.
+
+S_CTX_MD shall be internal supporting context and shall not be written as a user-facing final answer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SUPERPROMPT-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-EXTRAS
+STATUS: Draft
+TITLE: Diagnostic Extras Contract
+STATEMENT: >>>
+Knowledge Management may write retrieval, reranking, A3, and A4 diagnostic metadata into SuperPrompt.extras.
+
+Diagnostic fields shall not become an alternative source of truth when an authoritative typed SuperPrompt field exists.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SUPERPROMPT-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-STAGE-HISTORY
+STATUS: Draft
+TITLE: Lifecycle History Contract
+STATEMENT: >>>
+Each completed request-time Knowledge Management step shall update the SuperPrompt lifecycle stage and append its stage identifier to history_of_stages.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SUPERPROMPT-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-PROVENANCE
+STATUS: Draft
+TITLE: Document Provenance Preservation
+STATEMENT: >>>
+Every retained document evidence item shall remain traceable to its stable chunk identifier, project-relative source path, source-version hash, and chunk index when those values exist in the ingestion metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SUPERPROMPT-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-RAW-CONDENSED-SEPARATION
+STATUS: Draft
+TITLE: Raw and Condensed Evidence Separation
+STATEMENT: >>>
+Raw hydrated chunks, stage rankings, semantic usefulness decisions, and condensed context shall remain distinguishable artifacts.
+
+A condensed summary shall not silently replace or rewrite the raw stored document chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SUPERPROMPT-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-PROMPT-RENDER
+STATUS: Draft
+TITLE: Prompt Preview Projection
+STATEMENT: >>>
+The central SuperPrompt projector may render raw document evidence before A4 and shall render condensed document context after A4 according to the final prompt-composition contract.
+
+Knowledge Management components shall not independently create competing prompt-preview formats.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SUPERPROMPT-AUTHORITY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Independence from Memory and Future Context Coordination
+
+[TEXT]
+STATEMENT: >>>
+Knowledge and memory context are currently generated separately and combined only in the final prompt projection.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-INDEPENDENT-SELECTION
+STATUS: Draft
+TITLE: Independent Evidence Selection
+STATEMENT: >>>
+Document candidate generation, reranking, A3 selection, and A4 condensation shall use document evidence and the current request without requiring raw memory candidates or synthesized memory context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-MEMORY-PEER
+
+[REQUIREMENT]
+UID: GHOST-KM-NO-CROSS-PRUNING
+STATUS: Draft
+TITLE: No Current Cross-Context Pruning
+STATEMENT: >>>
+The current Knowledge Management baseline shall not remove document evidence because similar information exists in Memory Management output.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-INDEPENDENT-SELECTION
+
+[REQUIREMENT]
+UID: GHOST-KM-NO-MEMORY-IN-A3
+STATUS: Draft
+TITLE: A3 Memory Exclusion
+STATEMENT: >>>
+A3 shall classify document candidates only.
+
+Memory candidate filtering and memory-context synthesis shall remain outside A3.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-INDEPENDENT-SELECTION
+
+[REQUIREMENT]
+UID: GHOST-KM-NO-MEMORY-IN-A4
+STATUS: Draft
+TITLE: A4 Memory Exclusion
+STATEMENT: >>>
+A4 shall condense selected document evidence only.
+
+A4 shall not condense MemoryContextPack content or synthesize a joint document-memory context in the current baseline.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-INDEPENDENT-SELECTION
+
+[REQUIREMENT]
+UID: GHOST-KM-FUTURE-OVERLAP
+STATUS: Draft
+TITLE: Future Document-Memory Overlap Control
+STATEMENT: >>>
+A future context-coordination capability may detect and remove information overlap between condensed document context and synthesized memory context.
+
+That future behavior shall be specified outside 40–43 and shall not be implied as current Knowledge Management behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-INDEPENDENT-SELECTION
+
+[REQUIREMENT]
+UID: GHOST-KM-FUTURE-KG
+STATUS: Draft
+TITLE: Future Knowledge Graph Boundary
+STATEMENT: >>>
+Future knowledge-graph extraction, graph retrieval, graph-memory coordination, and Blackboard integration shall require separate approved requirements.
+
+They shall not be inserted into the current document-ingestion or document-retrieval contracts without an explicit change.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-INDEPENDENT-SELECTION
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Configuration and Current/Future Implementation Boundary
+
+[TEXT]
+STATEMENT: >>>
+Operational tuning values affect quality, latency, and cost and therefore require explicit configuration governance.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-CONFIG-AUTHORITY
+STATUS: Draft
+TITLE: Runtime Configuration Authority
+STATEMENT: >>>
+Operationally tunable Knowledge Management parameters shall be represented in versioned JSON runtime configuration rather than remaining permanently distributed as Python literals.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-CONFIG-SCOPE
+STATUS: Draft
+TITLE: Knowledge Configuration Scope
+STATEMENT: >>>
+The configuration target shall include at least:
+- chunk and query window sizes and overlaps;
+- retrieval candidate limits;
+- embedding and sparse-model identifiers;
+- score floors;
+- p-norm aggregation values;
+- RRF constants and branch weights;
+- reranker model, candidate limit, and runtime device;
+- A3 candidate and useful-selection limits;
+- A4 candidate and output-token limits;
+- optional-stage enable/bypass switches;
+- version-cleanup and tombstone policies.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-CONFIG-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-CONFIG-VALIDATION
+STATUS: Draft
+TITLE: Configuration Validation
+STATEMENT: >>>
+Knowledge Management configuration shall be validated before use.
+
+Invalid ranges, missing required paired settings, incompatible chunking values, invalid weights, unknown models, and non-positive limits shall fail explicitly or use a documented safe default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-CONFIG-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-EFFECTIVE-CONFIG
+STATUS: Draft
+TITLE: Effective Configuration Observability
+STATEMENT: >>>
+Every Knowledge Management run shall make the effective values of quality-, cost-, and latency-relevant configuration observable through logs, diagnostics, or stage metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-CONFIG-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-TRANSITIONAL-CONSTANTS
+STATUS: Draft
+TITLE: Transitional Code Constants
+STATEMENT: >>>
+Until a tuning parameter has been migrated to JSON configuration, the current implementation may retain an explicit code default.
+
+Such a value shall be documented as transitional and shall not be falsely described as runtime-configurable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-CONFIG-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-NO-HIDDEN-TUNING
+STATUS: Draft
+TITLE: No Hidden Tuning Changes
+STATEMENT: >>>
+A change to retrieval weights, candidate limits, score floors, chunking values, model identifiers, or evidence budgets shall be treated as a controlled behavior/configuration change rather than an undocumented code edit.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-CONFIG-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-CURRENT-FUTURE-LABEL
+STATUS: Draft
+TITLE: Current and Future Capability Labeling
+STATEMENT: >>>
+Current executable behavior and approved future configuration migration shall remain explicitly distinguishable in requirements, architecture, implementation status, and tests.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-CONFIG-AUTHORITY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Error Handling, Logging, and Observability
+
+[TEXT]
+STATEMENT: >>>
+Knowledge Management failures must remain visible and must not be converted into fabricated evidence.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-NO-FABRICATED-EVIDENCE
+STATUS: Draft
+TITLE: No Fabricated Document Evidence
+STATEMENT: >>>
+A missing project, failed embedding request, missing index, invalid model output, broken source path, or empty evidence set shall not be represented as successful document evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-ERROR-OWNERSHIP
+STATUS: Draft
+TITLE: Error Ownership
+STATEMENT: >>>
+Each component shall validate errors that belong to its own boundary and shall return or raise enough context for the controller to report the failed operation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-NO-FABRICATED-EVIDENCE
+
+[REQUIREMENT]
+UID: GHOST-KM-PARTIAL-DEGRADATION
+STATUS: Draft
+TITLE: Controlled Optional-Branch Degradation
+STATEMENT: >>>
+Failure or absence of an explicitly optional retrieval branch may degrade to a documented fallback when that fallback preserves the downstream contract.
+
+The fallback shall be distinguishable from successful execution of the optional branch.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-NO-FABRICATED-EVIDENCE
+
+[REQUIREMENT]
+UID: GHOST-KM-LOG-LEVELS
+STATUS: Draft
+TITLE: Knowledge Logging Levels
+STATEMENT: >>>
+Knowledge Management shall provide concise public stage status and more detailed internal/developer diagnostics without exposing confidential full prompts or document contents by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-LATENCY
+STATUS: Draft
+TITLE: Stage Latency Observability
+STATEMENT: >>>
+Request-time Knowledge Management stages shall expose sufficient timing data to analyze retrieval, reranking, A3, A4, and provider latency independently.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-COUNTS
+STATUS: Draft
+TITLE: Candidate Count Observability
+STATEMENT: >>>
+The system shall expose candidate counts and retained counts at retrieval, reranking, A3, and A4 boundaries.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-MODEL-USAGE
+STATUS: Draft
+TITLE: Model and Token Observability
+STATEMENT: >>>
+LLM- or model-backed Knowledge Management steps shall expose the effective model identifier and available usage metadata through the owning logging/metrics facilities.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-LOGGING-REFERENCE
+STATUS: Draft
+TITLE: Logging Ownership Reference
+STATEMENT: >>>
+Detailed sink, confidentiality, retention, formatting, and audit requirements shall be owned by 81_logging_textforge_raglog.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Quality, Determinism, and Performance Requirements
+
+[TEXT]
+STATEMENT: >>>
+Knowledge Management combines deterministic data processing with bounded model-assisted evidence classification and synthesis.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-DETERMINISTIC-OPERATIONS
+STATUS: Draft
+TITLE: Deterministic Knowledge Operations
+STATEMENT: >>>
+File hashing, manifest diffing, chunk identifiers, query splitting, score aggregation, ranking fusion, local-id mapping, result regrouping, and stage write-back shall be deterministic for identical inputs and effective configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-MODEL-BOUNDARY
+STATUS: Draft
+TITLE: Model-Assisted Operation Boundary
+STATEMENT: >>>
+Dense embedding, SPLADE encoding, ColBERT scoring, A3 classification, and A4 condensation may use external or local models.
+
+Model outputs shall be subjected to the deterministic validation and write-back rules owned by their components.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-STABLE-TIES
+STATUS: Draft
+TITLE: Stable Tie Resolution
+STATEMENT: >>>
+Ranked document results with equal effective scores shall use a stable deterministic fallback such as chunk identifier order.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-DETERMINISTIC-OPERATIONS
+
+[REQUIREMENT]
+UID: GHOST-KM-NO-CHUNK-MUTATION
+STATUS: Draft
+TITLE: Stored Chunk Integrity
+STATEMENT: >>>
+Query-time cleaning, prompt sanitization, classification, and condensation shall not mutate the persisted document source or stored canonical chunk text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-BOUNDED-CANDIDATES
+STATUS: Draft
+TITLE: Bounded Candidate Processing
+STATEMENT: >>>
+Every request-time model-assisted stage shall operate on an explicit bounded candidate set to control latency, cost, and prompt size.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-QUALITY-EVALUATION
+STATUS: Draft
+TITLE: Optional Branch Quality Evaluation
+STATEMENT: >>>
+SPLADE and ColBERT branches shall remain optional and independently evaluable until measured evidence supports a stronger mandatory quality claim.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-PERFORMANCE-NO-QUALITY-LIE
+STATUS: Draft
+TITLE: Performance and Quality Truthfulness
+STATEMENT: >>>
+A performance optimization or bypass shall not be described as quality-equivalent unless verified against representative retrieval cases and acceptance criteria.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-REPRODUCIBILITY
+STATUS: Draft
+TITLE: Knowledge Run Reproducibility
+STATEMENT: >>>
+The project version, effective configuration, model identifiers, source hashes, and stable chunk identifiers shall be sufficient to reproduce or audit a Knowledge Management result to the practical extent supported by external model determinism.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. Traceability and Sibling Requirement Ownership
+
+[TEXT]
+STATEMENT: >>>
+This file provides capability-level ownership and delegates atomic behavior to child and sibling requirement files.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-INGESTION-REFERENCE
+STATUS: Draft
+TITLE: Document Ingestion Ownership
+STATEMENT: >>>
+Detailed source discovery, hashing, manifest, chunking, embedding, storage, cleanup, and ingestion statistics requirements shall be owned by 41_document_ingestion.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-RETRIEVAL-REFERENCE
+STATUS: Draft
+TITLE: Retrieval and Reranking Ownership
+STATEMENT: >>>
+Detailed query splitting, dense retrieval, SPLADE rescoring, RRF fusion, hydration, ColBERT reranking, passthrough, and retrieval write-back requirements shall be owned by 42_document_retrieval_and_reranking.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-EVIDENCE-REFERENCE
+STATUS: Draft
+TITLE: Evidence Selection and Condensation Ownership
+STATEMENT: >>>
+Detailed A3 classification, useful-selection, A4 thematic grouping, fallback, condensation, and evidence write-back requirements shall be owned by 43_evidence_selection_and_condensation.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-PREPROCESS-REFERENCE
+STATUS: Draft
+TITLE: PreProcessing Ownership Reference
+STATEMENT: >>>
+Prompt parsing, ActiveBrief relation routing, A2 PromptShaper, and effective retrieval-query preparation shall remain owned by 30_preprocessing_prompt_functions.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-MEMORY-REFERENCE
+STATUS: Draft
+TITLE: Memory Ownership Reference
+STATEMENT: >>>
+Memory recording, ingestion, retrieval, scoring, compression, ActiveBrief maintenance, and Memory Context synthesis shall remain owned by the Memory Management requirement family.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-PROMPT-BUILDER-REFERENCE
+STATUS: Draft
+TITLE: Final Composition Ownership Reference
+STATEMENT: >>>
+The final assembly of current request, document context, memory context, recent conversation, attachments, and later policies shall remain owned by the final prompt-composition requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-FUTURE-REFERENCE
+STATUS: Draft
+TITLE: Future Capability Ownership Reference
+STATEMENT: >>>
+A5, guardrails, Hard Rules, knowledge graphs, Blackboard coordination, document-memory overlap removal, and background requirement-code synchronization shall remain owned by future requirement files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-CODE-TRACEABILITY
+STATUS: Draft
+TITLE: Code Traceability Direction
+STATEMENT: >>>
+Knowledge Management implementation units shall be traceable to the deepest applicable requirement UID under files 41–43.
+
+The top-level Knowledge Management root shall not replace atomic child ownership for code and test mapping.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[REQUIREMENT]
+UID: GHOST-KM-CHANGE-SYNC
+STATUS: Draft
+TITLE: Requirement-Code Synchronization
+STATEMENT: >>>
+An approved behavior change affecting Knowledge Management interfaces, constraints, persistence, rankings, stage artifacts, or observable outcomes shall update requirements, architecture, implementation traceability, and verification together.
+
+Pure internal refactoring that preserves approved behavior shall not require artificial requirement changes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Acceptance Criteria
+
+[TEXT]
+STATEMENT: >>>
+These criteria validate the top-level Knowledge Management architecture without duplicating detailed child acceptance tests.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-HIERARCHY
+STATUS: Draft
+TITLE: AC: Knowledge Hierarchy
+STATEMENT: >>>
+The approved requirements set shall show PreProcessing followed by peer Knowledge and Memory context paths and final prompt composition, while retrieval, reranking, A3, and A4 remain internal Knowledge Management functions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-ARCHITECTURE
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-INGESTION-HANDOFF
+STATUS: Draft
+TITLE: AC: Ingestion-to-Retrieval Handoff
+STATEMENT: >>>
+Given a successfully ingested project, its raw files, stable chunk metadata, dense store, and optional sparse store shall be sufficient for document retrieval and hydration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-FLOW-INGEST
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-INDEPENDENCE
+STATUS: Draft
+TITLE: AC: Memory Independence
+STATEMENT: >>>
+Given identical prepared prompt and project state, document retrieval and evidence selection shall not require Memory Management output to execute.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-INDEPENDENT-SELECTION
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-STAGE-ARTIFACTS
+STATUS: Draft
+TITLE: AC: Stage Artifact Separation
+STATEMENT: >>>
+After retrieval, reranking, A3, and A4, the SuperPrompt shall preserve distinguishable stage views and the current final-selection identifiers.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-STAGE-VIEWS
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-SCTX
+STATUS: Draft
+TITLE: AC: Condensed Context Handoff
+STATEMENT: >>>
+After successful A4 completion, S_CTX_MD shall contain internal document supporting context and final prompt composition shall be able to render it without treating it as the user request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-SCTX
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-EMPTY
+STATUS: Draft
+TITLE: AC: Empty Evidence Integrity
+STATEMENT: >>>
+Given no usable document evidence, Knowledge Management shall produce an explicit empty or skipped state and shall not fabricate S_CTX_MD content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-NO-FABRICATED-EVIDENCE
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-CONFIG
+STATUS: Draft
+TITLE: AC: Configuration Governance
+STATEMENT: >>>
+Every migrated tuning parameter shall be read from validated versioned JSON configuration and its effective value shall be observable for the run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-CONFIG-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-TRANSITION
+STATUS: Draft
+TITLE: AC: Transitional Constant Truth
+STATEMENT: >>>
+A parameter still hard-coded in Python shall be documented as a current constant and shall not be reported as JSON-controlled until the implementation consumes the JSON value.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-TRANSITIONAL-CONSTANTS
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-PROVENANCE
+STATUS: Draft
+TITLE: AC: Evidence Provenance
+STATEMENT: >>>
+Every final retained document identifier shall map to a hydrated chunk and to source-version metadata sufficient to locate the originating project file and chunk index.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-PROVENANCE
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-BOUNDARY
+STATUS: Draft
+TITLE: AC: No Future Feature Leakage
+STATEMENT: >>>
+The current Knowledge Management requirements shall not claim implemented document-memory overlap removal, knowledge-graph retrieval, Blackboard coordination, A5, guardrails, or background synchronization agents.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-FUTURE-REFERENCE
+
+[REQUIREMENT]
+UID: GHOST-KM-AC-SYNC
+STATUS: Draft
+TITLE: AC: Requirement-Code Consistency
+STATEMENT: >>>
+A release baseline shall not be accepted when approved Knowledge Management requirements contradict implemented stage order, artifact semantics, configuration authority, or evidence-selection behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-KM-CHANGE-SYNC
+
+[[/SECTION]]
