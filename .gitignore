@@ -280,4 +280,5 @@ data/logs/**
 # OS / Windows metadata
 Thumbs.db
 Desktop.ini
-*:Zone.Identifier 
+*:Zone.Identifier doc/01-Requirements/strictdoc-html/_cache/
+doc/01-Requirements/strictdoc-html/_cache/
