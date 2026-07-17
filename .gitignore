@@ -282,3 +282,5 @@ Thumbs.db
 Desktop.ini
 *:Zone.Identifier doc/01-Requirements/strictdoc-html/_cache/
 doc/01-Requirements/strictdoc-html/_cache/
+doc/01-Requirements/strictdoc-html/
+*:Zone.Identifier
