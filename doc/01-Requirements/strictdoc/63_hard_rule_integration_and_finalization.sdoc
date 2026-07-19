@@ -1,126 +1,420 @@
 [DOCUMENT]
 TITLE: GHOST Hard Rule Integration and Finalization Requirements
-UID: GHOST-HARD-RULE-INTEGRATION-FINALIZATION
-VERSION: 0.1-draft
+UID: GHOST-HARD-RULE-FINALIZATION
+VERSION: 0.1
 OPTIONS:
   MARKUP: Text
   AUTO_LEVELS: On
   NODE_IN_TOC: True
 
 [[SECTION]]
-TITLE: 1. Purpose
+TITLE: 1. Purpose, Scope, and Current Status
 
 [TEXT]
 STATEMENT: >>>
-Reserves ownership for Hard Rule integration, final context checks, finalization, and production of an LLM-ready prompt artifact.
+This document records the current disabled/placeholder Hard Rules state and preserves only the already agreed future direction for human-controlled Hard Rule integration and final prompt finalization.
+
+It does not invent a Hard Rule schema, precedence model, enforcement algorithm, or A5 behavior.
 <<<
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 2. Scope and Boundary
-
 [REQUIREMENT]
-UID: GHOST-HRIF-ROOT
-TITLE: GHOST Hard Rule Integration and Finalization Scope
+UID: GHOST-HARD-RULES-ROOT
+STATUS: Draft
+TITLE: Hard Rule Integration and Finalization Scope
 STATEMENT: >>>
-This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+This file shall define:
 
-It reserves ownership for Hard Rule acquisition, applicability decisions, rule integration, final checks, token-budget enforcement, and final LLM-ready prompt production.
-
-Hard Rule integration is not currently an implemented executable capability and shall not be presented as current behavior.
-
-Detailed atomic requirements shall be added only after the Hard Rule model, authority, storage, applicability, ordering, and enforcement behavior have been explicitly approved.
-
-This file shall not duplicate general quality, security, governance, or interface requirements owned by other files.
+- current runtime and GUI facts related to Hard Rules;
+- the distinction between per-agent static instructions and the planned global Hard Rules capability;
+- the current A5 and final-send boundaries; and
+- the approved human-controlled and inspectable future direction.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-CIPA-ROOT
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-SOURCE-AUTHORITY
+STATUS: Draft
+TITLE: Current Code and Runtime Configuration Authority
+STATEMENT: >>>
+Current Hard Rule status shall follow the provided Python code and ragstream/config/runtime_config.json.
+
+Legacy architecture or requirement descriptions shall not be used to claim implemented enforcement that is absent from current code.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3. Initial Topic Headings
+TITLE: 2. Current Hard Rules Baseline
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-CONFIG-DISABLED
+STATUS: Draft
+TITLE: Current Runtime Configuration
+STATEMENT: >>>
+The current runtime configuration shall identify hard_rules.enabled as false and hard_rules.planned_later as true.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-GUI-PAGE
+STATUS: Draft
+TITLE: Hard Rules GUI Page Placeholder
+STATEMENT: >>>
+The current Streamlit navigation shall include a Hard Rules page, but the current page content shall remain a placeholder rather than an operational rule editor or rule-governance implementation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-SIDEBAR-VISUAL
+STATUS: Draft
+TITLE: Hard Rule Integration Visual Step
+STATEMENT: >>>
+The current sidebar flowchart shall include Hard Rule Integration and LLM-Ready Context labels.
+
+Those labels shall be treated as visual workflow indicators and shall not by themselves establish implemented Hard Rule processing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-POST-A4-VISUAL-ONLY
+STATUS: Draft
+TITLE: Post-A4 Visual Progression
+STATEMENT: >>>
+After the six executable Prompt Builder stages complete through A4, the current UI action may update the visual/status state to Hard Rule Integration and then LLM-Ready Context.
+
+The provided current code does not invoke a Hard Rule engine during that visual progression.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-SIDEBAR-VISUAL
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-NO-GLOBAL-ENGINE
+STATUS: Draft
+TITLE: No Current Global Hard Rule Engine
+STATEMENT: >>>
+The current implementation shall not be described as loading a user-governed global Hard Rule set, evaluating it against integrated context, modifying prompt content according to those rules, or producing rule-enforcement diagnostics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-NO-SUPERPROMPT-FIELD
+STATUS: Draft
+TITLE: No Dedicated Current Global Hard Rule State
+STATEMENT: >>>
+The current SuperPrompt definition shall not be described as containing a dedicated global Hard Rule collection, applied-rule list, rejected-rule list, or enforcement-result field.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.1. Current Hard Rules Boundary
+TITLE: 3. Per-Agent Static Hard Rules Boundary
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Current disabled and placeholder behavior shall remain separated from future Hard Rule enforcement.
+Several current Agent Stack JSON definitions contain a static prompt element named Hard Rules. Those instructions constrain individual agent calls. They are not the planned cross-pipeline global Hard Rules feature.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-AGENT-STATIC
+STATUS: Draft
+TITLE: Per-Agent Static Instructions
+STATEMENT: >>>
+Current agent JSON may define static prompt instructions under an element named Hard Rules for specific agents such as A3, A4, ActiveBrief summarization, or Memory Context synthesis.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-AGENT-NOT-GLOBAL
+STATUS: Draft
+TITLE: Per-Agent Instructions Are Not Global Hard Rules
+STATEMENT: >>>
+Per-agent static Hard Rules shall not be represented as a user-managed, globally integrated Hard Rule subsystem.
+
+They apply only inside the corresponding AgentPrompt and do not prove final-prompt rule enforcement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-AGENT-STATIC
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-NO-AUTOMATIC-PROMOTION
+STATUS: Draft
+TITLE: No Automatic Promotion of Agent Rules
+STATEMENT: >>>
+Current per-agent static instructions shall not be automatically promoted into final global prompt rules unless a future explicit design and implementation establishes that behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-AGENT-STATIC
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2. Hard Rule Sources and Authority
+TITLE: 4. A5 and Finalization Current Boundary
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-A5-RESERVED
+STATUS: Draft
+TITLE: A5 Reserved Lifecycle Value
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after rule sources and authority have been approved.
+The current SuperPrompt lifecycle type may include a5 as a reserved stage value.
+
+That type declaration shall not be treated as evidence of a live A5 implementation.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-A5-NOT-RUN
+STATUS: Draft
+TITLE: A5 Not in Current Runner
+STATEMENT: >>>
+The current Prompt Builder runner shall stop its executable stage sequence at A4 and shall not claim a completed A5 stage.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-A5-RESERVED
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-A5-FUNCTION-OPEN
+STATUS: Draft
+TITLE: A5 Function Not Finalized
+STATEMENT: >>>
+A5 shall remain postponed and its future function shall remain open to revision.
+
+This file shall not define A5 as a Format Enforcer, Hard Rule engine, validator, or finalizer unless that role is explicitly approved and implemented.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-A5-RESERVED
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-CURRENT-FINALIZATION
+STATUS: Draft
+TITLE: Current Finalization Output
+STATEMENT: >>>
+The current implemented finalization output shall remain the engineered prompt_ready string rendered by SuperPromptProjector after the live pipeline reaches A4.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-NO-SEND
+STATUS: Draft
+TITLE: No Completed Current Send Boundary
+STATEMENT: >>>
+The provided current code shall not be described as executing a completed final LLM-call/send action after prompt_ready is built.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.3. Rule Applicability
+TITLE: 5. Approved Future Hard Rule Direction
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after rule-selection and applicability behavior have been approved.
+The following requirements capture only the already agreed vision. They do not assert current implementation and intentionally leave unresolved design choices open.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-FUTURE-BEFORE-SEND
+STATUS: Draft
+TITLE: Future Integration Before Final Send
+STATEMENT: >>>
+A future global Hard Rules capability shall be integrated before the final LLM-ready prompt is sent to a model.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-FUTURE-HUMAN-CONTROL
+STATUS: Draft
+TITLE: Human-Controlled Rules
+STATEMENT: >>>
+Future global Hard Rules shall remain under human control.
+
+Memory retrieval, document retrieval, an LLM agent, or automatic context synthesis shall not silently redefine the authoritative rule set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-FUTURE-BEFORE-SEND
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-FUTURE-INSPECTABLE
+STATUS: Draft
+TITLE: Inspectable Rule Application
+STATEMENT: >>>
+Future finalization shall make the applied Hard Rules inspectable and shall make visible which rules and context were included in the final prompt package.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-FUTURE-BEFORE-SEND
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-FUTURE-PREVIEW-SEND-CONSISTENCY
+STATUS: Draft
+TITLE: Preview and Sent Prompt Consistency
+STATEMENT: >>>
+Future Hard Rule finalization shall remain aligned with the authoritative engineered-prompt assembly so the inspectable preview and the prompt actually sent to the model do not silently diverge.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-FUTURE-BEFORE-SEND
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-FUTURE-NO-SILENT-MUTATION
+STATUS: Draft
+TITLE: No Silent Rule Mutation
+STATEMENT: >>>
+Future runtime processing shall not silently modify, weaken, remove, or replace human-approved global Hard Rules without an explicit governed action visible to the human authority.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-FUTURE-BEFORE-SEND
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.4. Rule Ordering and Precedence
+TITLE: 6. Explicitly Unresolved Design Decisions
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-UNRESOLVED-SCHEMA
+STATUS: Draft
+TITLE: Hard Rule Schema Not Yet Defined
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after ordering and precedence policies have been approved.
+The exact global Hard Rule data schema, identifiers, categories, storage format, versioning model, and editing workflow are not defined by the current implementation and shall not be invented in this file.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-UNRESOLVED-PRECEDENCE
+STATUS: Draft
+TITLE: Rule Precedence Not Yet Defined
+STATEMENT: >>>
+The exact precedence among global Hard Rules, the current user request, system/configuration state, Knowledge Context, Memory Context, ActiveBrief, attachments, and provider restrictions remains unresolved and shall not be invented.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-UNRESOLVED-CONFLICT
+STATUS: Draft
+TITLE: Rule Conflict Handling Not Yet Defined
+STATEMENT: >>>
+The exact mechanism for detecting and handling conflicts among Hard Rules or between Hard Rules and other prompt content remains unresolved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-UNRESOLVED-ENFORCEMENT
+STATUS: Draft
+TITLE: Enforcement Algorithm Not Yet Defined
+STATEMENT: >>>
+The future enforcement mechanism, including whether it is deterministic, LLM-assisted, hybrid, or multi-step, remains unresolved and shall not be invented.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-UNRESOLVED-FAILURE
+STATUS: Draft
+TITLE: Failure Policy Not Yet Defined
+STATEMENT: >>>
+The future behavior for invalid rules, unavailable rule stores, enforcement failure, partially applicable rules, or blocked finalization remains unresolved and shall not be invented.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
+
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-UNRESOLVED-A5
+STATUS: Draft
+TITLE: A5 Relationship Not Yet Defined
+STATEMENT: >>>
+The future relationship between A5, global Hard Rule integration, context validation, format enforcement, and final prompt send behavior remains unresolved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.5. Rule Integration
+TITLE: 7. Acceptance Criteria
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-AC-CURRENT-CONFIG
+STATUS: Draft
+TITLE: AC: Current Disabled State
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after the integration mechanism has been approved.
+Inspection of the active runtime configuration shall identify global Hard Rules as disabled and planned for later.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.6. Final Context Checks
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-AC-GUI-PLACEHOLDER
+STATUS: Draft
+TITLE: AC: GUI Placeholder
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after final checks and failure behavior have been approved.
+Inspection of the current Streamlit UI shall identify the Hard Rules page as a placeholder and shall not identify a functional rule editor or enforcement action.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.7. Token-Budget Finalization
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-AC-VISUAL-NOT-EXECUTION
+STATUS: Draft
+TITLE: AC: Visual Step Is Not Functional Proof
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after final token-budget ownership has been approved.
+A baseline shall not be accepted when it treats sidebar progression through Hard Rule Integration or LLM-Ready Context as proof that a global rule engine or external model call executed.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.8. LLM-Ready Prompt Artifact
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-HARD-RULES-AC-FUTURE-BOUNDARY
+STATUS: Draft
+TITLE: AC: Future Requirements Remain Non-Invented
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after the final artifact contract has been approved.
+Every future Hard Rule, A5, and finalization requirement shall preserve human control and inspectability while leaving unresolved schema, precedence, conflict, enforcement, failure, and A5-design details explicitly open.
 <<<
-
-[[/SECTION]]
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-HARD-RULES-ROOT
 
 [[/SECTION]]

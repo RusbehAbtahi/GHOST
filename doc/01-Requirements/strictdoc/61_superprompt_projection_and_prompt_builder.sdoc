@@ -1,124 +1,1175 @@
 [DOCUMENT]
 TITLE: GHOST SuperPrompt Projection and Prompt Builder Requirements
-UID: GHOST-SUPERPROMPT-PROJECTION-PROMPT-BUILDER
-VERSION: 0.1-draft
+UID: GHOST-SUPERPROMPT-PROJECTION
+VERSION: 0.1
 OPTIONS:
   MARKUP: Text
   AUTO_LEVELS: On
   NODE_IN_TOC: True
 
 [[SECTION]]
-TITLE: 1. Purpose
+TITLE: 1. Purpose, Scope, and Current Implementation Map
 
 [TEXT]
 STATEMENT: >>>
-Defines current SuperPrompt projection, stage-dependent context rendering, prompt-ready composition, and Prompt Builder output behavior.
+This document defines the detailed current requirements for SuperPrompt projection, prompt-ready rendering, and the live Prompt Builder workflow through A4.
+
+Current implementation truth is derived from the provided source files, primarily:
+
+- ragstream/orchestration/super_prompt.py;
+- ragstream/orchestration/superprompt_projector.py;
+- ragstream/app/pipeline_runner.py;
+- ragstream/app/controller.py;
+- ragstream/app/ui_actions.py;
+- ragstream/app/ui_streamlit.py;
+- ragstream/retrieval/retriever_mem.py; and
+- the A2, A3, and A4 stage implementations that write into SuperPrompt.
 <<<
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 2. Scope and Boundary
-
 [REQUIREMENT]
-UID: GHOST-SPPB-ROOT
-TITLE: GHOST SuperPrompt Projection and Prompt Builder Scope
+UID: GHOST-SP-PROJECTION-ROOT
+STATUS: Draft
+TITLE: SuperPrompt Projection and Prompt Builder Scope
 STATEMENT: >>>
-This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+GHOST shall provide a projection and Prompt Builder capability that converts the current SuperPrompt state into retrieval-oriented projections, A3 comparison text, stage-visible engineered prompt previews, and the current final prompt_ready representation.
 
-It owns current SuperPrompt projection and Prompt Builder behavior.
-
-It shall not redefine prompt preprocessing, Knowledge Management, Memory Management, GUI layout, or final LLM answer generation.
-
-This file shall not duplicate detailed requirements owned by sibling files.
+This file shall define current implemented behavior through A4 and shall explicitly separate that behavior from the unfinished external LLM-call/send boundary, postponed A5 behavior, and future global Hard Rule integration.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-CIPA-ROOT
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-SOURCE-AUTHORITY
+STATUS: Draft
+TITLE: Source-Code Authority
+STATEMENT: >>>
+The detailed behavior in this file shall follow the provided current Python source code and active runtime configuration.
+
+Legacy Prompt Builder descriptions shall be treated as intent only where they are not wired into the current runtime.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-LEGACY-STUB
+STATUS: Draft
+TITLE: Legacy PromptBuilder Stub Boundary
+STATEMENT: >>>
+A legacy prompt_builder.py stub whose build method returns a placeholder value shall not be represented as the current operational prompt-assembly implementation.
+
+The current executable assembly path shall remain SuperPrompt.compose_prompt_ready() delegating to SuperPromptProjector.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3. Initial Topic Headings
-
-[[SECTION]]
-TITLE: 3.1. SuperPrompt Shared-State Inputs
+TITLE: 2. SuperPrompt Projection State Contract
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+SuperPrompt remains the authoritative run-local state object. SuperPromptProjector derives text representations from that state and writes the rendered strings back into the same object.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
+STATUS: Draft
+TITLE: Authoritative Shared State
+STATEMENT: >>>
+SuperPrompt shall remain the authoritative shared runtime state for the active prompt-building run.
+
+SuperPromptProjector shall derive projections from SuperPrompt and shall not become a parallel owner of independent prompt truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-LIFECYCLE-FIELDS
+STATUS: Draft
+TITLE: Lifecycle Projection Inputs
+STATEMENT: >>>
+The current SuperPrompt projection state shall include stage, model_target, and history_of_stages.
+
+The recognized current stage values are raw, preprocessed, a2, retrieval, reranked, a3, a4, and the reserved a5 value.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-BODY-FIELDS
+STATUS: Draft
+TITLE: Canonical Prompt Body Fields
+STATEMENT: >>>
+The current SuperPrompt body shall support these canonical fields:
+
+- system;
+- task;
+- audience;
+- role;
+- tone;
+- depth;
+- confidence;
+- evidence_policy;
+- context;
+- purpose;
+- format; and
+- text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-BODY-DEFAULTS
+STATUS: Draft
+TITLE: Current Body Defaults
+STATEMENT: >>>
+A newly constructed SuperPrompt shall currently initialize system to consultant, tone to neutral, depth to high, and evidence_policy to normal, while the other optional canonical fields begin empty.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-BODY-FIELDS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-EXTRAS
+STATUS: Draft
+TITLE: Runtime Extras
+STATEMENT: >>>
+SuperPrompt.extras shall remain the free-form run-local location for diagnostics and namespaced stage metadata required by current projection behavior.
+
+Extras shall not be described as a durable store or as a general Blackboard protocol.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-QUERY-FIELD
+STATUS: Draft
+TITLE: Effective Retrieval Query Field
+STATEMENT: >>>
+SuperPrompt.effective_retrieval_query_text shall hold the current effective retrieval query prepared by preprocessing/projection policy for document and memory retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-ACTIVEBRIEF-FIELDS
+STATUS: Draft
+TITLE: ActiveBrief Runtime Fields
+STATEMENT: >>>
+SuperPrompt shall provide active_memory_brief_title and active_memory_brief fields for the latest memory-retrieval ActiveBrief snapshot.
+
+Current previous-conversation rendering shall still follow the relation-classifier snapshot stored in extras as defined by the current projector implementation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-MEMORY-FIELDS
+STATUS: Draft
+TITLE: Memory Runtime Fields
+STATEMENT: >>>
+SuperPrompt shall provide memory_context_text for synthesized query-relevant Memory Context and memory_context_pack for the run-local raw memory retrieval artifact.
+
+The raw pack shall not be treated as durable memory truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-DOCUMENT-FIELDS
+STATUS: Draft
+TITLE: Document Runtime Fields
+STATEMENT: >>>
+SuperPrompt shall provide base_context_chunks, views_by_stage, final_selection_ids, and S_CTX_MD for document retrieval, stage ordering/status, selected identifiers, and condensed document context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RENDERED-FIELDS
+STATUS: Draft
+TITLE: Rendered Prompt Fields
+STATEMENT: >>>
+SuperPrompt shall provide System_MD, Prompt_MD, S_CTX_MD, Attachments_MD, and prompt_ready as current rendered or renderable prompt artifacts.
+
+SuperPromptProjector shall update System_MD, Prompt_MD, and prompt_ready during composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RECENT-CONVERSATION-BOUNDARY
+STATUS: Draft
+TITLE: recentConversation Current Boundary
+STATEMENT: >>>
+The current SuperPrompt contains a recentConversation field, but the provided current SuperPromptProjector does not render that field into prompt_ready.
+
+Requirements shall not claim current recentConversation rendering without additional implementation evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-AUTHORITATIVE-STATE
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2. SuperPrompt Projection
+TITLE: 3. Projection Entry Points and Ownership
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-WRAPPER
+STATUS: Draft
+TITLE: Stable Composition Wrapper
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+SuperPrompt.compose_prompt_ready() shall remain the stable public wrapper for central prompt-ready rendering and shall delegate to SuperPromptProjector for the current implementation.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-PROJECTOR-CONSTRUCTOR
+STATUS: Draft
+TITLE: Projector Input Validation
+STATEMENT: >>>
+SuperPromptProjector construction shall reject a missing SuperPrompt reference rather than creating an unbound projector.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-DERIVED-LOGIC
+STATUS: Draft
+TITLE: Derived Projection Logic Ownership
+STATEMENT: >>>
+SuperPromptProjector shall own derived text projections from current SuperPrompt state, including retrieval query text, A3 comparison prompt text, system/configuration Markdown, current-request Markdown, supporting-context Markdown, and prompt_ready assembly.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-NO-STAGE-ALGORITHM-OWNERSHIP
+STATUS: Draft
+TITLE: No Upstream Algorithm Ownership
+STATEMENT: >>>
+SuperPromptProjector shall not own A2 selection, document retrieval, reranking, A3 usefulness classification, A4 condensation, memory candidate scoring, memory compression, or Memory Context synthesis.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.3. Stage-Dependent Rendering
+TITLE: 4. Retrieval Query Projection
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+The projector currently derives retrieval query text from TASK, PURPOSE, CONTEXT, prompt materiality, topic relation, and the ActiveBrief snapshot prepared by the prompt-relation classifier.
+
+30_preprocessing_prompt_functions.sdoc owns the routing semantics. This section records the current projection implementation used by downstream retrieval.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-QUERY-INPUTS
+STATUS: Draft
+TITLE: Query Projection Inputs
+STATEMENT: >>>
+Retrieval query projection shall read task, purpose, and context from SuperPrompt.body and shall read activebrief_prompt_materiality, activebrief_topic_relation, and activebrief_relation_activebrief from SuperPrompt.extras.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-QUERY-STRONG
+STATUS: Draft
+TITLE: Strong Prompt Query Projection
+STATEMENT: >>>
+For STRONG prompts with SAME_TOPIC, RELATED_DOMAIN, or IRRELEVANT topic relation, the current retrieval query projection shall use current TASK, PURPOSE, and CONTEXT without adding ActiveBrief content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-QUERY-INPUTS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-QUERY-WEAK-SAME
+STATUS: Draft
+TITLE: Weak Same-Topic Query Projection
+STATEMENT: >>>
+For a WEAK SAME_TOPIC prompt, the current retrieval query projection shall add the full ActiveBrief body as a previous memory summary after the current TASK, PURPOSE, and CONTEXT blocks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-QUERY-INPUTS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-QUERY-WEAK-RELATED
+STATUS: Draft
+TITLE: Weak Related-Domain Query Projection
+STATEMENT: >>>
+For a WEAK RELATED_DOMAIN prompt, the current retrieval query projection shall add only the ActiveBrief title after the current TASK, PURPOSE, and CONTEXT blocks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-QUERY-INPUTS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-QUERY-WEAK-IRRELEVANT
+STATUS: Draft
+TITLE: Weak Irrelevant Query Suppression
+STATEMENT: >>>
+For a WEAK IRRELEVANT prompt, the current retrieval query projection shall return an empty query so document retrieval can be suppressed by the upstream routing contract.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-QUERY-INPUTS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-QUERY-BLOCK-ORDER
+STATUS: Draft
+TITLE: Query Block Order
+STATEMENT: >>>
+When present, retrieval query blocks shall be emitted in this order:
+
+1. TASK;
+2. PURPOSE;
+3. CONTEXT; and
+4. permitted previous-memory title or summary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-QUERY-INPUTS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-QUERY-EMPTY-ERROR
+STATUS: Draft
+TITLE: Unexpected Empty Query Error
+STATEMENT: >>>
+Outside the explicit WEAK IRRELEVANT suppression route, query projection shall raise an error when TASK, PURPOSE, and CONTEXT produce no query text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-QUERY-INPUTS
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.4. Knowledge Context Projection
+TITLE: 5. A3 Comparison Prompt Projection
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+The current projector also prepares the request-under-evaluation used by A3. The evidence-selection semantics remain owned by 43_evidence_selection_and_condensation.sdoc.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-A3-WRAPPER
+STATUS: Draft
+TITLE: A3 Evaluation Wrapper
+STATEMENT: >>>
+The A3 comparison projection shall wrap the current request and any permitted ActiveBrief continuity material inside one user_prompt_under_evaluation structure.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-A3-FULL-BRIEF
+STATUS: Draft
+TITLE: A3 Full ActiveBrief Routes
+STATEMENT: >>>
+The current A3 comparison projection shall include the full ActiveBrief body for:
+
+- STRONG SAME_TOPIC;
+- STRONG RELATED_DOMAIN;
+- WEAK SAME_TOPIC; and
+- WEAK IRRELEVANT.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-A3-WRAPPER
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-A3-TITLE-ONLY
+STATUS: Draft
+TITLE: A3 ActiveBrief Title-Only Routes
+STATEMENT: >>>
+The current A3 comparison projection shall include only the ActiveBrief title for:
+
+- STRONG IRRELEVANT; and
+- WEAK RELATED_DOMAIN.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-A3-WRAPPER
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-A3-NO-CONTEXT-FABRICATION
+STATUS: Draft
+TITLE: A3 Missing ActiveBrief Handling
+STATEMENT: >>>
+When the selected A3 projection route permits ActiveBrief content but the corresponding title or body is empty, the projector shall omit that block rather than fabricate continuity text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-A3-WRAPPER
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.5. Memory Context Projection
+TITLE: 6. System and Configuration Rendering
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-SYSTEM-HEADING
+STATUS: Draft
+TITLE: System Section
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+System rendering shall emit a top-level System section and shall place the current body.system value directly below it when present.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-CONFIG-SECTION
+STATUS: Draft
+TITLE: Configuration Section
+STATEMENT: >>>
+System rendering shall emit a Configuration section after the System section.
+
+When corresponding values are present, configuration lines shall be emitted in this order:
+
+1. Role;
+2. Audience;
+3. Tone;
+4. Depth;
+5. Confidence; and
+6. Evidence Policy identifier when the policy produces a rendered policy block.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-EVIDENCE-POLICY-PRECEDENCE
+STATUS: Draft
+TITLE: Evidence Policy Identifier Precedence
+STATEMENT: >>>
+The current renderer shall resolve the evidence-policy identifier in this order:
+
+1. extras.a2_selected_ids.evidence_policy;
+2. body.evidence_policy; and
+3. normal as fallback.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-CONFIG-SECTION
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-EVIDENCE-POLICY-NORMAL
+STATUS: Draft
+TITLE: Normal Evidence Policy Rendering
+STATEMENT: >>>
+When the resolved evidence-policy identifier is empty or normal, the current renderer shall not add a separate Evidence Policy instruction block.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-EVIDENCE-POLICY-PRECEDENCE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-EVIDENCE-POLICY-LOCAL-CONTEXT
+STATUS: Draft
+TITLE: Current local_context_first Policy Rendering
+STATEMENT: >>>
+When the current code identifier local_context_first is selected, the renderer shall add the configured local/project/history-first evidence instructions defined in SuperPromptProjector.
+
+This identifier describes one current policy option and shall not be used to redefine GHOST as a local-first product.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-EVIDENCE-POLICY-PRECEDENCE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-EVIDENCE-POLICY-STRICT
+STATUS: Draft
+TITLE: strict_history_and_online_fact_check Rendering
+STATEMENT: >>>
+When strict_history_and_online_fact_check is selected, the renderer shall add the current configured instructions to prioritize available prompt/history/memory/project evidence, verify external unstable facts online when possible, cite evidence when possible, and identify missing evidence instead of inventing it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-EVIDENCE-POLICY-PRECEDENCE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-EVIDENCE-POLICY-UNKNOWN
+STATUS: Draft
+TITLE: Unknown Evidence Policy Rendering
+STATEMENT: >>>
+A resolved evidence-policy identifier not explicitly recognized by the current projector shall not create an invented policy instruction block.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-EVIDENCE-POLICY-PRECEDENCE
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.6. ActiveRetrievalBrief Projection
+TITLE: 7. Current User Request Rendering
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-REQUEST-SECTION
+STATUS: Draft
+TITLE: Current User Request Section
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+Prompt rendering shall emit a top-level Current User Request section after System and Configuration.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-REQUEST-PRIORITY
+STATUS: Draft
+TITLE: Current Request Priority Instruction
+STATEMENT: >>>
+The Current User Request section shall state that the current request has highest priority and that later memory and retrieved context are supporting background only.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-REQUEST-SECTION
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-REQUEST-TASK
+STATUS: Draft
+TITLE: Task Block
+STATEMENT: >>>
+The renderer shall emit a Task subsection and shall write the current body.task value into it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-REQUEST-SECTION
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-REQUEST-OPTIONALS
+STATUS: Draft
+TITLE: Optional Request Blocks
+STATEMENT: >>>
+After Task, the renderer shall emit non-empty optional request subsections in this order:
+
+1. Purpose;
+2. Context;
+3. Format; and
+4. Text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-REQUEST-SECTION
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-REQUEST-NO-A2-IN-TASK
+STATUS: Draft
+TITLE: Configuration Separation from Task
+STATEMENT: >>>
+A2-selected role, audience, tone, depth, confidence, and evidence policy shall remain in System/Configuration rendering and shall not be merged into the Task text as if they were part of the user's request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-REQUEST-SECTION
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.7. Prompt-Ready Composition
+TITLE: 8. Supporting Context Rendering
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+Supporting context is rendered only when at least one permitted previous-summary/topic block, synthesized Memory Context, document summary, or stage-visible raw document evidence is available.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-SUPPORT-SECTION
+STATUS: Draft
+TITLE: Supporting Context Section
+STATEMENT: >>>
+When supporting content exists, the renderer shall emit a top-level Supporting Context section after the Current User Request and shall mark that material as supporting only.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-SUPPORT-EMPTY
+STATUS: Draft
+TITLE: Empty Supporting Context Omission
+STATEMENT: >>>
+When no previous-summary/topic block, Memory Context, document summary, or raw document evidence is available, the renderer shall omit the entire Supporting Context section.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-SUPPORT-SECTION
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-ACTIVEBRIEF-SOURCE
+STATUS: Draft
+TITLE: Previous-Conversation Projection Source
+STATEMENT: >>>
+The current previous-conversation summary/topic projection shall read the relation-classifier ActiveBrief snapshot from extras.activebrief_relation_activebrief together with activebrief_prompt_materiality and activebrief_topic_relation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-SUPPORT-SECTION
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-ACTIVEBRIEF-FULL-ROUTES
+STATUS: Draft
+TITLE: Full Previous-Conversation Summary Routes
+STATEMENT: >>>
+The current renderer shall permit a full Previous Conversation Summary for:
+
+- STRONG SAME_TOPIC;
+- STRONG RELATED_DOMAIN;
+- WEAK SAME_TOPIC; and
+- WEAK IRRELEVANT.
+
+When available, the summary may contain the ActiveBrief title and body.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ACTIVEBRIEF-SOURCE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-ACTIVEBRIEF-TITLE-ROUTES
+STATUS: Draft
+TITLE: Previous-Conversation Topic-Only Routes
+STATEMENT: >>>
+The current renderer shall permit only the Previous Conversation Topic title for:
+
+- STRONG IRRELEVANT; and
+- WEAK RELATED_DOMAIN.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ACTIVEBRIEF-SOURCE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-MEMORY-CONTEXT-SOURCE
+STATUS: Draft
+TITLE: Memory Context Source Precedence
+STATEMENT: >>>
+The renderer shall read synthesized Memory Context first from SuperPrompt.memory_context_text and, when that field is empty, shall fall back to extras.memory_context_text.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-SUPPORT-SECTION
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-MEMORY-CONTEXT-LABEL
+STATUS: Draft
+TITLE: Memory Context Label and Priority
+STATEMENT: >>>
+Non-empty synthesized Memory Context shall be rendered under a Memory Context subsection and shall be identified as background support rather than as the current task.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-MEMORY-CONTEXT-SOURCE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RAW-MEMORY-HIDDEN
+STATUS: Draft
+TITLE: Raw Memory Retrieval Hidden by Default
+STATEMENT: >>>
+The normal current prompt-ready rendering path shall not display raw MemoryContextPack episodes, semantic chunks, or memory debug Markdown.
+
+Raw memory debug Markdown may remain available for diagnostics through the backward-compatible debug renderer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-MEMORY-CONTEXT-SOURCE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-DOCUMENT-SUMMARY-SOURCE
+STATUS: Draft
+TITLE: Document Summary Source
+STATEMENT: >>>
+The renderer shall read the condensed document evidence summary directly from SuperPrompt.S_CTX_MD.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-SUPPORT-SECTION
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-DOCUMENT-SUMMARY-LABEL
+STATUS: Draft
+TITLE: Retrieved Project Evidence Summary
+STATEMENT: >>>
+Non-empty S_CTX_MD shall be rendered under Retrieved Project Evidence Summary and shall be identified as supporting project evidence rather than as the current task.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-DOCUMENT-SUMMARY-SOURCE
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RAW-DOCUMENT-STAGES
+STATUS: Draft
+TITLE: Raw Document Evidence Stage Visibility
+STATEMENT: >>>
+The current renderer may show raw retrieved document evidence before A4.
+
+When SuperPrompt.stage is a4 or a5, the renderer shall hide raw document chunks from the normal prompt-ready preview.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-SUPPORT-SECTION
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RAW-DOCUMENT-STRUCTURE
+STATUS: Draft
+TITLE: Raw Document Evidence Structure
+STATEMENT: >>>
+Raw document evidence shall be rendered as a retrieved_chunks structure with per-chunk index, stable chunk identifier, optional source, optional score/status information, and sanitized chunk text.
+
+Detailed A3/A4 sanitization and evidence semantics remain owned by 43_evidence_selection_and_condensation.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RAW-DOCUMENT-STAGES
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-DOCUMENT-ORDERING
+STATUS: Draft
+TITLE: Raw Document Ordering
+STATEMENT: >>>
+The current projector shall order raw document evidence by this precedence:
+
+1. A3 stage rows when stage is a3;
+2. final_selection_ids when present;
+3. the current stage view when present; and
+4. base_context_chunks order otherwise.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RAW-DOCUMENT-STAGES
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-DOCUMENT-ID-MAP
+STATUS: Draft
+TITLE: Temporary Chunk-ID Map
+STATEMENT: >>>
+Before ordered raw-document rendering, the current projector shall create a temporary map from stable chunk identifier to hydrated chunk object.
+
+This behavior shall not be represented as semantic duplicate detection across different chunk identifiers or across Knowledge and Memory Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RAW-DOCUMENT-STAGES
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.8. Prompt Builder Output Boundary
+TITLE: 9. Final prompt_ready Composition
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-COMPOSE-SYSTEM
+STATUS: Draft
+TITLE: System_MD Rebuild
+STATEMENT: >>>
+Each central composition call shall rebuild SuperPrompt.System_MD from current SuperPrompt state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-COMPOSE-PROMPT
+STATUS: Draft
+TITLE: Prompt_MD Rebuild
+STATEMENT: >>>
+Each central composition call shall rebuild SuperPrompt.Prompt_MD from current SuperPrompt state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-COMPOSE-ORDER
+STATUS: Draft
+TITLE: prompt_ready Assembly Order
+STATEMENT: >>>
+The current central composer shall append non-empty prompt parts in this order:
+
+1. System_MD;
+2. Prompt_MD;
+3. rendered Supporting Context; and
+4. Attachments_MD.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-COMPOSE-JOIN
+STATUS: Draft
+TITLE: Prompt Part Separation
+STATEMENT: >>>
+The current composer shall join non-empty prompt parts with blank-line separation, trim the result, assign it to SuperPrompt.prompt_ready, and return that same string.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-COMPOSE-ORDER
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-ATTACHMENTS
+STATUS: Draft
+TITLE: Attachment Block Boundary
+STATEMENT: >>>
+When SuperPrompt.Attachments_MD is already non-empty, the current composer shall append it after Supporting Context.
+
+The provided current projection code does not itself load, parse, validate, or create attachment content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-COMPOSE-ORDER
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-NO-FINAL-ANSWER
+STATUS: Draft
+TITLE: Composition Is Not Answer Generation
+STATEMENT: >>>
+Assigning prompt_ready shall create an engineered prompt artifact and shall not generate a final answer to the user.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-COMPOSE-ORDER
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Current Prompt Builder Runner
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation.
+The current Prompt Builder frontend runner executes one stage per Streamlit rerun cycle and writes intermediate snapshots into session state.
 <<<
 
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-STEPS
+STATUS: Draft
+TITLE: Current Executable Runner Steps
+STATEMENT: >>>
+The current live Prompt Builder runner shall execute these six steps in order:
+
+1. Pre-Processing;
+2. A2-PromptShaper;
+3. Retrieval;
+4. ReRanker or retrieval pass-through;
+5. A3 NLI Gate; and
+6. A4 Condenser.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-PROMPT-GUARD
+STATUS: Draft
+TITLE: Prompt Input Guard
+STATEMENT: >>>
+The current runner shall reject empty or whitespace-only prompt input before pipeline execution.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RUNNER-STEPS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-PROJECT-GUARD
+STATUS: Draft
+TITLE: Active Project Guard
+STATEMENT: >>>
+The current runner shall reject execution when no active project is available.
+
+The provided current runner therefore shall not be described as implementing a complete prompt-only mode that bypasses the project requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RUNNER-STEPS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-NEW-STATE
+STATUS: Draft
+TITLE: New SuperPrompt at Preprocessing Start
+STATEMENT: >>>
+At the first automated runner step, the current implementation shall create a new SuperPrompt and pass it through controller preprocessing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RUNNER-STEPS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-MEMORY-RETRIEVAL
+STATUS: Draft
+TITLE: Memory Retrieval in Retrieval Step
+STATEMENT: >>>
+During the current Retrieval runner step, the controller shall run document retrieval and shall also attempt Memory Retrieval when MemoryRetriever has been configured.
+
+Memory output shall remain separately represented in SuperPrompt from document candidate views.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RUNNER-STEPS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-RERANK-PASSTHROUGH
+STATUS: Draft
+TITLE: ReRanker Pass-Through
+STATEMENT: >>>
+When ColBERT reranking is disabled, the current runner shall skip the real reranker and shall rely on the retrieval-created A3-ready reranked pass-through view.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RUNNER-STEPS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-SNAPSHOTS
+STATUS: Draft
+TITLE: Stage Snapshots
+STATEMENT: >>>
+The current runner shall create deep-copy snapshots at the implemented inspection points sp_pre, sp_a2, sp_rtv, sp_rrk, sp_a3, and sp_a4.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RUNNER-STEPS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-GUI-WRITEBACK
+STATUS: Draft
+TITLE: GUI Prompt Preview Write-Back
+STATEMENT: >>>
+After each completed runner step, the current UI action shall store the updated SuperPrompt and shall write sp.prompt_ready into the GUI session-state engineered-prompt text field.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RUNNER-STEPS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-STAGE-COMPOSITION
+STATUS: Draft
+TITLE: Stage Composition Calls
+STATEMENT: >>>
+Current stage implementations or runner actions shall recompose prompt_ready after preprocessing, A2, Retrieval, ReRanker/pass-through, A3, and A4 according to their current wiring.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RUNNER-STEPS
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-RUNNER-HARD-RULE-VISUAL
+STATUS: Draft
+TITLE: Hard Rule Visual Step Is Not Execution
+STATEMENT: >>>
+After the six executable steps complete, the current UI may advance the sidebar/status display through Hard Rule Integration and LLM-Ready Context labels.
+
+That visual progression shall not be interpreted as execution of a global Hard Rule engine or a final external model call.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-RUNNER-STEPS
+
 [[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. Current and Future Operational Boundaries
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-CURRENT-GUI-OUTPUT
+STATUS: Draft
+TITLE: Current Operational Output
+STATEMENT: >>>
+The current completed operational output of the provided Prompt Builder path shall be the GUI-visible engineered prompt stored in SuperPrompt.prompt_ready after A4.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-NO-SEND-IMPLEMENTATION
+STATUS: Draft
+TITLE: No Completed External Send Boundary
+STATEMENT: >>>
+The provided current code shall not be represented as implementing a completed action that sends prompt_ready to a selected external LLM and returns the resulting answer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-A5-POSTPONED
+STATUS: Draft
+TITLE: A5 Postponed Boundary
+STATEMENT: >>>
+A5 shall remain a reserved lifecycle value and postponed future capability.
+
+The current runner shall not claim a completed A5 execution step or a finalized A5 function.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-HARD-RULE-POSTPONED
+STATUS: Draft
+TITLE: Global Hard Rule Integration Postponed
+STATEMENT: >>>
+Global Hard Rule integration shall remain disabled and planned for later in the current runtime baseline.
+
+Per-agent static JSON instructions named Hard Rules shall not be confused with the future global Hard Rules capability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-FUTURE-SEND-SAME-ASSEMBLY
+STATUS: Draft
+TITLE: Future Send Uses Authoritative Assembly
+STATEMENT: >>>
+The approved future direction is that the actual model-call/send boundary shall consume the same authoritative deterministic prompt assembly represented to the user, so final-send content does not silently diverge from the inspectable engineered prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-FUTURE-NO-API-INVENTION
+STATUS: Draft
+TITLE: No Invented Send API
+STATEMENT: >>>
+This document shall not invent the future model-provider API, model-selection contract, streaming behavior, response-capture behavior, retry policy, or failure semantics before those decisions are implemented or explicitly approved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 12. Failure and Integrity Requirements
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-NO-MISSING-CONTEXT-FABRICATION
+STATUS: Draft
+TITLE: Missing Context Omission
+STATEMENT: >>>
+Projection shall omit empty Memory Context, empty S_CTX_MD, absent ActiveBrief content, and absent attachment content rather than invent replacements.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-NO-RAW-MEMORY-LEAK
+STATUS: Draft
+TITLE: No Default Raw Memory Leakage
+STATEMENT: >>>
+Normal prompt_ready rendering shall not expose raw memory episodes, raw semantic-memory chunks, or memory debug Markdown merely because they exist in MemoryContextPack or extras.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-STRUCTURE-SAFETY
+STATUS: Draft
+TITLE: Raw Evidence Structural Safety
+STATEMENT: >>>
+Raw retrieved document text shown in the engineered prompt shall use the current sanitization path so source headings and structural markers do not compete with the outer SuperPrompt structure.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-NO-DURABLE-MUTATION
+STATUS: Draft
+TITLE: No Durable Store Mutation
+STATEMENT: >>>
+SuperPrompt projection and prompt_ready composition shall not write durable document or memory stores.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 13. Acceptance Criteria
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-AC-ORDER
+STATUS: Draft
+TITLE: AC: Composition Order
+STATEMENT: >>>
+Given a SuperPrompt containing non-empty system/configuration, current request, Memory Context, S_CTX_MD, and Attachments_MD, compose_prompt_ready shall place them in the order System/Configuration, Current User Request, Supporting Context, and Attachments.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-AC-A4-RAW-HIDDEN
+STATUS: Draft
+TITLE: AC: Raw Document Evidence Hidden After A4
+STATEMENT: >>>
+Given stage a4 and non-empty S_CTX_MD, normal prompt_ready rendering shall show Retrieved Project Evidence Summary and shall not show raw retrieved document chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-AC-RAW-MEMORY-HIDDEN
+STATUS: Draft
+TITLE: AC: Raw Memory Hidden
+STATEMENT: >>>
+Given a populated MemoryContextPack and non-empty synthesized Memory Context, normal prompt_ready rendering shall show the synthesized Memory Context and shall not show raw memory candidates by default.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-AC-RUNNER
+STATUS: Draft
+TITLE: AC: Runner Through A4
+STATEMENT: >>>
+Given valid prompt input, an active project, configured controller components, and no stage failure, the current Prompt Builder runner shall complete the six executable steps through A4, preserve stage snapshots, and leave the latest engineered prompt in SuperPrompt.prompt_ready and GUI session state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-SP-PROJECTION-AC-CURRENT-BOUNDARY
+STATUS: Draft
+TITLE: AC: No False Completion Claim
+STATEMENT: >>>
+Inspection of the provided current code shall not identify a live global Hard Rule engine, completed A5 stage, dedicated operational PromptBuilder class, or completed external LLM-call/send action after prompt_ready composition.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SP-PROJECTION-ROOT
 
 [[/SECTION]]

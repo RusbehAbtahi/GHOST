@@ -1,94 +1,448 @@
 [DOCUMENT]
 TITLE: GHOST Context Integration and Prompt Assembly Requirements
-UID: GHOST-CONTEXT-INTEGRATION-PROMPT-ASSEMBLY
-VERSION: 0.1-draft
+UID: GHOST-CONTEXT-INTEGRATION
+VERSION: 0.1
 OPTIONS:
   MARKUP: Text
   AUTO_LEVELS: On
   NODE_IN_TOC: True
 
 [[SECTION]]
-TITLE: 1. Purpose
+TITLE: 1. Purpose, Scope, and Authority
 
 [TEXT]
 STATEMENT: >>>
-Defines the integration of prepared user instructions, Knowledge Context, Memory Context, applicable rules, and final prompt-assembly artifacts.
+This document defines the parent capability for integrating the already prepared current request, Knowledge Management output, Memory Management output, and current system/configuration state into one inspectable engineered prompt.
+
+The current executable baseline is derived primarily from the provided Python source code. Legacy requirements and architecture documents are supporting sources only where they do not contradict current code.
 <<<
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 2. Scope and Boundary
-
 [REQUIREMENT]
-UID: GHOST-CIPA-ROOT
-TITLE: GHOST Context Integration and Prompt Assembly Scope
+UID: GHOST-CONTEXT-INTEGRATION-ROOT
+STATUS: Draft
+TITLE: Context Integration and Prompt Assembly Scope
 STATEMENT: >>>
-This file is a draft parent requirement file in the GHOST StrictDoc requirement tree.
+GHOST shall provide a Context Integration and Prompt Assembly capability that receives the current structured SuperPrompt state and produces the engineered prompt representation used by the current Prompt Builder workflow.
 
-It defines ownership, scope, and placeholder headings for Context Integration and Prompt Assembly.
+The capability shall integrate current-request content, configuration content, permitted ActiveBrief continuity content, synthesized Memory Context, condensed document evidence, optionally visible raw document evidence, and any already prepared attachment block.
 
-Detailed SuperPrompt projection, context validation, conflict handling, Hard Rule integration, and finalization requirements shall be owned by the corresponding child files.
-
-This file shall not duplicate detailed requirements owned by child or sibling files.
+The capability shall not own prompt preprocessing, document retrieval, document evidence selection, memory retrieval, memory recording, durable memory storage, final user-answer generation, or external model-provider execution.
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: GHOST-SRS-FILE-TREE
 
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-PRODUCT-NAME
+STATUS: Draft
+TITLE: Product and Package Naming Boundary
+STATEMENT: >>>
+The product described by this document shall be named GHOST.
+
+The existing Python package namespace may remain ragstream in current source-code paths.
+
+Requirements shall not treat ragstream as the product identity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-SOURCE-AUTHORITY
+STATUS: Draft
+TITLE: Current Code Source Authority
+STATEMENT: >>>
+For this capability group, current executable Python code and active runtime JSON shall define current implementation truth.
+
+Legacy requirements, architecture descriptions, implementation-status notes, and UML may clarify intended direction but shall not override contrary current code behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-CHILDREN
+STATUS: Draft
+TITLE: Child Requirement Documents
+STATEMENT: >>>
+The Context Integration and Prompt Assembly capability shall be decomposed into these child requirement documents:
+
+1. 61_superprompt_projection_and_prompt_builder.sdoc.
+2. 62_context_validation_deduplication_and_conflict_resolution.sdoc.
+3. 63_hard_rule_integration_and_finalization.sdoc.
+
+Detailed projection and current Prompt Builder behavior shall be owned by 61.
+
+Current limited validation/deduplication facts and the reserved future cross-context validation capability shall be owned by 62.
+
+Current Hard Rules placeholder behavior and the reserved future Hard Rule/finalization capability shall be owned by 63.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3. Initial Topic Headings
-
-[[SECTION]]
-TITLE: 3.1. Capability Inputs and Outputs
+TITLE: 2. Architectural Position and Inputs
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation and approved architecture.
+Context Integration and Prompt Assembly is the fourth high-level functional stage of the current GHOST requirement model.
+
+The first stage prepares and shapes the current request. Knowledge Management and Memory Management then operate as peer context-generation paths. This capability consumes their results without taking ownership of their internal algorithms.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-STAGE-4
+STATUS: Draft
+TITLE: Fourth High-Level Functional Stage
+STATEMENT: >>>
+Context Integration and Prompt Assembly shall be modeled as the fourth high-level functional stage after:
+
+1. Prompt Preprocessing and Prompt Functions;
+2. Knowledge Management; and
+3. Memory Management.
+
+It shall not split Prompt Preprocessing and PromptShaper into separate high-level stages.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-PREPROCESS-INPUT
+STATUS: Draft
+TITLE: Prepared Request Input
+STATEMENT: >>>
+The capability shall consume the normalized and shaped current-request state prepared under 30_preprocessing_prompt_functions.sdoc.
+
+It shall not reparse the raw prompt, repeat A2 classification, or independently reclassify ActiveBrief relation state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-STAGE-4
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-KNOWLEDGE-INPUT
+STATUS: Draft
+TITLE: Knowledge Context Input
+STATEMENT: >>>
+The capability shall consume document evidence artifacts written into SuperPrompt by Knowledge Management, including condensed document context in S_CTX_MD and stage-dependent raw document evidence state.
+
+It shall not retrieve, rerank, classify, or condense document chunks itself.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-STAGE-4
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-MEMORY-INPUT
+STATUS: Draft
+TITLE: Memory Context Input
+STATEMENT: >>>
+The capability shall consume synthesized Memory Context and permitted ActiveBrief continuity information written into SuperPrompt or its namespaced runtime extras by Memory Management and prompt-relation processing.
+
+It shall not query memory vectors, score memory candidates, reduce episodes, update ActiveBrief, or synthesize Memory Context itself.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-STAGE-4
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-PEER-PATHS
+STATUS: Draft
+TITLE: Peer Context Path Boundary
+STATEMENT: >>>
+Knowledge Management and Memory Management shall remain logically independent peer context paths.
+
+Context Integration shall be able to render available output from either path without requiring both paths to have produced non-empty context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-STAGE-4
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-SUPERPROMPT-INPUT
+STATUS: Draft
+TITLE: SuperPrompt Integration Boundary
+STATEMENT: >>>
+The current integration boundary shall operate on the active SuperPrompt as the authoritative run-local state object.
+
+The integration capability shall not create a second parallel prompt-state authority.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-STAGE-4
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2. Knowledge and Memory Context Integration
+TITLE: 3. Current Request and Supporting Context Separation
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-REQUEST-PRIORITY
+STATUS: Draft
+TITLE: Current Request Priority
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation and approved architecture.
+The engineered prompt shall identify the current user request as the highest-priority task content.
+
+Later memory and retrieved document context shall be identified as supporting background rather than as a replacement for the current request.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-SUPPORTING-CONTEXT
+STATUS: Draft
+TITLE: Supporting Context Categories
+STATEMENT: >>>
+The current integration capability may render these supporting-context categories when corresponding runtime content is available and permitted:
+
+- previous-conversation summary or topic derived from the approved ActiveBrief relation state;
+- synthesized Memory Context;
+- retrieved project evidence summary from S_CTX_MD; and
+- stage-dependent raw retrieved document evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-NO-CONTEXT-FABRICATION
+STATUS: Draft
+TITLE: No Fabricated Context
+STATEMENT: >>>
+When a context category is unavailable or empty, Context Integration shall omit that category rather than invent content, infer missing evidence, or insert a synthetic success statement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-NO-FINAL-ANSWER
+STATUS: Draft
+TITLE: No Final User Answer
+STATEMENT: >>>
+Prompt assembly shall produce backend engineered prompt text and shall not itself answer the current user request.
+
+A composed prompt preview shall not be represented as a generated final user answer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-RUNTIME-ONLY
+STATUS: Draft
+TITLE: Runtime-Only Integration State
+STATEMENT: >>>
+Prompt assembly shall operate on run-local SuperPrompt state.
+
+It shall not rewrite durable document stores, .ragmem, .ragmeta.json, SQLite memory indexes, or memory/document vector stores.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.3. Prompt Assembly Ownership
+TITLE: 4. Current Executable Baseline
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-CURRENT-PROJECTOR
+STATUS: Draft
+TITLE: Current Projection Authority
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after evidence-based migration from current implementation and approved architecture.
+The current executable prompt rendering authority shall be SuperPromptProjector, invoked through SuperPrompt.compose_prompt_ready().
+
+A legacy or stub PromptBuilder implementation shall not be represented as the current operational rendering authority unless it is actually wired into the live runtime.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-CURRENT-RUNNER
+STATUS: Draft
+TITLE: Current Prompt Builder Runner Boundary
+STATEMENT: >>>
+The current live Prompt Builder runner shall execute through A4 using the provided Streamlit step runner and controller wiring.
+
+Its implemented executable sequence is PreProcessing, A2 PromptShaper, Retrieval, ReRanker or pass-through, A3, and A4.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-CURRENT-OUTPUT
+STATUS: Draft
+TITLE: Current Engineered Prompt Output
+STATEMENT: >>>
+The current implemented output of this capability shall be SuperPrompt.prompt_ready as rendered for the GUI-visible engineered prompt preview.
+
+The provided current code does not establish a completed external LLM-call/send boundary after prompt assembly.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-CURRENT-NO-GLOBAL-VALIDATOR
+STATUS: Draft
+TITLE: No Current Universal Integration Validator
+STATEMENT: >>>
+The current implementation shall not be described as containing a universal deterministic stage that validates, semantically deduplicates, or resolves conflicts across the final combined Knowledge Context and Memory Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-CURRENT-HARD-RULE-BOUNDARY
+STATUS: Draft
+TITLE: Current Hard Rule Boundary
+STATEMENT: >>>
+The current runtime configuration marks the planned Hard Rules capability as disabled and planned for later.
+
+The current GUI contains Hard Rules labels and visual pipeline steps, but the provided current code does not execute a global Hard Rule integration engine.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.4. Child Requirement Ownership
+TITLE: 5. Child Ownership Boundaries
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-CHILD-61
+STATUS: Draft
+TITLE: Projection and Prompt Builder Ownership
 STATEMENT: >>>
-Placeholder section. Detailed requirements for files 61, 62, and 63 shall be added after their current and future capability boundaries have been approved.
+61_superprompt_projection_and_prompt_builder.sdoc shall own:
+
+- SuperPrompt fields relevant to projection and assembly;
+- SuperPromptProjector query, comparison, and prompt-ready projection behavior;
+- current rendering order and section structure;
+- current Prompt Builder runner behavior through A4;
+- current GUI preview write-back; and
+- the known future requirement that final send behavior remain aligned with the same authoritative assembly path.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-CHILDREN
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-CHILD-62
+STATUS: Draft
+TITLE: Validation and Cross-Context Governance Ownership
+STATEMENT: >>>
+62_context_validation_deduplication_and_conflict_resolution.sdoc shall own:
+
+- the precise current limited duplication-handling facts;
+- the explicit absence of a current universal cross-context validator;
+- the reserved future direction for cross-path duplication, conflict, provenance, and invalid-context checks; and
+- the rule that unresolved conflicts remain subject to human authority.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-CHILDREN
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-CHILD-63
+STATUS: Draft
+TITLE: Hard Rule and Finalization Ownership
+STATEMENT: >>>
+63_hard_rule_integration_and_finalization.sdoc shall own:
+
+- the current disabled/placeholder Hard Rules facts;
+- the distinction between per-agent static instructions and a future global Hard Rules capability;
+- the postponed A5 boundary; and
+- the already agreed human-controlled, inspectable finalization vision without inventing an unresolved schema or algorithm.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-CHILDREN
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.5. Current and Future Boundary
+TITLE: 6. Approved Future Direction Without Invented Design
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-FUTURE-SEND-ALIGNMENT
+STATUS: Draft
+TITLE: Future Preview and Send Alignment
 STATEMENT: >>>
-Placeholder section. Current implemented behavior and reserved future capabilities shall remain explicitly separated.
+The future operational LLM-call/send boundary shall use the same authoritative deterministic assembly semantics as the inspectable engineered prompt preview so the preview and the actually sent prompt do not silently diverge.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-FUTURE-INSPECTABILITY
+STATUS: Draft
+TITLE: Future Finalization Inspectability
+STATEMENT: >>>
+Future finalization shall remain human-inspectable and shall make visible which current request, supporting context, and applicable rules were included in the final prompt package.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-FUTURE-NO-INVENTION
+STATUS: Draft
+TITLE: No Invented Future Integration Details
+STATEMENT: >>>
+This parent document shall not invent the future validation algorithm, conflict precedence, Hard Rule schema, A5 behavior, final-send API, provider contract, failure policy, or authority hierarchy before those decisions are explicitly designed and approved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
 
 [[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Acceptance Criteria
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-AC-SEPARATION
+STATUS: Draft
+TITLE: AC: Current Request and Context Separation
+STATEMENT: >>>
+Given a prepared SuperPrompt containing current-request fields and one or more context artifacts, the engineered prompt shall identify the current request separately from supporting context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-AC-OPTIONAL-PATHS
+STATUS: Draft
+TITLE: AC: Optional Context Paths
+STATEMENT: >>>
+Given non-empty output from only one of the two peer context paths, prompt assembly shall render the available context and shall not fabricate the missing path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-INTEGRATION-AC-CURRENT-BOUNDARY
+STATUS: Draft
+TITLE: AC: Current Implementation Boundary
+STATEMENT: >>>
+Inspection of the provided current code shall identify SuperPromptProjector and SuperPrompt.compose_prompt_ready() as the current rendering path, the live runner through A4, no completed global Hard Rule engine, no completed universal cross-context validator, and no completed external LLM-call/send boundary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
 
 [[/SECTION]]

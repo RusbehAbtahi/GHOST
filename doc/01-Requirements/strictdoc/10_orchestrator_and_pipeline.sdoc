@@ -1,7 +1,7 @@
 [DOCUMENT]
 TITLE: GHOST Orchestrator and Runtime Pipeline Requirements
 UID: GHOST-ORCH
-VERSION: 0.5
+VERSION: 0.6
 OPTIONS:
   MARKUP: Text
   AUTO_LEVELS: On
@@ -14,12 +14,11 @@ TITLE: 1. Purpose and Scope
 STATEMENT: >>>
 This document defines the GHOST runtime orchestration requirements for the Prompt Builder path.
 
-The runtime pipeline is organized into five functional stages:
-1. Prompt Preprocessing / Routing.
-2. PromptShaper / Job Structuring.
-3. Knowledge Management Path.
-4. Memory Management Path.
-5. Final Prompt Composition.
+The runtime pipeline is organized into four high-level functional stages:
+1. Prompt Preprocessing and Prompt Functions, including normalization, routing, and PromptShaper / Job Structuring.
+2. Knowledge Management Path.
+3. Memory Management Path.
+4. Final Context Integration and Prompt Composition.
 <<<
 
 [REQUIREMENT]
@@ -69,7 +68,7 @@ UID: GHOST-ORCH-SUPERPROMPT-CENTRAL-STATE
 STATUS: Draft
 TITLE: SuperPrompt as Shared Runtime State
 STATEMENT: >>>
-The Prompt Builder runtime shall use SuperPrompt as the shared state object passed through preprocessing, shaping, context retrieval, document evidence processing, memory context synthesis, and final prompt composition.
+The Prompt Builder runtime shall use SuperPrompt as the shared state object passed through Prompt Preprocessing and Prompt Functions, context retrieval, document evidence processing, memory context synthesis, and final prompt composition.
 
 SuperPrompt shall carry canonical prompt body fields, runtime extras, effective retrieval query text, document context artifacts, memory context artifacts, stage history, and rendered prompt strings.
 <<<
@@ -98,8 +97,8 @@ STATEMENT: >>>
 This file shall define orchestration-level runtime responsibilities and boundaries.
 
 Detailed algorithms shall remain owned by their subsystem requirement files:
-- preprocessing and ActiveBrief relation classification;
-- PromptShaper and agent-stack behavior;
+- preprocessing, ActiveBrief relation classification, PromptShaper, and related prompt-function behavior;
+- neutral agent-stack behavior;
 - document retrieval, dense/SPLADE scoring, RRF, reranking, A3, and A4;
 - memory recording, indexing, retrieval, compression, and synthesis;
 - SuperPrompt projection and rendering.
@@ -124,25 +123,26 @@ RELATIONS:
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3. Five Functional Runtime Stages
+TITLE: 3. Four Functional Runtime Stages
 
 [TEXT]
 STATEMENT: >>>
-The Prompt Builder pipeline is defined at high level by five functional stages. Details inside the stages may execute through several concrete Python methods.
+The Prompt Builder pipeline is defined at high level by four functional stages. A0 preprocessing, routing, and A2 PromptShaper / Job Structuring are internal functions of the first stage, even when they execute through separate Python methods, buttons, or snapshots.
 <<<
 
 [REQUIREMENT]
-UID: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+UID: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 STATUS: Draft
-TITLE: Five Functional Runtime Stages
+TITLE: Four Functional Runtime Stages
 STATEMENT: >>>
-The Prompt Builder runtime shall be described by these five high-level functional stages:
+The Prompt Builder runtime shall be described by these four high-level functional stages:
 
-1. Prompt Preprocessing / Routing.
-2. PromptShaper / Job Structuring.
-3. Knowledge Management Path.
-4. Memory Management Path.
-5. Final Prompt Composition.
+1. Prompt Preprocessing and Prompt Functions.
+2. Knowledge Management Path.
+3. Memory Management Path.
+4. Final Context Integration and Prompt Composition.
+
+Prompt normalization, ActiveBrief relation routing, and PromptShaper / Job Structuring shall belong to Stage 1 and shall not be represented as separate high-level functional stages.
 
 Each stage shall have clear inputs, responsibilities, outputs, and ownership boundaries.
 <<<
@@ -151,78 +151,67 @@ RELATIONS:
   VALUE: GHOST-ORCH-ROOT
 
 [REQUIREMENT]
-UID: GHOST-ORCH-STAGE-1-PREPROCESSING
+UID: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 STATUS: Draft
-TITLE: Stage 1: Prompt Preprocessing and Routing
+TITLE: Stage 1: Prompt Preprocessing and Prompt Functions
 STATEMENT: >>>
-Stage 1 shall transform the raw user prompt into normalized runtime input and routing information.
+Stage 1 shall transform the raw user prompt into normalized runtime input, routing information, and an internal structured job representation.
 
-It shall prepare the prompt for structured shaping and context retrieval.
+Stage 1 shall include prompt-schema normalization, ActiveBrief relation classification, retrieval-routing preparation, and PromptShaper / Job Structuring.
+
+Its output shall prepare the same SuperPrompt for both context paths and final composition.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [REQUIREMENT]
-UID: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+UID: GHOST-ORCH-STAGE-2-KNOWLEDGE
 STATUS: Draft
-TITLE: Stage 2: PromptShaper and Job Structuring
+TITLE: Stage 2: Knowledge Management Path
 STATEMENT: >>>
-Stage 2 shall transform the preprocessed prompt into an internal structured job representation.
-
-The structured representation shall make task, purpose, context, configuration, and downstream evidence behavior explicit enough for retrieval and prompt composition.
-<<<
-RELATIONS:
-- TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
-
-[REQUIREMENT]
-UID: GHOST-ORCH-STAGE-3-KNOWLEDGE
-STATUS: Draft
-TITLE: Stage 3: Knowledge Management Path
-STATEMENT: >>>
-Stage 3 shall produce document/project knowledge context for the current request.
+Stage 2 shall produce document/project knowledge context for the current request.
 
 It shall include document retrieval, document ranking/reranking behavior, document usefulness validation, and document evidence condensation.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [REQUIREMENT]
-UID: GHOST-ORCH-STAGE-4-MEMORY
+UID: GHOST-ORCH-STAGE-3-MEMORY
 STATUS: Draft
-TITLE: Stage 4: Memory Management Path
+TITLE: Stage 3: Memory Management Path
 STATEMENT: >>>
-Stage 4 shall produce durable-memory-based context for the current request.
+Stage 3 shall produce durable-memory-based context for the current request.
 
 It shall include memory record lookup, memory vector retrieval, memory candidate scoring and selection, memory compression, ActiveBrief use, and synthesized memory context generation.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [REQUIREMENT]
-UID: GHOST-ORCH-STAGE-5-COMPOSITION
+UID: GHOST-ORCH-STAGE-4-COMPOSITION
 STATUS: Draft
-TITLE: Stage 5: Final Prompt Composition
+TITLE: Stage 4: Final Context Integration and Prompt Composition
 STATEMENT: >>>
-Stage 5 shall compose the final Prompt Builder output from the structured prompt, selected document evidence, synthesized memory context, and system/configuration rules.
+Stage 4 shall integrate the structured prompt, selected document evidence, synthesized memory context, and applicable system/configuration rules into the final Prompt Builder output.
 
 The composed output shall be the Prompt Builder artifact presented to the user.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 4. Stage 1 - Prompt Preprocessing / Routing
+TITLE: 4. Stage 1 - Prompt Preprocessing and Prompt Functions
 
 [TEXT]
 STATEMENT: >>>
-This stage handles the raw prompt before it becomes a shaped job. It prepares both the current prompt body and routing signals for context retrieval.
+This stage owns the complete prompt-preparation capability: raw-prompt normalization, routing, ActiveBrief relation classification, and PromptShaper / Job Structuring. These remain distinguishable internal operations, but they form one high-level functional stage.
 <<<
 
 [REQUIREMENT]
@@ -236,7 +225,7 @@ Whitespace-only input shall not create a meaningful SuperPrompt transformation.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [REQUIREMENT]
 UID: GHOST-ORCH-PREPROCESS-SCHEMA
@@ -249,7 +238,7 @@ The canonical body shall support fields such as system, task, audience, role, to
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [REQUIREMENT]
 UID: GHOST-ORCH-PREPROCESS-RELATION-CLASSIFICATION
@@ -262,7 +251,7 @@ The classification shall support materiality and topic-relation routing signals 
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [REQUIREMENT]
 UID: GHOST-ORCH-PREPROCESS-QUERY-ROUTING
@@ -275,7 +264,7 @@ Routing shall allow current prompt text, ActiveBrief body, ActiveBrief title, or
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [REQUIREMENT]
 UID: GHOST-ORCH-PREPROCESS-PROMPT-READY
@@ -288,7 +277,7 @@ This preview shall not be treated as the final Prompt Builder output when later 
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [REQUIREMENT]
 UID: GHOST-ORCH-PREPROCESS-OUTPUT
@@ -297,20 +286,16 @@ TITLE: Preprocessing Output Contract
 STATEMENT: >>>
 The preprocessing stage shall output a mutated SuperPrompt containing normalized prompt body content and routing metadata in extras.
 
-The output SuperPrompt shall be suitable for PromptShaper execution and retrieval-intent construction.
+The normalized and routed SuperPrompt shall be suitable for the PromptShaper internal function and retrieval-intent construction within Stage 1.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-1-PREPROCESSING
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 5. Stage 2 - PromptShaper / Job Structuring
 
 [TEXT]
 STATEMENT: >>>
-This stage turns the preprocessed prompt into a more explicit internal job representation used by the rest of the pipeline.
+PromptShaper / Job Structuring is an internal function within Stage 1. It runs after normalization and routing and enriches the same SuperPrompt with explicit job/configuration metadata for downstream context processing and composition.
 <<<
 
 [REQUIREMENT]
@@ -318,13 +303,13 @@ UID: GHOST-ORCH-A2-INPUT
 STATUS: Draft
 TITLE: PromptShaper Input Contract
 STATEMENT: >>>
-PromptShaper shall receive the current SuperPrompt after preprocessing.
+Within Stage 1, PromptShaper shall receive the current SuperPrompt after preprocessing and routing.
 
 It shall use the prompt body and runtime metadata as the basis for job structuring.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [REQUIREMENT]
 UID: GHOST-ORCH-A2-STRUCTURE
@@ -339,7 +324,7 @@ PromptShaper shall update the same SuperPrompt instance and preserve the task, p
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [REQUIREMENT]
 UID: GHOST-ORCH-A2-CATALOG-SELECTION
@@ -352,7 +337,7 @@ This metadata shall be available to prompt projection, including evidence policy
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [REQUIREMENT]
 UID: GHOST-ORCH-A2-LLM-OPTION
@@ -365,29 +350,29 @@ Disabling the LLM-assisted PromptShaper path shall not remove the SuperPrompt st
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [REQUIREMENT]
 UID: GHOST-ORCH-A2-OUTPUT
 STATUS: Draft
 TITLE: PromptShaper Output Contract
 STATEMENT: >>>
-The PromptShaper stage shall output the same SuperPrompt instance updated with structured job content and PromptShaper metadata.
+The PromptShaper internal function shall output the same SuperPrompt instance updated with structured job content and PromptShaper metadata.
 
 The output shall be suitable for retrieval-intent construction and both context paths.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-2-PROMPTSHAPER
+  VALUE: GHOST-ORCH-STAGE-1-PROMPT-FUNCTIONS
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 6. Stage 3 - Knowledge Management Path
+TITLE: 5. Stage 2 - Knowledge Management Path
 
 [TEXT]
 STATEMENT: >>>
-This stage is the document/project knowledge path. It produces selected and condensed document evidence for the current request.
+Stage 2 is the document/project knowledge path. It produces selected and condensed document evidence for the current request.
 <<<
 
 [REQUIREMENT]
@@ -401,7 +386,7 @@ It shall include document retrieval, dense and sparse scoring, deterministic fus
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-3-KNOWLEDGE
+  VALUE: GHOST-ORCH-STAGE-2-KNOWLEDGE
 
 [REQUIREMENT]
 UID: GHOST-ORCH-KNOWLEDGE-INPUTS
@@ -549,11 +534,11 @@ RELATIONS:
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 7. Stage 4 - Memory Management Path
+TITLE: 6. Stage 3 - Memory Management Path
 
 [TEXT]
 STATEMENT: >>>
-This stage is the durable memory context path. It produces query-relevant synthesized memory context for the current request.
+Stage 3 is the durable memory context path. It produces query-relevant synthesized memory context for the current request.
 <<<
 
 [REQUIREMENT]
@@ -567,7 +552,7 @@ It shall include memory record truth, memory metadata/index lookup, semantic mem
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-4-MEMORY
+  VALUE: GHOST-ORCH-STAGE-3-MEMORY
 
 [REQUIREMENT]
 UID: GHOST-ORCH-MEMORY-DURABLE-TRUTH
@@ -728,11 +713,11 @@ RELATIONS:
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 8. Stage 5 - Final Prompt Composition
+TITLE: 7. Stage 4 - Final Context Integration and Prompt Composition
 
 [TEXT]
 STATEMENT: >>>
-This stage renders the final Prompt Builder output from the structured prompt and both runtime context paths.
+Stage 4 integrates the structured prompt and both runtime context paths, then renders the final Prompt Builder output.
 <<<
 
 [REQUIREMENT]
@@ -746,7 +731,7 @@ The output shall include system/configuration content, current user request cont
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-5-COMPOSITION
+  VALUE: GHOST-ORCH-STAGE-4-COMPOSITION
 
 [REQUIREMENT]
 UID: GHOST-ORCH-COMPOSE-SYSTEM
@@ -829,11 +814,11 @@ RELATIONS:
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 9. Coordination Between the Five Stages
+TITLE: 8. Coordination Between the Four Stages
 
 [TEXT]
 STATEMENT: >>>
-The controller and runner coordinate concrete Python method calls. These calls implement the five functional stages without changing their hierarchy.
+The controller and runner coordinate concrete Python method calls. These calls implement the four functional stages without changing their hierarchy. Separate A0 and A2 calls remain internal execution steps within Stage 1.
 <<<
 
 [REQUIREMENT]
@@ -854,13 +839,13 @@ UID: GHOST-ORCH-COORDINATE-PREPROCESS-A2
 STATUS: Draft
 TITLE: Preprocessing to PromptShaper Coordination
 STATEMENT: >>>
-The controller shall run preprocessing before PromptShaper.
+Within Stage 1, the controller shall run preprocessing and routing before PromptShaper.
 
 PromptShaper shall receive a SuperPrompt that already contains normalized body content and routing metadata.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [REQUIREMENT]
 UID: GHOST-ORCH-COORDINATE-CONTEXT-PATHS
@@ -873,7 +858,7 @@ Document context artifacts and memory context artifacts shall not overwrite each
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [REQUIREMENT]
 UID: GHOST-ORCH-COORDINATE-RETRIEVAL-BOUNDARY
@@ -888,7 +873,7 @@ Memory retrieval shall write memory pack and synthesized memory context artifact
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [REQUIREMENT]
 UID: GHOST-ORCH-COORDINATE-DOCUMENT-POSTPROCESS
@@ -927,12 +912,12 @@ Composition shall use whatever document evidence and memory context are actually
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-5-COMPOSITION
+  VALUE: GHOST-ORCH-STAGE-4-COMPOSITION
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 10. Data Roots and Runtime Configuration
+TITLE: 9. Data Roots and Runtime Configuration
 
 [TEXT]
 STATEMENT: >>>
@@ -985,7 +970,7 @@ TITLE: Runtime Feature Flags
 STATEMENT: >>>
 The runtime shall respect feature flags for LLM-assisted PromptShaper behavior, SPLADE document retrieval, and ColBERT document reranking.
 
-Feature flags shall change enabled implementation behavior without changing the five functional stage hierarchy.
+Feature flags shall change enabled implementation behavior without changing the four functional stage hierarchy.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1007,7 +992,7 @@ RELATIONS:
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 11. Boundary Rules for Sibling Requirement Files
+TITLE: 10. Boundary Rules for Sibling Requirement Files
 
 [TEXT]
 STATEMENT: >>>
@@ -1095,7 +1080,7 @@ RELATIONS:
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 12. Acceptance Criteria
+TITLE: 11. Acceptance Criteria
 
 [TEXT]
 STATEMENT: >>>
@@ -1103,36 +1088,35 @@ These acceptance criteria validate observable and traceable runtime behavior of 
 <<<
 
 [REQUIREMENT]
-UID: GHOST-ORCH-AC-FIVE-STAGES
+UID: GHOST-ORCH-AC-FOUR-STAGES
 STATUS: Draft
-TITLE: AC: Five Main Functional Stages
+TITLE: AC: Four Main Functional Stages
 STATEMENT: >>>
-The Prompt Builder runtime shall preserve the following five functional orchestration stages as the main runtime model:
+The Prompt Builder runtime shall preserve the following four functional orchestration stages as the main runtime model:
 
-1. Prompt Preprocessing / Routing.
-2. PromptShaper / Job Structuring.
-3. Knowledge Management Path.
-4. Memory Management Path.
-5. Final Prompt Composition.
+1. Prompt Preprocessing and Prompt Functions.
+2. Knowledge Management Path.
+3. Memory Management Path.
+4. Final Context Integration and Prompt Composition.
 
-Concrete implementation steps, runner labels, GUI indicators, and subsystem method names may be more detailed, but they shall remain traceable to one of these five functional stages.
+A0 preprocessing, routing, and A2 PromptShaper / Job Structuring may remain separate executable methods, runner steps, GUI indicators, and snapshots, but they shall remain traceable to the single Stage 1 capability rather than being represented as separate high-level functional stages.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [REQUIREMENT]
 UID: GHOST-ORCH-AC-KNOWLEDGE-MEMORY-PEER
 STATUS: Draft
 TITLE: AC: Knowledge and Memory Peer Paths
 STATEMENT: >>>
-The Prompt Builder runtime shall maintain Knowledge Management and Memory Management as separate peer runtime context paths after PromptShaper / Job Structuring.
+The Prompt Builder runtime shall maintain Knowledge Management and Memory Management as separate peer runtime context paths after Stage 1 has completed prompt preprocessing, routing, and PromptShaper / Job Structuring.
 
 Document context artifacts and memory context artifacts shall keep separate ownership, separate processing, and separate SuperPrompt write-back fields.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [REQUIREMENT]
 UID: GHOST-ORCH-AC-CONDENSATION-PLACEMENT
@@ -1145,7 +1129,7 @@ The Prompt Builder runtime shall place memory scoring, memory compression, Activ
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-FIVE-STAGE-HIERARCHY
+  VALUE: GHOST-ORCH-FOUR-STAGE-HIERARCHY
 
 [REQUIREMENT]
 UID: GHOST-ORCH-AC-SUPERPROMPT
@@ -1169,6 +1153,6 @@ Missing document context or missing memory context shall not be fabricated durin
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-ORCH-STAGE-5-COMPOSITION
+  VALUE: GHOST-ORCH-STAGE-4-COMPOSITION
 
 [[/SECTION]]

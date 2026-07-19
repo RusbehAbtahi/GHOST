@@ -1,116 +1,399 @@
 [DOCUMENT]
 TITLE: GHOST Context Validation, Deduplication, and Conflict Resolution Requirements
-UID: GHOST-CONTEXT-VALIDATION-DEDUPLICATION-CONFLICT
-VERSION: 0.1-draft
+UID: GHOST-CONTEXT-VALIDATION
+VERSION: 0.1
 OPTIONS:
   MARKUP: Text
   AUTO_LEVELS: On
   NODE_IN_TOC: True
 
 [[SECTION]]
-TITLE: 1. Purpose
+TITLE: 1. Purpose, Scope, and Current Boundary
 
 [TEXT]
 STATEMENT: >>>
-Reserves ownership for assembled-context validation, duplication handling, conflict detection, and conflict-resolution policy.
+This document records the limited context-cleaning and duplication-handling behavior that exists in the current code and separates it from a reserved future capability for validating the final combined Knowledge and Memory Context.
+
+The current implementation does not contain one universal deterministic cross-context validation or conflict-resolution stage.
 <<<
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 2. Scope and Boundary
-
 [REQUIREMENT]
-UID: GHOST-CVDC-ROOT
-TITLE: GHOST Context Validation, Deduplication, and Conflict Resolution Scope
+UID: GHOST-CONTEXT-VALIDATION-ROOT
+STATUS: Draft
+TITLE: Context Validation Capability Scope
 STATEMENT: >>>
-This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+This file shall define:
 
-It reserves ownership for context validation, Knowledge–Memory overlap handling, duplication control, conflict detection, and conflict-resolution behavior.
-
-A general implemented Knowledge–Memory overlap resolver, dedicated conflict-resolution stage, or dedicated validation agent has not yet been established as current executable behavior.
-
-Detailed atomic requirements shall be added only after the behavior and architecture have been explicitly approved.
-
-This file shall not present reserved future behavior as current implementation.
+- current identifier-level and within-path repetition-handling facts;
+- current LLM-instruction-based deduplication behavior inside A4 and Memory Context synthesis;
+- the explicit absence of a current universal cross-path validator or conflict resolver; and
+- the already agreed future direction for cross-context validation without inventing an implementation.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: GHOST-CIPA-ROOT
+  VALUE: GHOST-CONTEXT-INTEGRATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-SOURCE-AUTHORITY
+STATUS: Draft
+TITLE: Current Code Source Authority
+STATEMENT: >>>
+Current behavior in this file shall follow the provided source code and active agent/runtime JSON.
+
+Legacy design descriptions shall not be used to claim an implemented validator that is absent from current code.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-NOT-STANDALONE-CURRENT-STAGE
+STATUS: Draft
+TITLE: No Current Standalone Validation Stage
+STATEMENT: >>>
+The current Prompt Builder runner shall not be described as executing a separate Context Validation, Deduplication, and Conflict Resolution stage.
+
+Current limited behaviors occur inside existing projection, A4 condensation, and Memory Context synthesis functions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3. Initial Topic Headings
+TITLE: 2. Current Implemented Identifier and Rendering Behavior
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-CHUNK-ID-MAP
+STATUS: Draft
+TITLE: Raw Document Chunk-ID Mapping
+STATEMENT: >>>
+Before raw document evidence is rendered, the current SuperPromptProjector shall create a temporary mapping from stable chunk identifier to hydrated chunk object.
+
+If the same identifier appears more than once in base_context_chunks, only one object is addressable through that map.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-ID-NOT-SEMANTIC
+STATUS: Draft
+TITLE: Identifier Mapping Is Not Semantic Deduplication
+STATEMENT: >>>
+The temporary stable-ID mapping shall not be represented as semantic duplicate detection.
+
+It does not compare different chunk identifiers, document meaning, Memory Context, or cross-path overlap.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-CHUNK-ID-MAP
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-A3-NO-DUPLICATE-CONTRACT
+STATUS: Draft
+TITLE: A3 Has No Duplicate Classification Contract
+STATEMENT: >>>
+The current A3 output contract shall not be described as producing duplicate markers, canonical duplicate references, or duplicate-removal decisions.
+
+The presence of A3ChunkStatus.DUPLICATED in the shared enum shall not by itself establish implemented A3 duplicate classification.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-EMPTY-OMISSION
+STATUS: Draft
+TITLE: Empty Context Omission
+STATEMENT: >>>
+The current projector shall omit empty supporting-context categories and shall omit the entire Supporting Context section when all supported context categories are empty.
+
+This deterministic omission behavior shall not be represented as a full semantic validation stage.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.1. Current Validation Boundary
+TITLE: 3. Current Within-Path Repetition Handling
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Existing local validation and synthesis behavior shall be distinguished from a future general context-validation capability.
+Current repetition handling is limited and occurs inside individual context paths. Some of it is implemented as LLM instructions rather than deterministic comparison logic.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-A4-REPETITION
+STATUS: Draft
+TITLE: A4 Document Repetition Reduction
+STATEMENT: >>>
+The current A4 final-condenser instructions shall direct the condenser to remove overlap, repeated wording, formatting noise, and unwanted symbols from selected document evidence while staying loyal to the selected chunks.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-A4-LLM-BOUNDARY
+STATUS: Draft
+TITLE: A4 Repetition Handling Is LLM-Driven
+STATEMENT: >>>
+A4 repetition reduction shall be described as behavior requested from the configured final-condenser agent, followed by deterministic write-back.
+
+It shall not be represented as a general deterministic semantic deduplication engine.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-A4-REPETITION
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-MEMORY-DUPLICATES
+STATUS: Draft
+TITLE: Memory Evidence Repetition Reduction
+STATEMENT: >>>
+The current Memory Context Synthesizer instructions shall direct the agent to combine duplicate evidence, state the same episodic/semantic point once, and omit memory evidence unrelated to the effective retrieval query.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-MEMORY-ACTIVEBRIEF-ANTI-DUP
+STATUS: Draft
+TITLE: ActiveBrief as Memory Anti-Duplication Reference
+STATEMENT: >>>
+The current Memory Context Synthesizer shall receive ActiveRetrievalBrief as orientation and anti-duplication reference and shall be instructed not to copy the brief into Memory Context or use it as a substitute for missing memory evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-MEMORY-DUPLICATES
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-MEMORY-LLM-BOUNDARY
+STATUS: Draft
+TITLE: Memory Deduplication Is Instruction-Based
+STATEMENT: >>>
+Current Memory Context duplicate combination and ActiveBrief anti-duplication shall be represented as LLM-agent instructions.
+
+They shall not be represented as a deterministic overlap detector with a defined similarity threshold or proof of complete duplicate removal.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-MEMORY-DUPLICATES
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-WITHIN-PATH-ONLY
+STATUS: Draft
+TITLE: Current Within-Path Boundary
+STATEMENT: >>>
+Current A4 repetition reduction applies inside selected document evidence, and current Memory Context duplicate combination applies inside selected memory evidence.
+
+Neither behavior shall be described as comparing the final document summary against the final Memory Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2. Knowledge and Memory Overlap Detection
+TITLE: 4. Explicitly Unimplemented Current Capabilities
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-NO-CROSS-PATH-DEDUP
+STATUS: Draft
+TITLE: No Deterministic Cross-Path Deduplication
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added only after an approved overlap-detection design exists.
+The current implementation shall not be described as deterministically comparing S_CTX_MD with memory_context_text and removing semantically overlapping statements across the two context paths.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-NO-CONFLICT-RESOLVER
+STATUS: Draft
+TITLE: No Current General Conflict Resolver
+STATEMENT: >>>
+The current implementation shall not be described as detecting and resolving contradictory claims between current request, ActiveBrief, Memory Context, document context, attachments, or configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-NO-PRECEDENCE-POLICY
+STATUS: Draft
+TITLE: No Approved General Conflict Precedence
+STATEMENT: >>>
+No general conflict-precedence order among current request, Hard Rules, document evidence, memory evidence, ActiveBrief, attachments, or external knowledge shall be claimed as implemented or approved by this file.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-NO-PROVENANCE-VALIDATOR
+STATUS: Draft
+TITLE: No Universal Provenance Validator
+STATEMENT: >>>
+The current integration layer shall not be described as validating that every statement in S_CTX_MD or memory_context_text has sentence-level provenance back to one original source item.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-NO-SILENT-RESOLUTION
+STATUS: Draft
+TITLE: No Invented Silent Resolution
+STATEMENT: >>>
+Requirements shall not invent a current rule that silently chooses one conflicting context source and discards the other when the code provides no such resolver.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.3. Cross-Context Deduplication
+TITLE: 5. Approved Future Validation Direction
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added only after an approved cross-context deduplication design exists.
+The following requirements preserve only the already agreed future direction. They do not assert current implementation and do not define an algorithm.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK
+STATUS: Draft
+TITLE: Future Combined-Context Validation
+STATEMENT: >>>
+A future integration layer may validate the combined context before final prompt finalization.
+
+Promotion of this reserved capability to current implementation shall require explicit design and implementation evidence.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-FUTURE-DUPLICATES
+STATUS: Draft
+TITLE: Future Cross-Path Duplicate Detection
+STATEMENT: >>>
+The future validation capability may detect duplicate or materially overlapping information across Memory Context and Knowledge Context.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-FUTURE-CONFLICTS
+STATUS: Draft
+TITLE: Future Conflict Detection
+STATEMENT: >>>
+The future validation capability may identify conflicting claims among integrated context sources without fabricating certainty about which claim is correct.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-FUTURE-PROVENANCE
+STATUS: Draft
+TITLE: Future Missing-Provenance Detection
+STATEMENT: >>>
+The future validation capability may identify context statements or sections whose required provenance is missing or insufficient.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-FUTURE-STRUCTURE
+STATUS: Draft
+TITLE: Future Invalid or Empty Context Detection
+STATEMENT: >>>
+The future validation capability may identify invalid, malformed, unexpectedly empty, or structurally inconsistent context sections before finalization.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-FUTURE-EVIDENCE-PRESERVATION
+STATUS: Draft
+TITLE: Preserve Evidence During Future Conflict Handling
+STATEMENT: >>>
+Future conflict handling shall preserve the existence and traceability of conflicting evidence rather than silently inventing a resolution or rewriting source truth.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-FUTURE-HUMAN-AUTHORITY
+STATUS: Draft
+TITLE: Human Authority for Unresolved Conflicts
+STATEMENT: >>>
+Where future validation cannot resolve a conflict deterministically and transparently, the final authority shall remain with the human user or maintainer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK
+
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-FUTURE-NO-ALGORITHM-INVENTION
+STATUS: Draft
+TITLE: No Invented Future Validation Algorithm
+STATEMENT: >>>
+Until explicitly designed and approved, this file shall not define similarity thresholds, embedding models, conflict taxonomies, source-precedence rules, automatic merge rules, rejection thresholds, or mandatory LLM calls for the future validation capability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.4. Conflict Detection
+TITLE: 6. Acceptance Criteria
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-AC-CURRENT-BOUNDARY
+STATUS: Draft
+TITLE: AC: Current Boundary
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added only after conflict categories and detection behavior have been approved.
+Inspection of the current code shall identify temporary chunk-ID mapping, A4 instruction-based repetition reduction, Memory Context instruction-based duplicate combination, and empty-section omission, but no standalone universal cross-context validator.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.5. Precedence and Conflict Resolution
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-AC-NO-CROSS-PATH-CLAIM
+STATUS: Draft
+TITLE: AC: No False Cross-Path Claim
 STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added only after context-precedence and conflict-resolution policies have been approved.
+A baseline shall not be accepted when it claims deterministic semantic overlap removal or contradiction resolution between S_CTX_MD and memory_context_text without corresponding implemented code and approved requirements.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.6. Validation Agents
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-CONTEXT-VALIDATION-AC-FUTURE-LABEL
+STATUS: Draft
+TITLE: AC: Future Capability Labeling
 STATEMENT: >>>
-Placeholder section. No dedicated validation agent shall be treated as current until its contract and implementation have been approved.
+Every cross-path duplicate, conflict, provenance, or invalid-context mechanism not present in current code shall be explicitly labeled future/reserved and shall not contain invented implementation detail.
 <<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.7. Diagnostics and Provenance
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements shall be added after the observable validation and provenance contract has been approved.
-<<<
-
-[[/SECTION]]
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-CONTEXT-VALIDATION-ROOT
 
 [[/SECTION]]
