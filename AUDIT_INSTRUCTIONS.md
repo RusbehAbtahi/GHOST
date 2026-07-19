@@ -49,6 +49,11 @@ Determine whether the new StrictDoc requirements accurately, completely, consist
 4. the historical product intent preserved in legacy requirements;
 5. the actual ownership boundaries between requirement files.
 
+The audit must also produce complete bidirectional implementation traceability:
+
+1. every normative requirement UID → its implementing or supporting Python symbols, runtime JSON/configuration entries, tests, persistence contracts, deployment artifacts, or explicit no-current-implementation status;
+2. every relevant implementation artifact → its associated requirement UID or UIDs, or an explicit `NO_DIRECT_REQUIREMENT` / `UNMAPPED_REVIEW_REQUIRED` classification.
+
 The audit must identify:
 
 - missing requirements;
@@ -669,6 +674,83 @@ Do not require a requirement for every Python statement.
 
 Focus on meaningful contracts, state transitions, interfaces, persistence, failure behavior, user-visible behavior, and important constraints.
 
+### Rule 5A — Produce exact bidirectional UID traceability
+
+The audit shall produce two complementary mappings.
+
+#### Implementation-to-UID mapping
+
+Inventory and classify every relevant implementation unit, including:
+
+- every Python module under `ragstream/`;
+- every class and dataclass;
+- every method;
+- every function and asynchronous function;
+- relevant module-level runtime constants, registries, schemas, feature flags, and configuration declarations;
+- every active runtime JSON/configuration file and relevant key or JSONPath;
+- every relevant test function or test class;
+- every persistence schema, manifest contract, database table/query contract, deployment/startup artifact, or workflow that implements required behavior.
+
+For each implementation unit, record:
+
+- artifact type;
+- exact path;
+- exact symbol, key, JSONPath, schema element, or workflow identifier;
+- line range or permalink where possible;
+- associated requirement UID or UIDs;
+- mapping type;
+- runtime status;
+- evidence;
+- notes.
+
+Every implementation unit shall receive one of these mapping results:
+
+- `DIRECT` — the artifact directly implements the requirement;
+- `INDIRECT_CALL_CHAIN` — the artifact participates through a traced runtime call chain;
+- `SUPPORTING` — the artifact supports but does not itself implement the requirement;
+- `TEST_VERIFICATION` — the artifact verifies the requirement;
+- `FUTURE_NO_IMPLEMENTATION` — the mapped UID is approved future behavior with no current implementation;
+- `NO_DIRECT_REQUIREMENT` — the artifact is an incidental or replaceable implementation detail that does not justify its own normative requirement;
+- `UNMAPPED_REVIEW_REQUIRED` — meaningful behavior exists but no adequate UID was found;
+- `UNUSED_OR_UNREACHABLE` — the artifact is not part of the active runtime path;
+- `DEPRECATED_OR_HISTORICAL` — the artifact is retained only for historical or migration reasons.
+
+Do not force artificial requirement mappings onto incidental helpers merely to avoid `NO_DIRECT_REQUIREMENT`.
+
+#### UID-to-implementation mapping
+
+For every normative StrictDoc UID, record all relevant implementation and evidence artifacts, including:
+
+- Python paths and exact symbols;
+- runtime JSON/configuration paths and exact keys or JSONPaths;
+- tests;
+- persistence contracts;
+- deployment/startup wiring;
+- architecture or status evidence when no executable implementation exists;
+- the complete relevant runtime call chain when implementation spans several artifacts.
+
+Every normative UID shall have at least one explicit mapping row.
+
+When no current implementation exists, record the correct reason instead of leaving the UID blank:
+
+- `FUTURE_NO_IMPLEMENTATION`;
+- `CURRENT_PARTIAL`;
+- `CURRENT_DISABLED`;
+- `CURRENT_PLACEHOLDER`;
+- `LEGACY_ONLY`;
+- `DEPRECATED`;
+- `UNSUPPORTED`;
+- `NOT_APPLICABLE_TO_CODE`;
+- `UNMAPPED_REVIEW_REQUIRED`.
+
+A requirement shall not be marked `PASS_DIRECT` or `CURRENT_IMPLEMENTED` unless exact active executable code, runtime JSON/configuration, persistence contract, deployment wiring, or executable test evidence supports the statement.
+
+The two mappings must be mutually checkable:
+
+- every UID referenced by the implementation-to-UID mapping must exist in the UID-to-implementation mapping;
+- every implementation artifact referenced by the UID-to-implementation mapping must exist in the implementation-to-UID mapping;
+- unresolved one-sided mappings must be reported as findings.
+
 ### Rule 6 — Audit the set, not only individual sentences
 
 Check whether the complete requirement set is:
@@ -937,13 +1019,19 @@ Map each StrictDoc file to relevant:
 
 - Python modules;
 - classes;
+- dataclasses;
 - methods;
+- functions and asynchronous functions;
+- runtime JSON/configuration files and exact keys or JSONPaths;
 - tests;
-- configurations;
+- persistence contracts;
+- deployment/startup wiring;
 - legacy documents;
 - implementation-status sections.
 
 The mapping may be many-to-many.
+
+Initialize the bidirectional traceability inventories during this phase, but do not assign final mapping results until the relevant requirement and runtime behavior have been audited.
 
 ### Phase C — Requirement-level audit
 
@@ -955,7 +1043,9 @@ For every normative requirement:
 4. judge support strength;
 5. detect overlap and conflict;
 6. assign audit result;
-7. record any required correction.
+7. record any required correction;
+8. write or update the UID-to-implementation traceability rows for that UID;
+9. verify that every referenced implementation artifact has a corresponding implementation-to-UID row.
 
 Allowed audit results:
 
@@ -977,13 +1067,17 @@ Allowed audit results:
 
 ### Phase D — Reverse code audit
 
-For each meaningful code capability:
+For every relevant implementation unit and meaningful code capability:
 
-1. determine its externally significant behavior;
-2. locate its owning StrictDoc file;
-3. identify the covering requirement UIDs;
-4. report missing or incomplete coverage;
-5. avoid treating every helper implementation as a requirement.
+1. inventory the exact artifact path and symbol, key, JSONPath, schema element, or workflow identifier;
+2. determine its externally significant behavior and runtime status;
+3. locate its owning StrictDoc file;
+4. identify all covering requirement UIDs;
+5. classify the mapping as `DIRECT`, `INDIRECT_CALL_CHAIN`, `SUPPORTING`, `TEST_VERIFICATION`, `NO_DIRECT_REQUIREMENT`, `UNMAPPED_REVIEW_REQUIRED`, `UNUSED_OR_UNREACHABLE`, or `DEPRECATED_OR_HISTORICAL`;
+6. report missing or incomplete coverage;
+7. avoid treating every helper implementation as a requirement;
+8. write or update the implementation-to-UID traceability rows;
+9. cross-check every referenced UID against the UID-to-implementation mapping.
 
 ### Phase E — Cross-file audit
 
@@ -1025,6 +1119,10 @@ Do not declare completion until:
 - every StrictDoc file has been audited;
 - every normative UID has an audit result;
 - meaningful current code behavior has been checked in reverse;
+- every relevant Python implementation unit has an implementation-to-UID mapping result;
+- every active runtime JSON/configuration entry in scope has an implementation-to-UID mapping result;
+- every normative UID has a UID-to-implementation mapping row or an explicit no-current-implementation classification;
+- both traceability directions have been cross-validated;
 - cross-file duplication and contradiction checks are complete;
 - all findings contain exact evidence;
 - unresolved uncertainties are listed explicitly;
@@ -1284,6 +1382,98 @@ Include:
 * areas that need adversarial verification;
 * instructions not to trust the first audit automatically.
 
+### 10. `09_IMPLEMENTATION_TO_UID_TRACEABILITY.csv`
+
+This is the authoritative implementation-to-requirement mapping.
+
+Create one or more rows for every relevant implementation unit.
+
+Use these columns:
+
+```text
+artifact_type
+path
+symbol_or_jsonpath
+parent_symbol
+line_range
+runtime_status
+requirement_uids
+mapping_result
+owning_strictdoc_file
+evidence
+notes
+```
+
+Allowed `artifact_type` values include:
+
+```text
+PYTHON_MODULE
+PYTHON_CLASS
+PYTHON_DATACLASS
+PYTHON_METHOD
+PYTHON_FUNCTION
+PYTHON_ASYNC_FUNCTION
+PYTHON_RUNTIME_CONSTANT
+RUNTIME_JSON
+RUNTIME_CONFIGURATION
+TEST
+PERSISTENCE_CONTRACT
+DATABASE_CONTRACT
+DEPLOYMENT_WIRING
+STARTUP_WIRING
+CI_WORKFLOW
+OTHER_RUNTIME_ARTIFACT
+```
+
+`requirement_uids` shall contain all associated UIDs separated by semicolons.
+
+No relevant implementation unit may be silently omitted. Use `NO_DIRECT_REQUIREMENT`, `UNMAPPED_REVIEW_REQUIRED`, `UNUSED_OR_UNREACHABLE`, or `DEPRECATED_OR_HISTORICAL` when appropriate.
+
+### 11. `10_UID_TO_IMPLEMENTATION_TRACEABILITY.csv`
+
+This is the authoritative requirement-to-implementation mapping.
+
+Create at least one row for every normative StrictDoc UID.
+
+Use these columns:
+
+```text
+strictdoc_file
+section
+uid
+title
+classification
+audit_result
+artifact_type
+path
+symbol_or_jsonpath
+line_range
+mapping_result
+runtime_status
+call_chain
+test_evidence
+supporting_evidence
+notes
+```
+
+A UID implemented by several artifacts shall have several rows.
+
+A UID with no current implementation shall still have a row using the appropriate mapping result, such as:
+
+```text
+FUTURE_NO_IMPLEMENTATION
+CURRENT_PARTIAL
+CURRENT_DISABLED
+CURRENT_PLACEHOLDER
+LEGACY_ONLY
+DEPRECATED
+UNSUPPORTED
+NOT_APPLICABLE_TO_CODE
+UNMAPPED_REVIEW_REQUIRED
+```
+
+The human user must not be expected to create or complete either traceability file manually.
+
 ---
 
 ## CONSOLE PROGRESS
@@ -1317,6 +1507,9 @@ The audit is complete only when all of the following are true:
 * all requirement UIDs were checked;
 * all relevant code modules were inspected;
 * bidirectional requirement/code comparison was performed;
+* `09_IMPLEMENTATION_TO_UID_TRACEABILITY.csv` contains every relevant implementation unit with UID mapping or an explicit mapping result;
+* `10_UID_TO_IMPLEMENTATION_TRACEABILITY.csv` contains every normative UID with all relevant artifacts or an explicit no-current-implementation result;
+* the two traceability files were cross-validated for one-sided or inconsistent mappings;
 * legacy requirements were used as supporting evidence;
 * implementation status was checked;
 * duplicates were checked across the complete requirement set;
@@ -1370,9 +1563,11 @@ Begin immediately.
 4. Inventory the legacy requirement documents.
 5. Read the implementation-status document.
 6. Build the capability map.
-7. Execute the complete audit loop.
-8. Write all required audit artifacts.
-9. Return the executive summary and links to every generated audit file.
+7. Initialize both bidirectional traceability files.
+8. Execute the complete audit loop.
+9. Continuously update and cross-check both traceability directions.
+10. Write all required audit artifacts.
+11. Return the executive summary and links to every generated audit file.
 
 ```
 ```
