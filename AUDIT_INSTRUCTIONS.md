@@ -2,527 +2,376 @@
 
 ## 1. Purpose
 
-These instructions define a controlled, file-by-file audit of the GHOST StrictDoc requirements.
-
 Each Codex task audits exactly one specified `.sdoc` file.
 
-The audit has only two goals:
+The task has two outputs:
 
-1. Verify that the requirements in the selected StrictDoc file accurately reflect the current implementation, or at minimum do not contradict it.
-2. Create a traceability map that assigns every requirement UID in the selected StrictDoc file to one of the three agreed artifact-traceability statuses.
+1. a compact audit report containing only problems;
+2. one traceability CSV row for every normative UID.
 
-Do not introduce additional audit goals.
+Do not create a long report for requirements that are correct.
 
 ---
 
-## 2. Repository Sources
+## 2. Required Sources
 
-### New StrictDoc requirements
+### Target StrictDoc file
+
+The Codex task must name exactly one file under:
 
 ```text
 doc/01-Requirements/strictdoc/
-````
+```
 
-The target `.sdoc` file will be explicitly named in the individual Codex task.
+Audit only that file.
 
-Audit only that selected StrictDoc file during the task.
-
-### Current Python implementation
+### Python implementation
 
 ```text
 ragstream/
 ```
 
-Inspect all relevant Python files under this directory when determining current implemented behavior.
+Use this inventory first:
 
-Follow imports and runtime calls when necessary to understand the actual behavior.
+```text
+doc/01-Requirements/strictdoc_audit/00_PYTHON_STRUCTURE_INVENTORY.csv
+```
 
-Do not rely only on filenames, comments, class names, method names, or docstrings.
+The inventory is a navigation aid. Verify every mapping against the actual Python source.
 
-### Runtime JSON sources
+### Runtime JSON
 
-Inspect relevant runtime JSON files, especially:
+Inspect relevant runtime JSON under:
 
 ```text
 data/agents/**/*.json
 ragstream/config/**/*.json
 ```
 
-Also inspect another JSON file only when current Python code under `ragstream/` demonstrably loads or uses it.
+Use this inventory first:
 
-Archived, generated, training-only, or unused JSON files are not current implementation evidence.
+```text
+doc/01-Requirements/strictdoc_audit/00_JSON_STRUCTURE_INVENTORY.csv
+```
 
-### Legacy requirements
+JSON is supporting evidence. Trace each relevant JSONPath to the Python file that loads or uses it.
+
+Archived, generated, training-only, old-version, or unused JSON is not current implementation evidence.
+
+### Secondary evidence
+
+Use only when necessary:
 
 ```text
 doc/01-Requirements/legacy_md/
+doc/03-Projekt_Status/RAGstream_Implementation_Status.md
+README.md
 ```
-
-Legacy requirements are secondary evidence only.
-
-Do not perform a complete line-by-line comparison against all legacy requirements.
-
-Consult relevant legacy requirements only when:
-
-* the new requirement and current code appear to disagree;
-* the current code is unclear;
-* an important behavior may have been lost during migration;
-* it is unclear whether a capability is obsolete, postponed, or still intended.
 
 Current executable behavior has priority for claims about what the software does now.
 
-A difference from legacy requirements is not automatically an error because the implementation and product design may have changed.
+---
 
-### Implementation-status document
+## 3. Hard Task Boundary
+
+For the selected `.sdoc` file:
+
+- inspect every normative UID;
+- do not audit another `.sdoc` file;
+- do not modify requirements, Python, JSON, legacy documents, status documents, inventories, or previous audit outputs;
+- do not remediate implementation;
+- do not create a pull request unless separately requested.
+
+---
+
+## 4. Audit Conclusions
+
+Use exactly one conclusion internally for every UID:
 
 ```text
-doc/03-Projekt_Status/RAGstream_Implementation_Status.md
+CONSISTENT
+PARTIAL
+CONTRADICTED
+UNCLEAR
 ```
 
-Use this document only as supporting evidence when implementation maturity, postponed behavior, disabled behavior, or future intent is unclear.
+### `CONSISTENT`
 
-Verify its claims against current code whenever possible.
+The requirement matches the inspected evidence.
 
-### Audit output directory
+Do not write a Markdown finding for it.
+
+### `PARTIAL`
+
+Only part of the requirement is implemented or supported.
+
+Write a Markdown finding.
+
+### `CONTRADICTED`
+
+The implementation behaves differently from the requirement.
+
+Write a Markdown finding.
+
+### `UNCLEAR`
+
+The available evidence is insufficient for a reliable conclusion.
+
+Write a Markdown finding.
+
+Do not mark a UID `CONSISTENT` merely because no obvious contradiction was found.
+
+---
+
+## 5. Traceability Status
+
+Every normative UID must receive exactly one CSV row and exactly one of these statuses:
 
 ```text
-doc/01-Requirements/strictdoc_audit/
+TRACED
+SYSTEM_WIDE
+IMPLEMENTATION_PENDING
 ```
 
-### Traceability template
+### `TRACED`
+
+Use when one clear primary Python file owns or directly represents the requirement.
+
+Rules:
+
+- select exactly one Python file;
+- use the exact repository-relative path;
+- name the exact relevant class, method, function, constant, or runtime behavior in the explanation;
+- mention supporting Python files or JSONPaths only when necessary;
+- do not create additional rows for supporting artifacts;
+- do not choose an arbitrary file when several files are equally important.
+
+### `SYSTEM_WIDE`
+
+Use when no single Python file can honestly own the requirement.
+
+Rules:
+
+- leave artifact fields empty;
+- explain what the UID governs or affects;
+- name the relevant subsystems, Python files, runtime behaviors, JSON areas, or governance areas;
+- explain why one primary Python file cannot be selected;
+- do not use generic boilerplate such as “the code does not contradict it.”
+
+### `IMPLEMENTATION_PENDING`
+
+Use only when the requirement expects future or missing implementation and no current Python artifact implements it.
+
+Rules:
+
+- leave artifact fields empty;
+- explain what behavior or artifact is missing;
+- cite the evidence showing that it is future, planned, postponed, disabled, placeholder, or absent;
+- if the requirement incorrectly claims the behavior is current, also create a `PARTIAL` or `CONTRADICTED` Markdown finding.
+
+---
+
+## 6. Primary Artifact Rule
+
+The primary traceability artifact may be only one Python file.
+
+Allowed artifact type:
+
+```text
+PYTHON
+```
+
+Do not use a JSON file as the primary artifact.
+
+When JSON controls the behavior:
+
+1. identify the exact JSONPath;
+2. identify the Python loader or runtime caller;
+3. trace the UID to that Python file;
+4. mention the JSON file and JSONPath in `relationship_explanation`.
+
+Classes, methods, functions, constants, JSONPaths, tests, call chains, and secondary files belong in the explanation, not in additional rows.
+
+---
+
+## 7. Traceability CSV
+
+Use this template:
 
 ```text
 doc/01-Requirements/strictdoc_audit/TRACEABILITY_TEMPLATE.csv
 ```
 
-Use this template without changing its columns or column order.
-
-The required header is:
+Do not change the columns or order:
 
 ```csv
 uid,artifact_traceability_status,artifact_name,artifact_path,artifact_type,relationship_explanation
 ```
 
----
+Rules:
 
-## 3. Task Boundary
+- exactly one row for every normative UID;
+- preserve UID order from the target `.sdoc`;
+- never omit a UID;
+- never create a second row for a UID;
+- never invent a UID;
+- never use a status other than the three allowed statuses;
+- keep each CSV record on one physical line;
+- use valid CSV quoting.
 
-Each Codex task receives exactly one target StrictDoc file.
+### For `TRACED`
 
-For example:
+Fill:
 
 ```text
-doc/01-Requirements/strictdoc/10_orchestrator_and_pipeline.sdoc
+artifact_name
+artifact_path
+artifact_type = PYTHON
 ```
 
-Audit every normative requirement UID contained in that target file.
+The explanation must name the exact relevant symbols and behavior.
 
-Do not audit another StrictDoc file as an additional task.
+### For `SYSTEM_WIDE`
 
-Another StrictDoc file may be read only when the target file explicitly depends on it and that context is necessary to understand the selected requirement.
-
-Do not modify:
-
-* the target StrictDoc file;
-* any other StrictDoc file;
-* Python code;
-* JSON files;
-* legacy requirements;
-* the implementation-status document;
-* `TRACEABILITY_TEMPLATE.csv`;
-* previous audit outputs.
-
----
-
-## 4. Requirement Audit
-
-For every normative requirement UID in the selected StrictDoc file:
-
-1. Read the complete requirement statement and its surrounding context.
-2. Determine what the requirement claims.
-3. Locate the relevant current Python or runtime JSON evidence.
-4. Inspect the effective behavior rather than relying only on comments or names.
-5. Determine whether the requirement:
-
-   * is consistent with the current implementation;
-   * is only partially supported;
-   * contradicts the current implementation;
-   * cannot be determined clearly from available evidence.
-6. Consult relevant legacy requirements or the implementation-status document only when necessary.
-7. Record exact evidence and reasoning in the audit Markdown file.
-8. Assign exactly one traceability status in the traceability CSV.
-
-Use the following audit conclusions:
-
-### `CONSISTENT`
-
-Use when the current implementation supports the requirement, or when a correctly stated future or system-wide requirement does not contradict the current implementation.
-
-### `PARTIAL`
-
-Use when only part of the requirement is supported or implemented.
-
-### `CONTRADICTED`
-
-Use when the current implementation behaves differently from what the requirement states.
-
-### `UNCLEAR`
-
-Use only when the available evidence is insufficient to reach a reliable conclusion.
-
-Do not weaken or reinterpret code evidence merely to protect the requirement.
-
-Do not treat every implementation detail as a missing requirement.
-
----
-
-## 5. Artifact Definition
-
-For this traceability process, a directly associated artifact may be only:
-
-* one Python file; or
-* one JSON file.
-
-The association is made at file level.
-
-Do not use the following as the directly associated artifact:
-
-* an entire directory;
-* an entire subsystem;
-* several Python files;
-* several JSON files;
-* a class;
-* a method;
-* a function;
-* a JSON key;
-* a test case;
-* an architecture document;
-* a legacy requirement;
-* the implementation-status document.
-
-Symbols, functions, methods, JSON keys, call chains, and additional dependent files may be described in `relationship_explanation`, but they must not become additional artifact rows.
-
----
-
-## 6. Artifact Traceability Status
-
-Every normative requirement UID must receive exactly one of these three statuses.
-
-### `TRACED`
-
-Use `TRACED` only when there is one clear primary Python file or one clear primary JSON file that directly represents or implements the requirement.
-
-For `TRACED`:
-
-* create exactly one CSV row for the UID;
-* provide exactly one artifact;
-* fill `artifact_name`;
-* fill `artifact_path`;
-* fill `artifact_type`;
-* explain why this file is the clear primary artifact.
-
-Allowed `artifact_type` values:
+Leave these empty:
 
 ```text
-PYTHON
-JSON
-```
-
-Do not select a file merely because it belongs to the same subsystem.
-
-Do not select an arbitrary winner when several files appear equally important.
-
-Additional dependencies may be named only inside `relationship_explanation`.
-
-### `IMPLEMENTATION_PENDING`
-
-Use `IMPLEMENTATION_PENDING` when the requirement expects implementation through a Python or JSON artifact, but no such artifact currently exists.
-
-For `IMPLEMENTATION_PENDING`:
-
-* create exactly one CSV row for the UID;
-* leave `artifact_name` empty;
-* leave `artifact_path` empty;
-* leave `artifact_type` empty;
-* explain what implementation is missing;
-* state the evidence showing that no current artifact exists.
-
-If the requirement wording incorrectly presents missing behavior as currently implemented, report that contradiction in the audit Markdown file.
-
-### `SYSTEM_WIDE`
-
-Use `SYSTEM_WIDE` when the requirement, by its nature, does not have one clear primary Python or JSON artifact.
-
-This includes broad requirements that apply across the project, across a complete capability, or across several equally relevant implementation files.
-
-For `SYSTEM_WIDE`:
-
-* create exactly one CSV row for the UID;
-* leave `artifact_name` empty;
-* leave `artifact_path` empty;
-* leave `artifact_type` empty;
-* explain why no single primary artifact can honestly be selected;
-* name relevant related files in `relationship_explanation` when useful.
-
-Do not use `SYSTEM_WIDE` merely because several files are involved.
-
-Use it only when there is genuinely no clear single primary artifact.
-
----
-
-## 7. Traceability Rules
-
-The traceability CSV must contain exactly one row for every normative requirement UID in the selected StrictDoc file.
-
-A UID must never have several CSV rows.
-
-A UID must never point directly to several artifacts.
-
-For a `TRACED` UID:
-
-* select one clear primary artifact only;
-* record its repository-relative path;
-* mention secondary dependencies only in the explanation.
-
-For a `SYSTEM_WIDE` UID:
-
-* do not force an arbitrary artifact association;
-* describe the relevant implementation scope in the explanation.
-
-For an `IMPLEMENTATION_PENDING` UID:
-
-* do not invent an artifact;
-* explain what is absent.
-
-Preserve the UID order used in the target StrictDoc file.
-
-Do not omit a UID because it is difficult to classify.
-
-Do not create new UIDs.
-
-Do not modify existing UIDs.
-
----
-
-## 8. CSV Content Rules
-
-Use the exact columns from `TRACEABILITY_TEMPLATE.csv`:
-
-```text
-uid
-artifact_traceability_status
 artifact_name
 artifact_path
 artifact_type
-relationship_explanation
 ```
 
-### `uid`
+The explanation must state the affected scope and why no single Python file owns it.
 
-The exact requirement UID from the target StrictDoc file.
+### For `IMPLEMENTATION_PENDING`
 
-### `artifact_traceability_status`
-
-Exactly one of:
+Leave these empty:
 
 ```text
-TRACED
-IMPLEMENTATION_PENDING
-SYSTEM_WIDE
+artifact_name
+artifact_path
+artifact_type
 ```
 
-### `artifact_name`
-
-For `TRACED`, write the selected file name.
-
-For the other two statuses, leave this field empty.
-
-### `artifact_path`
-
-For `TRACED`, write the exact repository-relative path.
-
-Example format:
-
-```text
-ragstream/example/example_file.py
-```
-
-For the other two statuses, leave this field empty.
-
-### `artifact_type`
-
-For `TRACED`, use exactly:
-
-```text
-PYTHON
-```
-
-or:
-
-```text
-JSON
-```
-
-For the other two statuses, leave this field empty.
-
-### `relationship_explanation`
-
-Write one concise but complete paragraph.
-
-For `TRACED`, explain:
-
-* why the selected file is the clear primary artifact;
-* which relevant symbol, function, method, class, JSON section, or behavior supports the mapping;
-* any important secondary dependencies.
-
-For `IMPLEMENTATION_PENDING`, explain:
-
-* what artifact or behavior is expected;
-* why it is currently missing.
-
-For `SYSTEM_WIDE`, explain:
-
-* why no single primary artifact exists;
-* which files or implementation areas are relevant, when applicable.
-
-The explanation must be based on inspected evidence, not generic assumptions.
-
-Use valid CSV quoting when the explanation contains commas, quotation marks, or line-sensitive content.
-
-Keep each CSV record on one physical line.
+The explanation must state what is missing and why it is classified as pending.
 
 ---
 
-## 9. Required Output Files
+## 8. Compact Audit Markdown
 
-For each target StrictDoc file, create exactly two files.
+The Markdown report contains only alarms:
 
-If the target file is:
+- `PARTIAL`
+- `CONTRADICTED`
+- `UNCLEAR`
 
-```text
-doc/01-Requirements/strictdoc/<strictdoc_filename>.sdoc
-```
+Do not create a section for a `CONSISTENT` UID.
 
-create:
-
-```text
-doc/01-Requirements/strictdoc_audit/<strictdoc_filename>_AUDIT.md
-```
-
-and:
-
-```text
-doc/01-Requirements/strictdoc_audit/<strictdoc_filename>_TRACEABILITY.csv
-```
-
-Remove only the `.sdoc` extension when constructing the output names.
-
-Do not create:
-
-* `TRACEABILITY_MASTER.csv`;
-* `AUDIT_SUMMARY.md`;
-* merge scripts;
-* validation scripts;
-* state files;
-* temporary audit files;
-* additional CSV files;
-* additional Markdown reports;
-* modified source files.
-
----
-
-## 10. Audit Markdown Format
-
-The audit Markdown file must use exactly this structure:
+Use this structure:
 
 ```markdown
-# Audit: <target StrictDoc filename>
+# Audit Findings: <target StrictDoc filename>
 
 ## Audit Scope
 
 - Target file:
 - Repository commit:
-- Number of normative requirement UIDs:
+- Normative UID count:
+- CONSISTENT count:
+- PARTIAL count:
+- CONTRADICTED count:
+- UNCLEAR count:
 
-## Requirement Reviews
+## Findings
 
 ### <UID> — <requirement title>
 
-**Requirement statement**
+**Conclusion**
 
-<exact requirement statement>
+<PARTIAL, CONTRADICTED, or UNCLEAR>
 
-**Implementation evidence**
+**Requirement claim**
 
-- Python or JSON paths:
-- Relevant symbols, functions, methods, classes, keys, or runtime behavior:
+<concise statement of the claim>
 
-**Audit conclusion**
+**Exact evidence**
 
-<CONSISTENT, PARTIAL, CONTRADICTED, or UNCLEAR>
+- <Python path and exact symbol or behavior>
+- <supporting JSONPath, test, legacy, status, or README evidence only when needed>
 
-**Analysis**
+**Why it is not OK**
 
-<precise explanation based on evidence>
-
-**Legacy or implementation-status evidence**
-
-<relevant evidence, or "Not consulted">
+<precise explanation>
 
 **Required correction**
 
-<exact correction needed, or "None">
+<exact requirement or implementation correction>
 
 ## File Verdict
 
-**Overall result**
+<short overall verdict>
 
-<concise overall conclusion>
+## No-Finding Statement
 
-**Contradictions found**
-
-<list, or "None">
-
-**Partial implementations found**
-
-<list, or "None">
-
-**Unclear requirements**
-
-<list, or "None">
+All normative UIDs not listed under `Findings` were inspected and classified `CONSISTENT`.
 ```
 
-Create one `Requirement Reviews` subsection for every normative requirement UID.
+Do not copy every full requirement statement into the report.
 
-Do not omit passing requirements.
+Do not create repetitive text for passing UIDs.
 
-Do not write generic statements without exact evidence.
+Do not use generic explanations.
 
-Do not rewrite the requirements inside the audit output except when stating an exact recommended correction.
+If there are no findings, keep the report short and state that all normative UIDs were inspected and classified `CONSISTENT`.
 
 ---
 
-## 11. Execution Discipline
+## 9. Required Output Files
 
-Work only on the target StrictDoc file named in the current Codex task.
+For target:
 
-Inspect as much current Python and runtime JSON implementation as necessary to audit that file correctly.
-
-Do not continue automatically to the next StrictDoc file.
-
-Do not update audit files created for previous StrictDoc files.
-
-Do not merge traceability files.
-
-Do not perform remediation.
-
-Do not modify requirements or implementation.
-
-Do not create a pull request unless a separate instruction explicitly requests it.
-
-When the two required files have been created, stop.
-
-Your final Codex response must contain only the two created repository-relative file paths, one per line.
-
-
+```text
+doc/01-Requirements/strictdoc/<name>.sdoc
 ```
+
+create exactly:
+
+```text
+doc/01-Requirements/strictdoc_audit/<name>_AUDIT.md
+doc/01-Requirements/strictdoc_audit/<name>_TRACEABILITY.csv
+```
+
+Do not create master files, state files, scripts, temporary files, additional reports, or additional CSV files.
+
+---
+
+## 10. Mandatory Validation Before Stopping
+
+Codex must verify:
+
+1. CSV UID count equals the number of normative UIDs in the target `.sdoc`.
+2. Every UID appears exactly once.
+3. Every status is one of:
+   - `TRACED`
+   - `SYSTEM_WIDE`
+   - `IMPLEMENTATION_PENDING`
+4. Every `TRACED` row has:
+   - one Python file;
+   - `artifact_type = PYTHON`;
+   - a non-empty explanation naming exact relevant symbols or behavior.
+5. Every `SYSTEM_WIDE` row has empty artifact fields and a concrete affected-scope explanation.
+6. Every `IMPLEMENTATION_PENDING` row has empty artifact fields and a concrete missing-implementation explanation.
+7. The Markdown report contains no section for any `CONSISTENT` UID.
+8. Every `PARTIAL`, `CONTRADICTED`, or `UNCLEAR` UID appears in the Markdown report.
+9. No repeated generic explanation is used across unrelated UIDs.
+10. No source file or previous audit output was modified.
+
+If any validation fails, correct the two new output files before stopping.
+
+---
+
+## 11. Final Codex Response
+
+After creating and validating the two files, stop.
+
+The final Codex response must contain only the two created repository-relative paths, one per line.
