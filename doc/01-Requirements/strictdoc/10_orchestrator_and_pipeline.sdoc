@@ -803,7 +803,9 @@ UID: GHOST-ORCH-COMPOSE-OUTPUT
 STATUS: Draft
 TITLE: Prompt Ready Output Contract
 STATEMENT: >>>
-Final composition shall write rendered strings into SuperPrompt.System_MD, SuperPrompt.Prompt_MD, SuperPrompt.S_CTX_MD, SuperPrompt.Attachments_MD where used, and SuperPrompt.prompt_ready.
+Final composition shall write rendered strings into SuperPrompt.System_MD, SuperPrompt.Prompt_MD, and SuperPrompt.prompt_ready.
+
+Final composition shall consume the existing SuperPrompt.S_CTX_MD and optional SuperPrompt.Attachments_MD when those fields have been populated by their owning processes.
 
 SuperPrompt.prompt_ready shall be the final Prompt Builder output presented to the user.
 <<<
