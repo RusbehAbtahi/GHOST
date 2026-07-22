@@ -125,6 +125,7 @@ The architecture is built around a clear separation of responsibilities:
 
 ---
 
+
 ## Core System Capabilities
 
 ### Project Knowledge and Document Retrieval
