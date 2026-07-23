@@ -32,3 +32,4 @@ yake>=0.4.8              # local automatic keyword extraction for MemoryRecord
 llama-index-core==0.12.52   # semantic sentence-based chunking for MemoryRecord Ingestion
 
 playwright>=1.53.0        # render/read ChatGPT shared-link pages for memory import
+mcp>=1.12
