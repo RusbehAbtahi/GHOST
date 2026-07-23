@@ -1,0 +1,1004 @@
+[DOCUMENT]
+TITLE: GHOST MCP Interface Requirements
+UID: GHOST-UI-MCP
+VERSION: 0.2-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines the remote Model Context Protocol interface through which an approved AI client submits one prompt to GHOST and receives the corresponding engineered prompt.
+
+The approved processing path is limited to deterministic PreProcessing followed by A2 PromptShaper. The MCP interface is an adapter around existing GHOST prompt-processing behavior; it does not redefine that behavior and does not generate the final answer to the user's original request.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-ROOT
+STATUS: Draft
+TITLE: GHOST MCP Interface Scope
+STATEMENT: >>>
+GHOST shall provide one remote MCP interface that allows ChatGPT and Claude to submit a user prompt, execute the approved GHOST prompt-engineering path, and receive the resulting engineered prompt in the same client conversation.
+
+This requirement defines a target interface. The MCP capability shall not be represented as implemented until the server code and the real-client acceptance tests defined by this document have passed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-UI-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-APPROVED-FLOW
+STATUS: Draft
+TITLE: Approved Prompt-Engineering Flow
+STATEMENT: >>>
+The MCP prompt-engineering flow shall be exactly:
+
+1. receive one user-supplied prompt;
+2. create one fresh SuperPrompt for that request;
+3. execute the existing deterministic PreProcessing function on that SuperPrompt;
+4. execute the existing A2 PromptShaper on the same SuperPrompt;
+5. obtain the engineered prompt from the final SuperPrompt prompt-ready projection; and
+6. return that engineered prompt to the invoking MCP client.
+
+No additional GHOST pipeline stage shall be inserted into this flow by this interface.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-INTERFACE-OWNERSHIP
+STATUS: Draft
+TITLE: MCP Adapter Ownership
+STATEMENT: >>>
+This document shall own the external MCP protocol contract, the exposed tool contract, request isolation, result delivery, interface-visible failures, and real-client interoperability criteria.
+
+It shall not own the internal functional semantics of PreProcessing or A2 PromptShaper and shall not duplicate their requirements.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-PRODUCT-PACKAGE-BOUNDARY
+STATUS: Draft
+TITLE: Product and Python Package Naming Boundary
+STATEMENT: >>>
+The product exposed through the MCP interface shall be named GHOST.
+
+The existing Python package namespace may remain ragstream in implementation modules and import paths. The MCP interface shall not present RAGstream as the product identity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. MCP Communication Contract
+
+[TEXT]
+STATEMENT: >>>
+The MCP server is a remote tool provider. ChatGPT or Claude invokes the GHOST tool through MCP; the server does not passively read or intercept ordinary client conversations.
+<<<
+
+[[SECTION]]
+TITLE: 2.1. Client and Transport Contract
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIENT-COMPATIBILITY
+STATUS: Draft
+TITLE: ChatGPT and Claude Compatibility
+STATEMENT: >>>
+The same GHOST MCP server implementation shall be interoperable with:
+
+- the owner's ChatGPT web client through its custom MCP plugin capability; and
+- Claude through its remote custom connector capability.
+
+Compatibility shall be demonstrated against both real clients and shall not be inferred only from an MCP Inspector or a unit-test client.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-REMOTE-STREAMABLE-HTTP
+STATUS: Draft
+TITLE: Remote Streamable HTTP Transport
+STATEMENT: >>>
+The GHOST MCP server shall expose the MCP protocol through Streamable HTTP.
+
+The server shall provide one logical MCP endpoint that supports the HTTP methods required by Streamable HTTP and shall exchange valid MCP JSON-RPC messages through that endpoint.
+
+The concrete public hostname, path, reverse-proxy configuration, container port, and AWS network realization shall remain owned by 81_aws_deployment_and_operations.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIENT-COMPATIBILITY
+
+[REQUIREMENT]
+UID: GHOST-MCP-EXTERNAL-HTTPS
+STATUS: Draft
+TITLE: External HTTPS Requirement
+STATEMENT: >>>
+ChatGPT and Claude shall communicate with the remote GHOST MCP endpoint only through HTTPS.
+
+The MCP interface shall not require either client to connect directly to an unencrypted public HTTP endpoint or directly to an internal container port.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-REMOTE-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROTOCOL-INITIALIZATION
+STATUS: Draft
+TITLE: MCP Initialization and Capability Negotiation
+STATEMENT: >>>
+The server shall complete the MCP initialize exchange, accept the initialized notification, negotiate a protocol version supported by both parties, and advertise the tools capability.
+
+The server shall not advertise resources, prompts, sampling, elicitation, tasks, or other capabilities that its implementation does not provide.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-REMOTE-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOOLS-LIST
+STATUS: Draft
+TITLE: Tool Discovery
+STATEMENT: >>>
+In response to tools/list, the server shall return exactly the tool defined by this document for the approved GHOST prompt-engineering scope.
+
+The server shall not expose retrieval, memory, ingestion, blackboard, file-management, UI-control, answer-generation, or full-pipeline tools under this requirement set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTOCOL-INITIALIZATION
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOOLS-CALL
+STATUS: Draft
+TITLE: Tool Invocation
+STATEMENT: >>>
+The server shall accept tools/call for the declared GHOST prompt-engineering tool and shall execute the tool only after the request has passed protocol, authorization, and input validation.
+
+A tools/call request for an undeclared tool shall not execute GHOST application logic.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-TOOLS-LIST
+
+[REQUIREMENT]
+UID: GHOST-MCP-EXPLICIT-CLIENT-INVOCATION
+STATUS: Draft
+TITLE: Explicit Client Invocation Boundary
+STATEMENT: >>>
+The MCP server shall operate when the user enables or explicitly invokes the GHOST plugin or connector in ChatGPT or Claude and the client issues the MCP tool call.
+
+The interface shall not claim that GHOST automatically receives every ordinary message written in a native ChatGPT or Claude conversation when no GHOST tool call occurs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIENT-COMPATIBILITY
+
+[REQUIREMENT]
+UID: GHOST-MCP-STATELESS-REQUEST-CONTRACT
+STATUS: Draft
+TITLE: Stateless Prompt Request Contract
+STATEMENT: >>>
+Each prompt-engineering tool call shall contain all input required to process that request.
+
+Correctness shall not depend on a previous MCP tool call, a previous client conversation turn, a server-side chat transcript, or a persistent MCP session object.
+
+Transport-level session identifiers may be supported by the selected MCP library, but the prompt-engineering result shall not depend on stored conversational state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-TOOLS-CALL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2.2. Authorization and Transport Protection
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROTECTED-ACCESS
+STATUS: Draft
+TITLE: Protected Remote Access
+STATEMENT: >>>
+The deployed remote MCP interface shall use the MCP HTTP authorization model based on OAuth 2.1 so that ChatGPT and Claude can obtain and present access tokens through their supported remote-MCP connection flows.
+
+The GHOST MCP server shall act as the protected resource server. Unauthenticated or invalidly authenticated requests shall not invoke PreProcessing, A2 PromptShaper, or any other GHOST application function.
+
+The authorization-server product, credential storage, client registration, discovery-route deployment, token-validation infrastructure, and environment values shall remain owned by 81_aws_deployment_and_operations.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-REMOTE-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-MCP-OAUTH-PROTECTED-RESOURCE-METADATA
+STATUS: Draft
+TITLE: OAuth Protected Resource Metadata
+STATEMENT: >>>
+The protected GHOST MCP endpoint shall publish OAuth Protected Resource Metadata through a standards-based discovery location supported by MCP clients.
+
+The metadata shall identify the canonical GHOST MCP resource and at least one authorization server approved by the deployment design.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-BEARER-TOKEN-TRANSPORT
+STATUS: Draft
+TITLE: Bearer Access Token Transport
+STATEMENT: >>>
+An authorized MCP client shall present its access token in the HTTP Authorization header using the Bearer scheme on each protected MCP request.
+
+The MCP server shall not accept an access token from a URI query parameter.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOKEN-RESOURCE-VALIDATION
+STATUS: Draft
+TITLE: Access Token Resource Validation
+STATEMENT: >>>
+Before executing a protected MCP operation, the server shall validate that the presented token is active, unexpired, and issued for the canonical GHOST MCP resource.
+
+A token issued for another resource shall not authorize ghost_engineer_prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-AUTHENTICATION-FAILURE
+STATUS: Draft
+TITLE: Authentication Failure Response
+STATEMENT: >>>
+A request that requires authorization and presents no valid access token shall receive HTTP 401 and shall expose the standards-based discovery information required by the configured MCP authorization flow.
+
+The response shall not reveal secrets, token contents, internal exception traces, or GHOST prompt-processing data.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-AUTHORIZATION-FAILURE
+STATUS: Draft
+TITLE: Authorization Failure Response
+STATEMENT: >>>
+A request authenticated with credentials that do not authorize the requested MCP operation shall receive HTTP 403 and shall not execute the tool.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-ORIGIN-VALIDATION
+STATUS: Draft
+TITLE: Streamable HTTP Origin Validation
+STATEMENT: >>>
+For each Streamable HTTP connection, the server shall validate the Origin header when the header is present.
+
+A present Origin value that is not accepted by the deployed configuration shall receive HTTP 403 before the request reaches GHOST prompt-processing logic.
+
+The exact accepted Origin values shall be established from verified ChatGPT and Claude client behavior and recorded in the deployment profile rather than invented in this interface document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-REMOTE-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOOL-RATE-LIMITING
+STATUS: Draft
+TITLE: Configurable MCP Tool Rate Limiting
+STATEMENT: >>>
+The MCP server shall apply configurable rate limiting to authenticated invocations of ghost_engineer_prompt before creating a SuperPrompt or invoking deterministic PreProcessing or A2.
+
+When the configured limit is exceeded, the server shall reject the invocation without executing GHOST prompt-processing logic and shall return a standards-compatible, sanitized response that allows the client to retry according to the deployed policy.
+
+The concrete quota, time window, caller-identification key, retry behavior, and environment values shall remain deployment configuration owned by 81_aws_deployment_and_operations.sdoc and its local deployment profile rather than being fixed in this interface contract.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-TOOLS-CALL
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Prompt-Engineering Capability
+
+[[SECTION]]
+TITLE: 3.1. MCP Tool Definition
+
+[REQUIREMENT]
+UID: GHOST-MCP-ENGINEER-PROMPT-TOOL
+STATUS: Draft
+TITLE: GHOST Prompt-Engineering Tool
+STATEMENT: >>>
+The MCP server shall expose one tool with the stable identifier:
+
+ghost_engineer_prompt
+
+The tool shall transform one supplied prompt by executing existing GHOST PreProcessing followed by existing A2 PromptShaper and shall return the resulting engineered prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-TOOLS-LIST
+
+[REQUIREMENT]
+UID: GHOST-MCP-ENGINEER-PROMPT-TITLE
+STATUS: Draft
+TITLE: Prompt-Engineering Tool Display Title
+STATEMENT: >>>
+The human-readable title of ghost_engineer_prompt shall identify the capability as GHOST Prompt Engineering and shall not imply retrieval, memory, answer generation, or complete pipeline execution.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEER-PROMPT-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-ENGINEER-PROMPT-DESCRIPTION
+STATUS: Draft
+TITLE: Prompt-Engineering Tool Description
+STATEMENT: >>>
+The tool description presented through tools/list shall state that the tool:
+
+- accepts a user prompt;
+- runs GHOST PreProcessing and A2 PromptShaper;
+- returns the engineered prompt;
+- does not answer the original prompt; and
+- is intended to present the engineered prompt back to the user.
+
+The description shall not claim execution of capabilities excluded by this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEER-PROMPT-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-ENGINEER-PROMPT-SAFETY-ANNOTATIONS
+STATUS: Draft
+TITLE: Prompt-Engineering Tool Behavioral Annotations
+STATEMENT: >>>
+The tool metadata shall identify ghost_engineer_prompt as non-destructive and non-persistent with respect to GHOST project data and memory data.
+
+The metadata shall not describe the tool as modifying files, projects, memories, blackboards, client conversations, or external business records.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEER-PROMPT-TOOL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.2. Input Contract
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROMPT-INPUT-SCHEMA
+STATUS: Draft
+TITLE: Prompt Input Schema
+STATEMENT: >>>
+The ghost_engineer_prompt inputSchema shall be a JSON Schema object whose root type is object and that has exactly one supported property:
+
+- prompt_text: string containing the prompt to be engineered.
+
+prompt_text shall be required. additionalProperties shall be false.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEER-PROMPT-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROMPT-INPUT-NONEMPTY
+STATUS: Draft
+TITLE: Non-Empty Prompt Input
+STATEMENT: >>>
+The server shall reject prompt_text when its value is empty or contains only whitespace.
+
+The validation check may inspect a trimmed view of the string, but a valid prompt shall be passed to the existing PreProcessing function as the user supplied it rather than being rewritten by the MCP adapter.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROMPT-INPUT-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROMPT-INPUT-UNICODE
+STATUS: Draft
+TITLE: Unicode Prompt Preservation
+STATEMENT: >>>
+The MCP adapter shall accept valid Unicode prompt text and shall preserve the prompt content, line breaks, Markdown headings, and language characters when passing the value into existing GHOST PreProcessing.
+
+Any normalization performed inside PreProcessing shall remain governed by 30_preprocessing_prompt_functions.sdoc rather than by the MCP adapter.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROMPT-INPUT-SCHEMA
+
+[REQUIREMENT]
+UID: GHOST-MCP-NO-CONVERSATION-PAYLOAD
+STATUS: Draft
+TITLE: No Conversation-History Input
+STATEMENT: >>>
+The approved ghost_engineer_prompt schema shall not require or accept previous assistant responses, full conversation history, memory records, document chunks, project identifiers, blackboard entries, or retrieval instructions.
+
+Those inputs shall not be added without separately approved requirements and a deliberate interface-version decision.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROMPT-INPUT-SCHEMA
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.3. Processing Sequence
+
+[REQUIREMENT]
+UID: GHOST-MCP-FRESH-SUPERPROMPT
+STATUS: Draft
+TITLE: Fresh SuperPrompt Per Tool Call
+STATEMENT: >>>
+The MCP adapter shall create one new SuperPrompt for each accepted ghost_engineer_prompt call.
+
+It shall not reuse a mutable SuperPrompt from another request, another client, another user, or an earlier tool call.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-APPROVED-FLOW
+
+[REQUIREMENT]
+UID: GHOST-MCP-EXISTING-PROMPT-SCHEMA
+STATUS: Draft
+TITLE: Existing Prompt Schema Reuse
+STATEMENT: >>>
+The MCP adapter shall use the same active PromptSchema configuration used by the GHOST application for deterministic PreProcessing.
+
+The adapter shall not define a second MCP-specific canonical-header vocabulary, mandatory-field set, alias map, bilingual map, or default map.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-APPROVED-FLOW
+
+[REQUIREMENT]
+UID: GHOST-MCP-PREPROCESS-CALL
+STATUS: Draft
+TITLE: Existing PreProcessing Invocation
+STATEMENT: >>>
+The adapter shall pass prompt_text, the fresh SuperPrompt, and the active PromptSchema to the existing deterministic PreProcessing function.
+
+The adapter shall not reproduce Markdown parsing, header matching, TASK/CONTEXT fallback, mandatory-field handling, retrieval-query construction, stage update, or prompt-ready composition in parallel MCP-specific code.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-FRESH-SUPERPROMPT
+
+[REQUIREMENT]
+UID: GHOST-MCP-PREPROCESS-STAGE-GATE
+STATUS: Draft
+TITLE: PreProcessing Completion Gate
+STATEMENT: >>>
+A2 PromptShaper shall be invoked only after PreProcessing has completed successfully on the same SuperPrompt.
+
+If PreProcessing fails, the adapter shall stop the processing path and shall not call A2.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PREPROCESS-CALL
+
+[REQUIREMENT]
+UID: GHOST-MCP-A2-CALL
+STATUS: Draft
+TITLE: Existing A2 PromptShaper Invocation
+STATEMENT: >>>
+After successful PreProcessing, the adapter shall invoke the existing A2 PromptShaper on the same SuperPrompt using the existing AgentFactory, AgentPrompt, LLMClient, configured A2 agent definition, and configured model settings.
+
+The MCP adapter shall not hard-code a second A2 prompt, option catalog, model name, temperature, token limit, selector parser, sanitizer, or field-write-back implementation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PREPROCESS-STAGE-GATE
+
+[REQUIREMENT]
+UID: GHOST-MCP-A2-LLM-MODE
+STATUS: Draft
+TITLE: A2 LLM Execution Mode
+STATEMENT: >>>
+The ghost_engineer_prompt path shall execute A2 in its configured LLM mode so that A2 evaluates the preprocessed request and updates the configured prompt meta-fields.
+
+A deterministic-default-only A2 path shall not be substituted silently for a requested normal tool execution.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-A2-CALL
+
+[REQUIREMENT]
+UID: GHOST-MCP-A2-COMPLETION-GATE
+STATUS: Draft
+TITLE: A2 Completion Gate
+STATEMENT: >>>
+A successful ghost_engineer_prompt result shall be returned only after A2 has completed, the SuperPrompt stage is a2, and the central prompt-ready projection has been rebuilt from the updated SuperPrompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-A2-CALL
+
+[REQUIREMENT]
+UID: GHOST-MCP-ENGINEERED-PROMPT-SOURCE
+STATUS: Draft
+TITLE: Authoritative Engineered Prompt Source
+STATEMENT: >>>
+The engineered prompt returned by ghost_engineer_prompt shall be the final non-empty SuperPrompt prompt_ready value produced after A2 completion.
+
+The MCP adapter shall not independently reformat, summarize, paraphrase, decorate, or regenerate that engineered prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-A2-COMPLETION-GATE
+
+[REQUIREMENT]
+UID: GHOST-MCP-NO-ANSWER-GENERATION
+STATUS: Draft
+TITLE: No Original-Request Answer Generation
+STATEMENT: >>>
+The MCP server shall not use the engineered prompt to generate an answer to the user's original request within ghost_engineer_prompt.
+
+The successful tool result shall contain the engineered prompt itself. Any later use of that engineered prompt by ChatGPT, Claude, the user, or another GHOST capability shall occur outside this tool execution.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEERED-PROMPT-SOURCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-REQUEST-ISOLATION
+STATUS: Draft
+TITLE: Concurrent Request Isolation
+STATEMENT: >>>
+Concurrent MCP calls shall not share mutable SuperPrompt state, A2 selected-result state, prompt-ready output, or request-specific exception state.
+
+The engineered prompt returned for one call shall be derived only from that call's prompt_text and the shared read-only configuration used by PreProcessing and A2.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-FRESH-SUPERPROMPT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3.4. Output Contract
+
+[REQUIREMENT]
+UID: GHOST-MCP-SUCCESS-RESULT
+STATUS: Draft
+TITLE: Successful Tool Result
+STATEMENT: >>>
+On success, ghost_engineer_prompt shall return an MCP CallToolResult with:
+
+- isError omitted or false;
+- one TextContent item whose text is exactly the engineered prompt; and
+- structuredContent conforming to GHOST-MCP-OUTPUT-SCHEMA.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEERED-PROMPT-SOURCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-OUTPUT-SCHEMA
+STATUS: Draft
+TITLE: Structured Output Schema
+STATEMENT: >>>
+The tool outputSchema shall be a JSON Schema object whose root type is object, and successful structuredContent shall define exactly these required properties:
+
+- engineered_prompt: non-empty string equal to the TextContent value and to the final SuperPrompt prompt_ready value;
+- stage: string with the value a2.
+
+additionalProperties shall be false.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-SUCCESS-RESULT
+
+[REQUIREMENT]
+UID: GHOST-MCP-OUTPUT-BACKWARD-COMPATIBILITY
+STATUS: Draft
+TITLE: Text and Structured Result Compatibility
+STATEMENT: >>>
+The server shall return the engineered prompt in TextContent even when structuredContent is also returned, so that clients that do not render structured output can still receive and display the engineered prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-SUCCESS-RESULT
+
+[REQUIREMENT]
+UID: GHOST-MCP-OUTPUT-NO-PREFIX-SUFFIX
+STATUS: Draft
+TITLE: No Adapter-Generated Prompt Wrapping
+STATEMENT: >>>
+The TextContent value shall not add an MCP-specific introduction, explanation, success message, Markdown fence, client instruction, or trailing commentary around the engineered prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-SUCCESS-RESULT
+
+[REQUIREMENT]
+UID: GHOST-MCP-OUTPUT-NO-INTERNALS
+STATUS: Draft
+TITLE: No Internal Runtime Disclosure
+STATEMENT: >>>
+A successful result shall not expose the OpenAI API key, authorization tokens, full A2 internal prompt, raw A2 model response, stack traces, configuration secrets, server filesystem paths, or unrelated SuperPrompt runtime objects.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-SUCCESS-RESULT
+
+[REQUIREMENT]
+UID: GHOST-MCP-NO-PERSISTENCE-SIDE-EFFECT
+STATUS: Draft
+TITLE: No Project or Memory Persistence Side Effect
+STATEMENT: >>>
+Execution of ghost_engineer_prompt shall not create, modify, ingest, retrieve, or delete GHOST project documents, Chroma data, memory files, memory indexes, ActiveBrief files, blackboard records, or client conversation records.
+
+Any external API usage required by existing A2 execution does not change this project-data and memory-data boundary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEER-PROMPT-TOOL
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Interface Data, Errors, and Acceptance
+
+[[SECTION]]
+TITLE: 4.1. Error Contract
+
+[REQUIREMENT]
+UID: GHOST-MCP-MALFORMED-REQUEST-ERROR
+STATUS: Draft
+TITLE: Malformed MCP Request Error
+STATEMENT: >>>
+A malformed JSON-RPC request, an unsupported MCP method, an unknown tool name, or a request that fails the structural MCP CallToolRequest contract shall be reported through the MCP protocol error mechanism and shall not invoke GHOST prompt-processing logic.
+
+Tool-specific argument validation failures shall not be classified as malformed MCP requests solely because the supplied arguments do not satisfy the ghost_engineer_prompt inputSchema.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-INPUT-VALIDATION-ERROR
+STATUS: Draft
+TITLE: Prompt Validation Tool Error
+STATEMENT: >>>
+A structurally valid tools/call request whose arguments fail the ghost_engineer_prompt input contract shall return a CallToolResult with isError true and a concise actionable message that allows the client model to correct the tool call.
+
+This includes a missing prompt_text property, a non-string prompt_text value, an unsupported additional property, or a prompt_text value that is empty or whitespace-only after validation.
+
+The server shall not call deterministic PreProcessing or A2 for that request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROMPT-INPUT-NONEMPTY
+
+[REQUIREMENT]
+UID: GHOST-MCP-PREPROCESS-EXECUTION-ERROR
+STATUS: Draft
+TITLE: PreProcessing Execution Error
+STATEMENT: >>>
+If existing PreProcessing raises an exception or fails to produce the required prepared state, the server shall return a tool execution result with isError true, shall not invoke A2, and shall not return a partial engineered prompt as a successful result.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PREPROCESS-STAGE-GATE
+
+[REQUIREMENT]
+UID: GHOST-MCP-A2-EXECUTION-ERROR
+STATUS: Draft
+TITLE: A2 Execution Error
+STATEMENT: >>>
+If A2 configuration loading, LLM invocation, response parsing, selector validation, or final projection fails, the server shall return a tool execution result with isError true and shall not present the pre-A2 prompt preview as the completed engineered prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-A2-COMPLETION-GATE
+
+[REQUIREMENT]
+UID: GHOST-MCP-ERROR-SANITIZATION
+STATUS: Draft
+TITLE: Error Information Sanitization
+STATEMENT: >>>
+Tool execution errors shall identify the failed phase sufficiently for client-visible diagnosis without returning secret values, bearer tokens, raw upstream model responses, complete internal prompts, stack traces, or server-local filesystem details.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MALFORMED-REQUEST-ERROR
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4.2. Protocol Acceptance
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROTOCOL-ACCEPTANCE
+STATUS: Draft
+TITLE: MCP Protocol Acceptance Sequence
+STATEMENT: >>>
+The server shall pass an acceptance sequence that performs, in order:
+
+1. initialize;
+2. notifications/initialized;
+3. tools/list;
+4. tools/call for ghost_engineer_prompt with a valid prompt_text; and
+5. verification of the returned TextContent, structuredContent, isError state, and a2 stage.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOOL-INVENTORY-ACCEPTANCE
+STATUS: Draft
+TITLE: Exact Tool Inventory Acceptance
+STATEMENT: >>>
+The tools/list acceptance result shall contain ghost_engineer_prompt and shall contain no additional GHOST tool unless the requirement set has been explicitly extended and the client integration has been rescanned.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTOCOL-ACCEPTANCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROCESSING-ORDER-ACCEPTANCE
+STATUS: Draft
+TITLE: PreProcessing-before-A2 Acceptance
+STATEMENT: >>>
+An integration test shall prove that the adapter passes the raw prompt through existing PreProcessing before invoking existing A2 on the same SuperPrompt and that the returned prompt_ready value is obtained only after the SuperPrompt stage becomes a2.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTOCOL-ACCEPTANCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-ISOLATION-ACCEPTANCE
+STATUS: Draft
+TITLE: Concurrent Isolation Acceptance
+STATEMENT: >>>
+A concurrency test using distinguishable prompts shall prove that simultaneous tool calls return the engineered prompt associated with each respective input and do not exchange or overwrite request-specific SuperPrompt state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTOCOL-ACCEPTANCE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4.3. Real-Client Acceptance
+
+[REQUIREMENT]
+UID: GHOST-MCP-CHATGPT-ACCEPTANCE
+STATUS: Draft
+TITLE: ChatGPT End-to-End Acceptance
+STATEMENT: >>>
+Using the owner's ChatGPT web account with the GHOST custom MCP plugin enabled, an acceptance test shall demonstrate that:
+
+1. the GHOST server can be registered and authenticated;
+2. ChatGPT can discover ghost_engineer_prompt;
+3. a prompt written by the user can be supplied as prompt_text in the MCP tool call;
+4. GHOST executes PreProcessing and A2; and
+5. the engineered prompt returned by the MCP server is presented in the same ChatGPT conversation.
+
+A server that passes only local tests or MCP Inspector tests shall not satisfy this requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTOCOL-ACCEPTANCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLAUDE-ACCEPTANCE
+STATUS: Draft
+TITLE: Claude End-to-End Acceptance
+STATEMENT: >>>
+Using Claude with the GHOST remote custom connector enabled, an acceptance test shall demonstrate that:
+
+1. the GHOST server can be registered and authenticated;
+2. Claude can discover ghost_engineer_prompt;
+3. a prompt written by the user can be supplied as prompt_text in the MCP tool call;
+4. GHOST executes PreProcessing and A2; and
+5. the engineered prompt returned by the MCP server is presented in the same Claude conversation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTOCOL-ACCEPTANCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-CROSS-CLIENT-CONSISTENCY
+STATUS: Draft
+TITLE: Cross-Client Interface Consistency
+STATEMENT: >>>
+ChatGPT and Claude shall use the same MCP endpoint contract, tool identifier, input schema, processing sequence, and output schema.
+
+Client-specific UI configuration or OAuth registration details shall not create two different GHOST prompt-engineering behaviors.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIENT-COMPATIBILITY
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Ownership Boundaries and Future Extension
+
+[[SECTION]]
+TITLE: 5.1. Requirement Ownership Boundaries
+
+[REQUIREMENT]
+UID: GHOST-MCP-PREPROCESSING-OWNERSHIP-REFERENCE
+STATUS: Draft
+TITLE: PreProcessing and A2 Functional Ownership
+STATEMENT: >>>
+30_preprocessing_prompt_functions.sdoc shall remain the owner of deterministic PreProcessing behavior, SuperPrompt preparation behavior, A2 PromptShaper functional behavior, configured meta-field selection, selector validation, and prompt-ready projection outcomes used by this MCP tool.
+
+This document shall require reuse of those capabilities but shall not restate their internal algorithms.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-INTERFACE-OWNERSHIP
+
+[REQUIREMENT]
+UID: GHOST-MCP-AGENT-STACK-OWNERSHIP-REFERENCE
+STATUS: Draft
+TITLE: Agent Stack Ownership Boundary
+STATEMENT: >>>
+20_agent_stack.sdoc shall remain the owner of generic AgentFactory, AgentPrompt, LLMClient, configuration loading, model-call, parsing, and neutral agent-stack infrastructure used by A2.
+
+The MCP adapter shall consume that infrastructure only through the existing A2 boundary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-INTERFACE-OWNERSHIP
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROJECTION-OWNERSHIP-REFERENCE
+STATUS: Draft
+TITLE: Prompt Projection Ownership Boundary
+STATEMENT: >>>
+The central SuperPrompt projection and prompt-ready composition requirements shall remain owned by the applicable context-integration and SuperPrompt-projection requirement files.
+
+The MCP adapter shall return the resulting prompt_ready value and shall not become a second prompt renderer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-INTERFACE-OWNERSHIP
+
+[REQUIREMENT]
+UID: GHOST-MCP-AWS-OWNERSHIP-REFERENCE
+STATUS: Draft
+TITLE: AWS Deployment Ownership Boundary
+STATEMENT: >>>
+80_runtime_platform_and_operations.sdoc and 81_aws_deployment_and_operations.sdoc shall own the MCP container deployment, public endpoint, HTTPS termination, reverse proxy, internal port, AWS identity and network controls, secrets delivery, startup, restart, and operational verification.
+
+This document shall not duplicate concrete AWS account values, ports, paths, container names, ECR repositories, startup scripts, systemd units, nginx blocks, or authorization-provider implementation details.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-INTERFACE-OWNERSHIP
+
+[REQUIREMENT]
+UID: GHOST-MCP-UI-OWNERSHIP-BOUNDARY
+STATUS: Draft
+TITLE: Native Client and GHOST UI Boundary
+STATEMENT: >>>
+The MCP server shall not own the native ChatGPT or Claude conversation UI and shall not modify the current Streamlit workbench or the future React/FastAPI interface architecture.
+
+This document requires the engineered prompt to be delivered to the invoking client; rendering and presentation inside the native client remain client behavior verified through acceptance testing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-INTERFACE-OWNERSHIP
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5.2. Excluded Capabilities
+
+[REQUIREMENT]
+UID: GHOST-MCP-CURRENT-EXCLUSIONS
+STATUS: Draft
+TITLE: Excluded GHOST Capabilities
+STATEMENT: >>>
+The ghost_engineer_prompt tool shall not execute:
+
+- ActiveBrief discovery, relation classification, snapshotting, or routing;
+- document ingestion;
+- dense, sparse, hybrid, or reranked document retrieval;
+- evidence selection or condensation;
+- memory recording, ingestion, retrieval, merging, or synthesis;
+- blackboard read or write operations;
+- A3, A4, or later pipeline agents;
+- file management;
+- Streamlit or React/FastAPI UI actions; or
+- final answer generation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-NO-PREVIOUS-RESPONSE-CAPTURE
+STATUS: Draft
+TITLE: No Previous Assistant Response Capture
+STATEMENT: >>>
+The approved MCP interface shall not attempt to obtain, record, or infer a previous ChatGPT or Claude assistant response.
+
+Conversation-response capture requires a separately approved input contract and shall not be implied by the current prompt_text-only tool.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CURRENT-EXCLUSIONS
+
+[REQUIREMENT]
+UID: GHOST-MCP-NO-SHARED-BLACKBOARD
+STATUS: Draft
+TITLE: No Shared Blackboard in Current Contract
+STATEMENT: >>>
+The approved MCP interface shall not create or maintain the future shared blackboard between ChatGPT, Claude, and GHOST.
+
+The future blackboard vision shall not be represented as current behavior merely because the MCP server provides a remote integration point.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CURRENT-EXCLUSIONS
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5.3. Controlled Future Extension
+
+[TEXT]
+STATEMENT: >>>
+Future GHOST MCP capabilities may extend this interface to record prior assistant responses, ingest conversation turns into memory, retrieve shared context, and exchange blackboard state across clients. Those capabilities are intentionally not specified as active behavior here.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-EXTENSION-APPROVAL
+STATUS: Draft
+TITLE: Explicit Approval for MCP Scope Extension
+STATEMENT: >>>
+A future MCP capability shall be added only through explicit requirements that define its inputs, outputs, persistence effects, authorization needs, ownership boundary, and client acceptance criteria.
+
+The existence of an extension idea shall not authorize silent expansion of ghost_engineer_prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CONTRACT-CHANGE-CONTROL
+STATUS: Draft
+TITLE: MCP Tool Contract Change Control
+STATEMENT: >>>
+A change to the ghost_engineer_prompt tool identifier, inputSchema, outputSchema, result semantics, or persistence behavior shall be treated as an interface-contract change.
+
+Before deployment, the change shall be reflected in approved requirements and shall be followed by refreshed tool discovery and repeated ChatGPT and Claude acceptance testing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EXTENSION-APPROVAL
+
+[[/SECTION]]
+
+[[/SECTION]]

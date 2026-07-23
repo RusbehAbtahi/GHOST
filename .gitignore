@@ -284,3 +284,6 @@ Desktop.ini
 doc/01-Requirements/strictdoc-html/_cache/
 doc/01-Requirements/strictdoc-html/
 *:Zone.Identifier
+
+# Private deployment profiles
+/doc-private/

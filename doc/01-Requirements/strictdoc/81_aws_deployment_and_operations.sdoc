@@ -1,0 +1,1378 @@
+[DOCUMENT]
+TITLE: GHOST AWS Deployment and Operations Requirements
+UID: GHOST-AWS-DEPLOYMENT-OPERATIONS
+VERSION: 0.3
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Scope, Evidence, and Environment Profile
+
+[TEXT]
+STATEMENT: >>>
+This document refines the runtime-platform parent with atomic requirements for the documented current AWS deployment and the approved target remote MCP extension.
+
+CURRENT means documented deployed behavior. TARGET means required future behavior that is not yet implementation truth.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-DEPLOYMENT-CAPABILITY
+STATUS: Draft
+TITLE: AWS Deployment and Operations Capability
+STATEMENT: >>>
+GHOST shall reproduce the documented current Phase-1 AWS deployment and shall add the target remote MCP deployment without changing the current Streamlit service unless a TARGET requirement explicitly requires an additive change.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-EVIDENCE-SET
+STATUS: Draft
+TITLE: Deployment Evidence Set
+STATEMENT: >>>
+CURRENT requirements shall be derived from the supplied AWS deployment guide, supplied HTTPS reverse-proxy architecture, supplied ragstream-start script, and current repository deployment artifacts.
+
+TARGET MCP requirements shall be derived from the approved deployment decisions and the applicable MCP, Claude, and ChatGPT interoperability specifications.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-EVIDENCE-CONFLICT-VISIBILITY
+STATUS: Draft
+TITLE: Deployment Evidence Conflict Visibility
+STATEMENT: >>>
+When supplied narrative documentation and a supplied executable deployment artifact describe different concrete commands, the requirement set shall preserve both facts explicitly and shall identify the executable command as the current executed configuration rather than silently rewriting either source.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-EVIDENCE-SET
+
+[REQUIREMENT]
+UID: GHOST-AWS-CURRENT-TARGET-LABELING
+STATUS: Draft
+TITLE: Current and Target Requirement Labeling
+STATEMENT: >>>
+Every deployment requirement shall be identifiable from its UID and title as either CURRENT or TARGET, and no TARGET MCP behavior shall be represented as already deployed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-LOCAL-PROFILE-CONTRACT
+STATUS: Draft
+TITLE: Local Deployment Profile Contract
+STATEMENT: >>>
+Exact account identifiers, region, hostnames, resource identifiers, paths, commands, current configuration text, and target implementation-assigned values shall be recorded in 81_aws_deployment_profile.local.md.
+
+Secret values shall not appear in either requirement file or the local profile.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. CURRENT AWS Network and HTTPS Entry
+
+[TEXT]
+STATEMENT: >>>
+The current public path is Route53 -> EC2 public IPv4 -> Security Group -> nginx -> local Docker-published Streamlit backend.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-EC2-HOST
+STATUS: Draft
+TITLE: CURRENT EC2 Host
+STATEMENT: >>>
+The current deployment shall run on one Ubuntu 24.04 EC2 instance in a public subnet with a public IPv4 address and an attached IAM instance profile.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-EC2-ROOT-VOLUME
+STATUS: Draft
+TITLE: CURRENT EC2 Root Volume Capacity
+STATEMENT: >>>
+The current EC2 instance shall use a root EBS volume with at least 20 GiB capacity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-EC2-HOST
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-EC2-HOST-SOFTWARE
+STATUS: Draft
+TITLE: CURRENT EC2 Host Software
+STATEMENT: >>>
+The current EC2 host shall have Docker, AWS CLI, nginx, and Certbot installed, and Docker and nginx shall be enabled for the documented deployment operation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-EC2-HOST
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-ROUTE53-A-RECORD
+STATUS: Draft
+TITLE: CURRENT Route53 A Record
+STATEMENT: >>>
+The configured Route53 A record shall resolve ragstream.rusbehabtahi.com to the current EC2 public IPv4 address using the configured TTL.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-EC2-HOST
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-IMDSV2-IP-READ
+STATUS: Draft
+TITLE: CURRENT IMDSv2 Public-IP Read
+STATEMENT: >>>
+The current startup script shall obtain an IMDSv2 token and shall use that token to read the EC2 public IPv4 address from instance metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-ROUTE53-A-RECORD
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-ROUTE53-UPSERT
+STATUS: Draft
+TITLE: CURRENT Route53 Address Update
+STATEMENT: >>>
+The current startup script shall UPSERT the configured Route53 A record with the public IPv4 address read from IMDSv2 during each successful activation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-ROUTE53-A-RECORD
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-SG-WEB-PORTS
+STATUS: Draft
+TITLE: CURRENT Public Web Ports
+STATEMENT: >>>
+The EC2 Security Group shall allow public inbound TCP traffic on ports 80 and 443 for the documented web entry path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-EC2-HOST
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-SG-SSH-RESTRICTION
+STATUS: Draft
+TITLE: CURRENT SSH Source Restriction
+STATEMENT: >>>
+Inbound TCP port 22 shall be restricted to the trusted administrator source and shall not be open to all internet addresses.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-EC2-HOST
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-SG-NO-8501
+STATUS: Draft
+TITLE: CURRENT No Public Streamlit Backend Port
+STATEMENT: >>>
+The EC2 Security Group shall contain no public inbound rule for TCP port 8501.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-SG-WEB-PORTS
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-NGINX-WEB-ENTRY
+STATUS: Draft
+TITLE: CURRENT nginx Web Entry
+STATEMENT: >>>
+nginx on the EC2 host shall be the intended public web entry point and shall select the application server block for ragstream.rusbehabtahi.com.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-EC2-HOST
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-TLS-TERMINATION
+STATUS: Draft
+TITLE: CURRENT TLS Termination
+STATEMENT: >>>
+nginx shall terminate TLS for ragstream.rusbehabtahi.com using the Let's Encrypt certificate managed by Certbot.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-NGINX-WEB-ENTRY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-HTTP-REDIRECT
+STATUS: Draft
+TITLE: CURRENT HTTP-to-HTTPS Redirect
+STATEMENT: >>>
+Requests received on public port 80 shall be redirected to HTTPS on port 443 under the Certbot-managed nginx configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-TLS-TERMINATION
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-STREAMLIT-PROXY
+STATUS: Draft
+TITLE: CURRENT Streamlit Reverse Proxy
+STATEMENT: >>>
+The nginx application route shall proxy to http://127.0.0.1:8501 using HTTP/1.1 and shall preserve the Host, X-Real-IP, X-Forwarded-For, X-Forwarded-Proto, Upgrade, and Connection headers required by the supplied configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-NGINX-WEB-ENTRY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-STREAMLIT-PROXY-TIMEOUT
+STATUS: Draft
+TITLE: CURRENT Streamlit Proxy Read Timeout
+STATEMENT: >>>
+The current Streamlit nginx route shall use the documented long proxy read timeout so long-running Streamlit connections are not terminated by the reverse proxy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-STREAMLIT-PROXY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DOCKER-8501-PUBLISH
+STATUS: Draft
+TITLE: CURRENT Docker Host Port 8501 Publication
+STATEMENT: >>>
+The current startup script shall publish host port 8501 to container port 8501 with Docker -p 8501:8501, which binds host port 8501 on all host interfaces.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-STREAMLIT-PROXY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-8501-PROTECTION-COMBINATION
+STATUS: Draft
+TITLE: CURRENT Port 8501 Protection Combination
+STATEMENT: >>>
+Direct public access to the broadly published host port 8501 shall be prevented by the Security Group prohibition on public inbound port 8501, while users access Streamlit through nginx on HTTPS port 443.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-DOCKER-8501-PUBLISH
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. CURRENT Docker Image and ECR Delivery
+
+[TEXT]
+STATEMENT: >>>
+The current repository builds one Streamlit image and pushes it to the configured private ECR repository. Image activation on EC2 remains a separate step.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DOCKER-BASE-IMAGE
+STATUS: Draft
+TITLE: CURRENT Docker Base Image
+STATEMENT: >>>
+The current Docker image shall use python:3.11-slim and /app as its working directory.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DOCKER-SYSTEM-DEPS
+STATUS: Draft
+TITLE: CURRENT Docker System Dependencies
+STATEMENT: >>>
+The current Docker build shall install build-essential and shall remove the apt package-list cache afterward.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-DOCKER-BASE-IMAGE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DOCKER-PYTHON-DEPS
+STATUS: Draft
+TITLE: CURRENT Python Dependency Installation
+STATEMENT: >>>
+The current Docker build shall copy requirements.txt to /app/requirements.txt and shall install the declared Python packages with pip --no-cache-dir.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-DOCKER-BASE-IMAGE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DOCKER-PLAYWRIGHT
+STATUS: Draft
+TITLE: CURRENT Playwright Chromium Installation
+STATEMENT: >>>
+The current repository Dockerfile shall install Playwright Chromium and its operating-system dependencies after installing requirements.txt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-DOCKER-PYTHON-DEPS
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DOCKER-COPY
+STATUS: Draft
+TITLE: CURRENT Repository Copy
+STATEMENT: >>>
+The current Docker build shall copy the repository build context into /app after dependency installation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-DOCKER-BASE-IMAGE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DOCKER-STREAMLIT-CMD
+STATUS: Draft
+TITLE: CURRENT Streamlit Container Command
+STATEMENT: >>>
+The current image shall set PYTHONPATH=/app and STREAMLIT_SERVER_PORT=8501, expose container port 8501, and start ragstream/app/ui_streamlit.py with Streamlit listening on 0.0.0.0:8501.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-DOCKER-BASE-IMAGE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DOCKERIGNORE-RUNTIME-DATA
+STATUS: Draft
+TITLE: CURRENT Runtime-Data Build Exclusions
+STATEMENT: >>>
+The Docker build context shall exclude data/doc_raw/ and data/chroma_db/ so current persistent document-ingestion data is not copied into the image.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-DOCKER-COPY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-ECR-IMAGE
+STATUS: Draft
+TITLE: CURRENT Private ECR Image
+STATEMENT: >>>
+The current deployment shall use the configured private ECR registry and ragstream-web repository with the latest image tag recorded in the local deployment profile.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CI-PUSH-TRIGGER
+STATUS: Draft
+TITLE: CURRENT CI Push Trigger
+STATEMENT: >>>
+The ECR workflow shall be eligible on pushes to main only when the changed paths match ragstream/**, requirements.txt, Dockerfile, or .github/workflows/deploy-to-ecr.yml.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-ECR-IMAGE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CI-DEPLOY-GATE
+STATUS: Draft
+TITLE: CURRENT CI Deployment Gate
+STATEMENT: >>>
+The build-and-push job shall run only for a manual workflow_dispatch event or for an eligible push whose head commit message contains [deploy].
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-CI-PUSH-TRIGGER
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CI-AWS-CREDENTIALS
+STATUS: Draft
+TITLE: CURRENT CI AWS Credentials
+STATEMENT: >>>
+GitHub Actions shall obtain the current AWS access-key ID and secret access key from the configured GitHub repository secrets and shall use them only for the current AWS CLI/ECR workflow actions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-ECR-IMAGE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CI-ECR-SEQUENCE
+STATUS: Draft
+TITLE: CURRENT ECR Build and Push Sequence
+STATEMENT: >>>
+The current workflow shall log in to ECR, build the local image, tag it with the configured full ECR image reference, and push that tagged image.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-ECR-IMAGE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CI-NO-EC2-ACTIVATION
+STATUS: Draft
+TITLE: CURRENT CI and EC2 Activation Separation
+STATEMENT: >>>
+A successful ECR push shall not by itself replace the running EC2 container; EC2 activation shall remain a separate manual or boot-triggered action.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-CI-ECR-SEQUENCE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. CURRENT EC2 Activation and Persistent Data
+
+[TEXT]
+STATEMENT: >>>
+The supplied executable startup script is the concrete current container-start artifact. Its two bind mounts are recorded exactly; the broader root-mount statement in the deployment guide is retained only as a documented source discrepancy.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-START-SCRIPT
+STATUS: Draft
+TITLE: CURRENT EC2 Startup Script
+STATEMENT: >>>
+The current EC2 deployment shall use /usr/local/bin/ragstream-start as the executable activation script.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-START-FAILFAST
+STATUS: Draft
+TITLE: CURRENT Startup Failure Semantics
+STATEMENT: >>>
+The current startup script shall run with set -euo pipefail and shall stop when an unhandled activation command fails.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-START-SCRIPT
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-PERSISTENT-DIRS
+STATUS: Draft
+TITLE: CURRENT Persistent Directory Creation
+STATEMENT: >>>
+The current startup script shall create /home/ubuntu/ragstream_data/doc_raw and /home/ubuntu/ragstream_data/chroma_db before starting the container.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-START-SCRIPT
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-OPENAI-SSM-READ
+STATUS: Draft
+TITLE: CURRENT OpenAI Key Retrieval
+STATEMENT: >>>
+The current startup script shall read the SecureString parameter /ragstream/prod/OPENAI_API_KEY from SSM Parameter Store with decryption in eu-central-1 and shall retain the returned value only as runtime process data for container injection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-START-SCRIPT
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-ECR-LOGIN-PULL
+STATUS: Draft
+TITLE: CURRENT ECR Login and Pull
+STATEMENT: >>>
+The current startup script shall obtain a temporary ECR login password, log Docker into the configured registry, and pull the configured latest image before replacing the application container.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-START-SCRIPT
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CONTAINER-REPLACE
+STATUS: Draft
+TITLE: CURRENT Streamlit Container Replacement
+STATEMENT: >>>
+If a Docker container named ragstream already exists, the current startup script shall remove it before starting the replacement container.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-START-SCRIPT
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CONTAINER-RESTART-POLICY
+STATUS: Draft
+TITLE: CURRENT Streamlit Restart Policy
+STATEMENT: >>>
+The current Streamlit container shall use Docker restart policy unless-stopped.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-CONTAINER-REPLACE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CONTAINER-OPENAI-ENV
+STATUS: Draft
+TITLE: CURRENT OpenAI Environment Injection
+STATEMENT: >>>
+The current startup script shall inject the SSM-retrieved value into the Streamlit container as OPENAI_API_KEY.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-CONTAINER-REPLACE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DOC-RAW-BIND-MOUNT
+STATUS: Draft
+TITLE: CURRENT Raw-Document Bind Mount
+STATEMENT: >>>
+The current executed Docker command shall bind /home/ubuntu/ragstream_data/doc_raw to /app/data/doc_raw in the Streamlit container.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-CONTAINER-REPLACE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CHROMA-BIND-MOUNT
+STATUS: Draft
+TITLE: CURRENT Chroma Bind Mount
+STATEMENT: >>>
+The current executed Docker command shall bind /home/ubuntu/ragstream_data/chroma_db to /app/data/chroma_db in the Streamlit container.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-CONTAINER-REPLACE
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-NO-WHOLE-DATA-MOUNT-CLAIM
+STATUS: Draft
+TITLE: CURRENT Exact Mount Claim
+STATEMENT: >>>
+The current requirement set shall not claim that the executed startup command mounts the entire /home/ubuntu/ragstream_data root to /app/data, because the supplied executable script mounts only the doc_raw and chroma_db subtrees.
+
+The deployment guide's broader root-mount description shall remain recorded as a source discrepancy in the local profile.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-DOC-RAW-BIND-MOUNT
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-PERSISTENCE-SURVIVES-REPLACE
+STATUS: Draft
+TITLE: CURRENT Persistence Across Container Replacement
+STATEMENT: >>>
+Files written under /app/data/doc_raw and /app/data/chroma_db shall remain on the EC2/EBS filesystem when the Streamlit container or Docker image is replaced.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-DOC-RAW-BIND-MOUNT
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-IMAGE-PRUNE
+STATUS: Draft
+TITLE: CURRENT Docker Image Pruning
+STATEMENT: >>>
+After the container start and Route53 update commands, the current startup script shall invoke Docker image pruning for unused images and shall not fail the activation solely because pruning fails.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-START-SCRIPT
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-SYSTEMD-UNIT
+STATUS: Draft
+TITLE: CURRENT systemd Activation Unit
+STATEMENT: >>>
+The current EC2 host shall use /etc/systemd/system/ragstream.service as a oneshot unit that executes /usr/local/bin/ragstream-start after network-online.target and docker.service and remains active after the script exits successfully.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-START-SCRIPT
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-MANUAL-ACTIVATION
+STATUS: Draft
+TITLE: CURRENT Manual Activation Command
+STATEMENT: >>>
+After a successful image push, the current preferred activation command shall be sudo /usr/local/bin/ragstream-start; rebooting the EC2 instance may alternatively trigger the enabled systemd unit.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-SYSTEMD-UNIT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. CURRENT IAM, Secret Handling, Verification, and Non-Goals
+
+[TEXT]
+STATEMENT: >>>
+This section contains only the IAM permissions, secret boundaries, operational checks, and explicit Phase-1 exclusions documented by the supplied deployment evidence.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-EC2-ROLE-PERMISSIONS
+STATUS: Draft
+TITLE: CURRENT EC2 Role Permissions
+STATEMENT: >>>
+The EC2 instance profile shall permit the startup script to pull the configured ECR image, decrypt and read /ragstream/prod/OPENAI_API_KEY, and change the configured Route53 hosted-zone record.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-EC2-HOST
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-NO-EC2-ACCESS-KEY
+STATUS: Draft
+TITLE: CURRENT No Static AWS Access Key on EC2
+STATEMENT: >>>
+The EC2 activation path shall use the attached instance role and shall not require an AWS access-key ID or secret access key stored on the instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-EC2-ROLE-PERMISSIONS
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-SECRET-NOT-IN-IMAGE
+STATUS: Draft
+TITLE: CURRENT Secret Exclusion from Image
+STATEMENT: >>>
+The OpenAI API key value and GitHub AWS secret values shall not be copied into the Docker image or stored in version-controlled deployment files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-OPENAI-SSM-READ
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-PUBLIC-ENDPOINT-CHECK
+STATUS: Draft
+TITLE: CURRENT Public Endpoint Verification
+STATEMENT: >>>
+Current deployment verification shall confirm that https://ragstream.rusbehabtahi.com responds through nginx and that users are not required to specify port 8501.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-CONTAINER-CHECK
+STATUS: Draft
+TITLE: CURRENT Container Verification
+STATEMENT: >>>
+Current deployment verification shall confirm that the ragstream container is running with the expected image, restart policy, port publication, two documented bind mounts, and a non-empty OPENAI_API_KEY environment value without printing or otherwise disclosing the secret value.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-PUBLIC-ENDPOINT-CHECK
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-NGINX-CERTBOT-CHECK
+STATUS: Draft
+TITLE: CURRENT nginx and Certificate Verification
+STATEMENT: >>>
+Current deployment verification shall include nginx configuration validation, nginx service status, and a Certbot renewal dry run.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-PUBLIC-ENDPOINT-CHECK
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-DNS-CHECK
+STATUS: Draft
+TITLE: CURRENT DNS Verification
+STATEMENT: >>>
+Current deployment verification shall confirm that ragstream.rusbehabtahi.com resolves to the EC2 public IPv4 address written by the startup script.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-PUBLIC-ENDPOINT-CHECK
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-PERSISTENCE-CHECK
+STATUS: Draft
+TITLE: CURRENT Ingestion Persistence Verification
+STATEMENT: >>>
+Current deployment verification shall confirm that uploaded raw files appear under the host doc_raw subtree and that Chroma data and file_manifest.json appear under the host chroma_db project subtree.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-CUR-PUBLIC-ENDPOINT-CHECK
+
+[REQUIREMENT]
+UID: GHOST-AWS-CUR-PHASE1-NONGOALS
+STATUS: Draft
+TITLE: CURRENT Phase-1 Non-Goals
+STATEMENT: >>>
+The current AWS deployment shall not be represented as providing Cognito-triggered instance start, an Application Load Balancer, CloudFront as an always-on front door, autoscaling, multi-instance operation, multi-tenant hardening, or public backend ports other than 80 and 443.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. TARGET MCP Hosting and Network Topology
+
+[TEXT]
+STATEMENT: >>>
+The initial MCP service is additive: same EC2, separate container, same hostname and certificate, exact /mcp public route, and loopback-only backend publication.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-SAME-EC2
+STATUS: Draft
+TITLE: TARGET MCP on Existing EC2
+STATEMENT: >>>
+The initial remote MCP service shall run on the same EC2 instance as the current Streamlit deployment.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-SEPARATE-CONTAINER
+STATUS: Draft
+TITLE: TARGET Separate MCP Container
+STATEMENT: >>>
+The MCP service shall run in a Docker container separate from the current ragstream Streamlit container.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SAME-EC2
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-PUBLIC-URL
+STATUS: Draft
+TITLE: TARGET MCP Public URL
+STATEMENT: >>>
+The externally configured MCP server URL shall be exactly https://ragstream.rusbehabtahi.com/mcp.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SAME-EC2
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-NGINX-ROUTE
+STATUS: Draft
+TITLE: TARGET Exact nginx MCP Route
+STATEMENT: >>>
+The Certbot-managed HTTPS server block for ragstream.rusbehabtahi.com shall contain an exact /mcp route that proxies to the local MCP backend without changing the existing Streamlit location / route.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-PUBLIC-URL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-LOOPBACK-BIND
+STATUS: Draft
+TITLE: TARGET MCP Loopback Host Binding
+STATEMENT: >>>
+The MCP container port 8000 shall be published only as 127.0.0.1:8000 on the EC2 host and shall not be bound to the EC2 public interfaces.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SEPARATE-CONTAINER
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-NO-SG-8000
+STATUS: Draft
+TITLE: TARGET No Public MCP Backend Port
+STATEMENT: >>>
+The EC2 Security Group shall contain no inbound rule for TCP port 8000.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-LOOPBACK-BIND
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-EXTERNAL-HTTPS
+STATUS: Draft
+TITLE: TARGET External HTTPS Only
+STATEMENT: >>>
+Claude and ChatGPT shall reach the MCP service only over HTTPS port 443 through nginx; they shall never connect directly to port 8000 or to an unencrypted public MCP URL.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-PUBLIC-URL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-INTERNAL-HTTP
+STATUS: Draft
+TITLE: TARGET Local Proxy Hop
+STATEMENT: >>>
+The nginx-to-MCP backend hop shall use HTTP only over EC2 loopback at http://127.0.0.1:8000 because public TLS terminates at nginx.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-LOOPBACK-BIND
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-INDEPENDENT-ACTIVATION
+STATUS: Draft
+TITLE: TARGET Independent MCP Activation
+STATEMENT: >>>
+The MCP container shall have an activation mechanism independent of the current /usr/local/bin/ragstream-start behavior so MCP deployment or restart does not replace or reconfigure the current Streamlit container.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SEPARATE-CONTAINER
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-IMAGE-RECORD
+STATUS: Draft
+TITLE: TARGET MCP Image Reference Recording
+STATEMENT: >>>
+The exact image reference used by the MCP container shall be recorded in the local deployment profile before deployment.
+
+This requirement shall not predetermine whether the MCP implementation uses the current application image or a separate image.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SEPARATE-CONTAINER
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-NO-PROJECT-MOUNTS
+STATUS: Draft
+TITLE: TARGET No Project or Memory Data Mounts
+STATEMENT: >>>
+The initial MCP container shall not mount the current doc_raw, chroma_db, memory, or other project-persistence directories because the approved initial ghost_engineer_prompt tool requires only prompt-processing code and configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SEPARATE-CONTAINER
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-ECR-DELIVERY
+STATUS: Draft
+TITLE: TARGET Controlled MCP Image Delivery
+STATEMENT: >>>
+The MCP runtime image shall be built by GitHub Actions and pushed to a private Amazon ECR repository through the same controlled deployment gate used by the current deployment: manual workflow dispatch or an eligible main-branch push whose head commit message contains [deploy].
+
+The exact Dockerfile, workflow path, ECR repository, and image reference shall be recorded in the local deployment profile before deployment.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SEPARATE-CONTAINER
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-ACTIVATION-SEQUENCE
+STATUS: Draft
+TITLE: TARGET MCP Activation Sequence
+STATEMENT: >>>
+The independent MCP activation mechanism shall authenticate Docker to ECR through the EC2 instance role, pull the recorded MCP image, remove only a pre-existing MCP container with the recorded container name, and start the replacement MCP container with the approved loopback port publication and runtime configuration.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-INDEPENDENT-ACTIVATION
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-RESTART-POLICY
+STATUS: Draft
+TITLE: TARGET MCP Container Restart Policy
+STATEMENT: >>>
+The MCP container shall use the Docker restart policy unless-stopped, matching the current Streamlit container's restart behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-ACTIVATION-SEQUENCE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-SYSTEMD-ACTIVATION
+STATUS: Draft
+TITLE: TARGET MCP Boot Activation
+STATEMENT: >>>
+The EC2 host shall use a systemd unit separate from ragstream.service to invoke the independent MCP activation mechanism after network-online.target and docker.service during instance boot.
+
+The exact unit and activation paths shall be recorded in the local deployment profile before installation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-INDEPENDENT-ACTIVATION
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-SSM-INJECTION
+STATUS: Draft
+TITLE: TARGET MCP Runtime Secret Injection
+STATEMENT: >>>
+The MCP activation mechanism shall read the existing OpenAI API key and every secret required by the selected OAuth realization from recorded SSM Parameter Store references or from the selected external authorization provider at runtime.
+
+Secret values shall not be embedded in the image, activation artifact, systemd unit, nginx configuration, repository, or local deployment profile.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-INDEPENDENT-ACTIVATION
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-EC2-ROLE
+STATUS: Draft
+TITLE: TARGET MCP EC2 Role Permissions
+STATEMENT: >>>
+The existing EC2 instance role shall be extended only as required to pull the recorded MCP image and read the exact SSM parameters used by the MCP activation mechanism.
+
+The MCP deployment shall not require a static AWS access-key ID or secret access key on EC2.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SSM-INJECTION
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-DNS-REUSE
+STATUS: Draft
+TITLE: TARGET Existing DNS Record Reuse
+STATEMENT: >>>
+The MCP endpoint shall reuse the existing ragstream.rusbehabtahi.com Route53 A record and shall not require a second public DNS record because the MCP route is hosted under the existing application hostname.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-PUBLIC-URL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-CERTIFICATE-REUSE
+STATUS: Draft
+TITLE: TARGET Existing TLS Certificate Reuse
+STATEMENT: >>>
+The MCP endpoint shall use the existing Certbot-managed TLS certificate for ragstream.rusbehabtahi.com through the existing nginx HTTPS server block and shall not terminate public TLS inside the MCP container.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-PUBLIC-URL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. TARGET MCP Streamable HTTP and nginx Proxy Contract
+
+[TEXT]
+STATEMENT: >>>
+The public endpoint uses the MCP Streamable HTTP transport. nginx remains the public TLS boundary and must preserve the protocol and authorization information required by the backend.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-STREAMABLE-HTTP
+STATUS: Draft
+TITLE: TARGET Streamable HTTP Transport
+STATEMENT: >>>
+The MCP server shall implement the MCP Streamable HTTP transport at the single /mcp endpoint.
+
+HTTP POST shall process MCP JSON-RPC messages. HTTP GET shall either open the transport's server-to-client event stream or return HTTP 405 Method Not Allowed when the server does not offer a standalone event stream.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-NGINX-ROUTE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-JSONRPC-UTF8
+STATUS: Draft
+TITLE: TARGET MCP JSON-RPC Encoding
+STATEMENT: >>>
+MCP protocol messages shall use JSON-RPC and UTF-8 encoding in accordance with the negotiated MCP protocol version.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-PROTOCOL-HANDSHAKE
+STATUS: Draft
+TITLE: TARGET MCP Initialization Handshake
+STATEMENT: >>>
+The endpoint shall complete initialize and notifications/initialized before accepting normal tool discovery and invocation for a client session.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-TOOL-PROTOCOL
+STATUS: Draft
+TITLE: TARGET MCP Tool Operations
+STATEMENT: >>>
+The endpoint shall support tools/list and tools/call for the single ghost_engineer_prompt tool defined by 73_mcp_interface.sdoc.
+
+The endpoint shall not advertise a standalone PreProcessing tool, a standalone A2 tool, or any additional GHOST capability under the initial requirement set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-ORIGIN-VALIDATION
+STATUS: Draft
+TITLE: TARGET Origin Validation
+STATEMENT: >>>
+The MCP HTTP server shall validate every present Origin header against an explicitly configured allowlist and shall return HTTP 403 when a present Origin is not allowed.
+
+Client-origin values shall be recorded in the local profile only after they are established by provider documentation or real acceptance testing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-PROXY-HEADERS
+STATUS: Draft
+TITLE: TARGET MCP Proxy Headers
+STATEMENT: >>>
+The nginx /mcp route shall preserve Host, X-Real-IP, X-Forwarded-For, X-Forwarded-Proto, Authorization, Origin, Content-Type, Accept, MCP-Protocol-Version, MCP-Session-Id, and Last-Event-ID information required by the backend to process authenticated MCP requests correctly.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-NGINX-ROUTE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-PROXY-STREAMING
+STATUS: Draft
+TITLE: TARGET MCP Proxy Streaming Behavior
+STATEMENT: >>>
+The nginx /mcp route shall disable response buffering and caching and shall use proxy timeouts that permit the Streamable HTTP response mode used by the MCP server.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-NGINX-ROUTE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. TARGET MCP OAuth Interoperability
+
+[TEXT]
+STATEMENT: >>>
+The MCP server is the OAuth protected resource. The authorization-server implementation or provider is not fixed by this requirement set; the selected solution must satisfy the discovery, PKCE, resource-binding, refresh, secret-storage, and real-client acceptance requirements below.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE
+STATUS: Draft
+TITLE: TARGET OAuth-Protected MCP Resource
+STATEMENT: >>>
+The MCP endpoint shall act as an OAuth-protected resource server for HTTP transport and shall require a valid access token before processing tool discovery or tool invocation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-PUBLIC-URL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-RESOURCE-METADATA
+STATUS: Draft
+TITLE: TARGET Protected Resource Metadata
+STATEMENT: >>>
+The deployment shall publish OAuth Protected Resource Metadata at https://ragstream.rusbehabtahi.com/.well-known/oauth-protected-resource/mcp for the canonical MCP resource https://ragstream.rusbehabtahi.com/mcp and shall identify at least one authorization server used by the clients.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-AUTH-SERVER-DISCOVERY
+STATUS: Draft
+TITLE: TARGET Authorization-Server Discovery
+STATEMENT: >>>
+The selected authorization server shall publish OAuth Authorization Server Metadata or OpenID Connect discovery metadata containing the endpoints and capabilities required by the MCP clients.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-RESOURCE-METADATA
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-401-CHALLENGE
+STATUS: Draft
+TITLE: TARGET Unauthenticated MCP Challenge
+STATEMENT: >>>
+An unauthenticated request to /mcp shall return HTTP 401 and shall provide the protected-resource metadata location through the standards-defined discovery mechanism used by the MCP client.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-RESOURCE-METADATA
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-BEARER-HEADER
+STATUS: Draft
+TITLE: TARGET Bearer-Token Header
+STATEMENT: >>>
+Authenticated MCP requests shall carry the access token in the HTTP Authorization Bearer header, and the deployment shall not accept access tokens in the request URI query string.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-RESOURCE-INDICATOR
+STATUS: Draft
+TITLE: TARGET MCP Resource Indicator
+STATEMENT: >>>
+The OAuth authorization and token flow shall bind issued access tokens to the canonical MCP resource identifier so the MCP server can validate that each token was issued for this endpoint.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-TOKEN-VALIDATION
+STATUS: Draft
+TITLE: TARGET MCP Access-Token Validation
+STATEMENT: >>>
+The MCP server shall reject missing, expired, invalid, wrongly scoped, or wrong-audience access tokens before executing a tool.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-PKCE-S256
+STATUS: Draft
+TITLE: TARGET OAuth PKCE S256
+STATEMENT: >>>
+The authorization-code flow used by MCP clients shall support PKCE with the S256 code-challenge method and shall advertise that capability in authorization-server metadata.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-AUTH-SERVER-DISCOVERY
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-AUTH-HTTPS
+STATUS: Draft
+TITLE: TARGET OAuth HTTPS Boundary
+STATEMENT: >>>
+Authorization-server endpoints and non-localhost redirect URIs used by the remote MCP connection shall use HTTPS.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-AUTH-SERVER-DISCOVERY
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-REFRESH-CONNECTION
+STATUS: Draft
+TITLE: TARGET Refreshable Client Connection
+STATEMENT: >>>
+The authorization configuration shall issue and accept refresh tokens in the manner required by the selected Claude and ChatGPT client flows so an authorized connection can remain usable after the initial access token expires.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-AUTH-SERVER-DISCOVERY
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-OFFLINE-ACCESS-METADATA
+STATUS: Draft
+TITLE: TARGET ChatGPT Refresh Metadata
+STATEMENT: >>>
+When the selected authorization provider uses offline_access to request refresh tokens, its discovery metadata shall advertise offline_access and the ChatGPT connection shall request it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-REFRESH-CONNECTION
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-CLIENT-REGISTRATION
+STATUS: Draft
+TITLE: TARGET Client Registration Compatibility
+STATEMENT: >>>
+The selected client-registration mechanism shall be one supported by the configured Claude connector and one accepted by the configured ChatGPT custom app.
+
+The exact mechanism, client identifiers, client-secret use, and redirect URIs shall be recorded in the local profile only after client configuration or acceptance testing establishes them.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-AUTH-SERVER-DISCOVERY
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-AUTH-SECRETS
+STATUS: Draft
+TITLE: TARGET OAuth Secret Storage
+STATEMENT: >>>
+OAuth client secrets, signing or validation secrets, and refresh-token storage credentials required by the selected authorization implementation shall be held in the selected AWS or authorization-provider secret store and shall not be hard-coded into the repository, Dockerfile, image, nginx configuration, or local profile.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-NO-TOKEN-PASSTHROUGH
+STATUS: Draft
+TITLE: TARGET No MCP Token Passthrough
+STATEMENT: >>>
+The MCP access token received from Claude or ChatGPT shall be used only to authorize the MCP request and shall not be forwarded to OpenAI or any other downstream API.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. TARGET MCP Tool and Existing-Code Boundary
+
+[TEXT]
+STATEMENT: >>>
+This section defines only the deployment-facing realization of the single ghost_engineer_prompt tool. The external tool contract remains owned by 73_mcp_interface.sdoc. The internal functional semantics of deterministic prompt construction and A2 remain owned by 30_preprocessing_prompt_functions.sdoc and the existing Python implementation.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-PROMPT-ENGINEERING-TOOL
+STATUS: Draft
+TITLE: TARGET Single Prompt-Engineering MCP Tool
+STATEMENT: >>>
+The MCP server shall deploy exactly the single ghost_engineer_prompt tool defined by 73_mcp_interface.sdoc.
+
+For each accepted invocation, the adapter shall create a fresh request-isolated SuperPrompt, invoke the existing deterministic preprocess(...) prompt-construction function, then invoke the existing A2PromptShaper LLM path on the same SuperPrompt, and return the post-A2 engineered prompt through the MCP result contract.
+
+The adapter shall not invoke AppController.preprocess(), ActiveBrief discovery, ActiveBrief relation classification, retrieval, memory, or any other GHOST pipeline stage.
+
+Deterministic PreProcessing and A2 shall remain internal sequential stages of this one tool and shall not be advertised as separate MCP tools.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-TOOL-PROTOCOL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-OPENAI-KEY
+STATUS: Draft
+TITLE: TARGET MCP OpenAI Key Injection
+STATEMENT: >>>
+The MCP container shall receive the existing OpenAI API key from /ragstream/prod/OPENAI_API_KEY at runtime for the A2 execution inside ghost_engineer_prompt.
+
+The deterministic prompt-construction step preceding A2 shall not call an LLM.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-PROMPT-ENGINEERING-TOOL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-CONFIG-PACKAGING
+STATUS: Draft
+TITLE: TARGET MCP Prompt Configuration Packaging
+STATEMENT: >>>
+The MCP runtime image shall contain the existing prompt schema, A2 agent configuration, option catalogs, and Python modules required by the single approved ghost_engineer_prompt execution path.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-PROMPT-ENGINEERING-TOOL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-NO-EXTRA-TOOLS
+STATUS: Draft
+TITLE: TARGET No Additional MCP Tools
+STATEMENT: >>>
+The initial tools/list result shall contain exactly ghost_engineer_prompt and shall contain no standalone PreProcessing tool, standalone A2 tool, or additional GHOST tool.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-TOOL-PROTOCOL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-RUNTIME-DEPENDENCY
+STATUS: Draft
+TITLE: TARGET MCP Runtime Dependency Declaration
+STATEMENT: >>>
+The MCP server library and exact deployed version shall be declared in the build dependency set and recorded in the local deployment profile before the MCP image is built and accepted.
+
+The requirement set shall not prescribe an unverified library version.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SEPARATE-CONTAINER
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. TARGET MCP Deployment Completion and Acceptance
+
+[TEXT]
+STATEMENT: >>>
+No target value is promoted merely because it appears in this specification. Promotion requires exact local-profile values and passed public-endpoint, OAuth, client, protocol, scope, and non-regression tests.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-RUNTIME-VALUES
+STATUS: Draft
+TITLE: TARGET MCP Runtime Value Recording
+STATEMENT: >>>
+Before deployment, the local profile shall record the exact MCP image reference, container name, container entry command, MCP server library and version, activation artifact paths, authorization-server issuer, authorization metadata URL, required scopes, accepted client origins, and client registration values actually used.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SEPARATE-CONTAINER
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-CURRENT-ROUTE-REGRESSION
+STATUS: Draft
+TITLE: TARGET Current Streamlit Route Regression Check
+STATEMENT: >>>
+After MCP deployment, https://ragstream.rusbehabtahi.com shall continue to serve the current Streamlit application through the existing nginx root route.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-NGINX-ROUTE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-NETWORK-ACCEPTANCE
+STATUS: Draft
+TITLE: TARGET MCP Network Acceptance
+STATEMENT: >>>
+MCP deployment acceptance shall confirm that /mcp is reachable over HTTPS port 443, that host port 8000 listens only on 127.0.0.1, and that the Security Group has no inbound rule for port 8000.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-PUBLIC-URL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-AUTH-DISCOVERY-ACCEPTANCE
+STATUS: Draft
+TITLE: TARGET OAuth Discovery Acceptance
+STATEMENT: >>>
+MCP deployment acceptance shall confirm that an unauthenticated /mcp request receives the required authorization challenge and that protected-resource and authorization-server discovery documents resolve to the configured canonical values.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-RESOURCE-METADATA
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-CLAUDE-ACCEPTANCE
+STATUS: Draft
+TITLE: TARGET Claude Client Acceptance
+STATEMENT: >>>
+The target shall not be promoted to CURRENT until Claude can add the remote MCP server, complete OAuth authorization, discover ghost_engineer_prompt as the sole GHOST tool, invoke it successfully, receive the post-A2 engineered prompt, and continue after an access-token refresh.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-CHATGPT-ACCEPTANCE
+STATUS: Draft
+TITLE: TARGET ChatGPT Client Acceptance
+STATEMENT: >>>
+The target shall not be promoted to CURRENT until the owner's ChatGPT web account can create and enable the custom MCP plugin, complete OAuth authorization, discover ghost_engineer_prompt as the sole GHOST tool, invoke it successfully, receive the post-A2 engineered prompt in the same conversation, and continue after an access-token refresh.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-PROTOCOL-ACCEPTANCE
+STATUS: Draft
+TITLE: TARGET MCP Protocol Acceptance
+STATEMENT: >>>
+MCP protocol acceptance shall complete initialize, notifications/initialized, tools/list, and one successful tools/call for ghost_engineer_prompt through the public HTTPS URL.
+
+The returned result shall contain the engineered prompt produced only after the internal deterministic prompt-construction step and A2 execution have completed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-SCOPE-ACCEPTANCE
+STATUS: Draft
+TITLE: TARGET MCP Scope Acceptance
+STATEMENT: >>>
+MCP acceptance shall verify that no document, Chroma, memory, GUI, or other project data mount is attached to the initial MCP container and that no additional GHOST tool is advertised.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-NO-PROJECT-MOUNTS
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-MCP-PROMOTION-GATE
+STATUS: Draft
+TITLE: TARGET MCP Status Promotion Gate
+STATEMENT: >>>
+The MCP requirements shall remain TARGET until the implementation exists on the EC2 instance and all network, OAuth discovery, Claude, ChatGPT, protocol, tool-scope, and Streamlit-regression acceptance requirements pass.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-MCP-SAME-EC2
+
+[[/SECTION]]

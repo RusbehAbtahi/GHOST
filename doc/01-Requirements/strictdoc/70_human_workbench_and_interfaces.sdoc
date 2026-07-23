@@ -1,34 +1,34 @@
 [DOCUMENT]
-TITLE: GHOST Human Workbench and Interface Requirements
+TITLE: GHOST Human Workbench and External Interface Requirements
 UID: GHOST-UI
-VERSION: 0.1-draft
+VERSION: 0.2-draft
 OPTIONS:
   MARKUP: Text
   AUTO_LEVELS: On
   NODE_IN_TOC: True
 
 [[SECTION]]
-TITLE: 1. Purpose
+TITLE: 1. Purpose and Scope
 
 [TEXT]
 STATEMENT: >>>
-Parent file for GHOST interfaces. Defines current/future UI boundary, Streamlit as current implemented workbench, React/TypeScript and FastAPI as future interface architecture, UI ownership rules, separation between UI rendering and subsystem logic, and UI surfaces.
+This document is the parent requirement file for GHOST human workbenches and external client interfaces.
+
+It defines the stable interface-family boundary, assigns detailed ownership to child requirement files, and prevents interface-specific requirements from being duplicated across the requirement tree.
+
+Detailed Streamlit behavior, future React/FastAPI design, MCP protocol behavior, and deployment realization remain outside this parent file.
 <<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 2. Scope and Boundary
 
 [REQUIREMENT]
 UID: GHOST-UI-ROOT
-TITLE: GHOST Human Workbench and Interface Scope
+STATUS: Draft
+TITLE: GHOST Interface Family Scope
 STATEMENT: >>>
-This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+GHOST shall organize its human workbenches and external client interfaces under one interface requirement family.
 
-It defines ownership, scope, and placeholder headings for this capability area. Detailed atomic requirements shall be migrated here from legacy requirements, implementation status, architecture notes, UML files, and code evidence after human approval.
+This parent file shall define only shared scope, child-file ownership, separation rules, and status-governance rules.
 
-This file shall not duplicate detailed requirements owned by sibling files.
+It shall not define detailed screens, controls, API schemas, MCP tools, transport settings, authentication infrastructure, deployment topology, or internal subsystem algorithms.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -37,146 +37,118 @@ RELATIONS:
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3. Initial Topic Headings
+TITLE: 2. Interface Family and Child-File Ownership
 
-[[SECTION]]
-TITLE: 3.1. Interface Parent Scope
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-UI-INTERFACE-FAMILY
+STATUS: Draft
+TITLE: Human and External Interface Family
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+The GHOST interface family shall include:
+
+1. human-operated workbench interfaces used to configure, invoke, and inspect GHOST capabilities; and
+2. external machine-consumable interfaces through which approved clients invoke bounded GHOST capabilities.
+
+Membership in this interface family shall not imply that every interface uses the same technology, lifecycle status, transport, or presentation model.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-UI-ROOT
+
+[REQUIREMENT]
+UID: GHOST-UI-CHILD-OWNERSHIP
+STATUS: Draft
+TITLE: Interface Child-File Ownership
+STATEMENT: >>>
+Detailed interface requirements shall be owned by these child files:
+
+- 71_streamlit_workbench_current.sdoc shall own the current Streamlit workbench requirements.
+- 72_react_fastapi_interface_future.sdoc shall own the future React/TypeScript and FastAPI interface requirements.
+- 73_mcp_interface.sdoc shall own the GHOST MCP interface requirements for approved external AI clients.
+
+Additional interface child files may be introduced later when a distinct interface capability requires independent ownership.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-UI-INTERFACE-FAMILY
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2. Current / Future UI Boundary
+TITLE: 3. Ownership and Separation Rules
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-UI-NO-DUPLICATION
+STATUS: Draft
+TITLE: No Duplication Across Interface Files
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+This parent file shall not duplicate detailed requirements owned by an interface child file.
+
+A child file shall own the requirements specific to its interface technology, interaction model, input and output contract, interface-visible behavior, and acceptance criteria.
+
+Shared rules shall remain in this parent file only when they apply to the interface family as a whole.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-UI-ROOT
+
+[REQUIREMENT]
+UID: GHOST-UI-SUBSYSTEM-BOUNDARY
+STATUS: Draft
+TITLE: Interface and Subsystem Responsibility Boundary
+STATEMENT: >>>
+An interface may expose, collect input for, invoke, coordinate, or present the result of a GHOST subsystem capability.
+
+The interface requirement files shall not redefine the internal functional semantics of PreProcessing, Agent Stack, Knowledge Management, Memory Management, prompt assembly, logging, metrics, or other GHOST subsystems.
+
+Those internal behaviors shall remain owned by their corresponding subsystem requirement files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-UI-ROOT
+
+[REQUIREMENT]
+UID: GHOST-UI-DEPLOYMENT-BOUNDARY
+STATUS: Draft
+TITLE: Interface and Deployment Boundary
+STATEMENT: >>>
+Interface requirement files may state externally observable connectivity, availability, or protection needs required by an interface contract.
+
+Concrete cloud resources, hosts, domains, reverse proxies, ports, containers, certificates, secrets, identity infrastructure, and operational procedures shall remain owned by the runtime-platform and deployment requirement files.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-UI-ROOT
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.3. Streamlit as Current Implemented Workbench
+TITLE: 4. Current, Future, and Placeholder Status
 
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-UI-CHILD-STATUS
+STATUS: Draft
+TITLE: Independent Child-File Lifecycle Status
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+Each interface child file shall independently declare whether its capability is current, partially implemented, planned, future, placeholder, or retired.
+
+Listing a child file in this parent document shall establish requirement ownership only. It shall not by itself claim that the corresponding interface is implemented, deployed, approved, or production-ready.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-UI-ROOT
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.4. React/TypeScript and FastAPI as Future Interface Architecture
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-UI-PLACEHOLDER-STABILITY
+STATUS: Draft
+TITLE: Placeholder Child-File Stability
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+An interface child file may remain intentionally minimal or placeholder-only until its detailed design and requirements are approved.
+
+The absence of detailed requirements in one child file shall not block the independent specification, implementation, or verification of another child interface.
 <<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.5. UI Ownership Rules
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.6. Separation Between UI Rendering and Subsystem Logic
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.7. Prompt Builder Surface
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.8. Files Surface
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.9. Memory Surface
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.10. Metrics Surface
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.11. Hard Rules Surface
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.12. Runtime Log Surface
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.13. Child File: Current Streamlit Workbench
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.14. Child File: Future React/FastAPI Interface
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-UI-CHILD-STATUS
 
 [[/SECTION]]

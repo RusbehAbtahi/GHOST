@@ -1,162 +1,291 @@
 [DOCUMENT]
 TITLE: GHOST Runtime Platform and Operations Requirements
-UID: GHOST-RUN
-VERSION: 0.1-draft
+UID: GHOST-RUNTIME-PLATFORM-OPERATIONS
+VERSION: 0.3
 OPTIONS:
   MARKUP: Text
   AUTO_LEVELS: On
   NODE_IN_TOC: True
 
 [[SECTION]]
-TITLE: 1. Purpose
+TITLE: 1. Purpose, Scope, and Status Boundary
 
 [TEXT]
 STATEMENT: >>>
-Defines local runtime behavior, Python package/runtime layout, runtime_config.json, data roots, AWS Phase-1 deployment, Docker, EC2, ECR, nginx, HTTPS, Route53, SSM secrets, persistent /app/data mount, GitHub Actions CI/CD, single-user/private-instance boundary, and future backend/session/API runtime model.
+This document is the parent requirement specification for the GHOST AWS runtime and operations branch.
+
+It intentionally contains only the deployment-level capability boundaries needed by the documented current AWS system and the approved initial remote MCP extension. Detailed realization belongs in 81_aws_deployment_and_operations.sdoc. Exact environment values belong in 81_aws_deployment_profile.local.md.
 <<<
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 2. Scope and Boundary
-
 [REQUIREMENT]
-UID: GHOST-RUN-ROOT
-TITLE: GHOST Runtime Platform and Operations Scope
+UID: GHOST-RUN-OPS-CAPABILITY
+STATUS: Draft
+TITLE: AWS Runtime Platform and Operations Capability
 STATEMENT: >>>
-This file is a draft child requirement file in the GHOST StrictDoc requirement tree.
+GHOST shall provide the runtime-platform and operations capability required to reproduce the documented current AWS deployment and to add the approved initial remote MCP endpoint.
 
-It defines ownership, scope, and placeholder headings for this capability area. Detailed atomic requirements shall be migrated here from legacy requirements, implementation status, architecture notes, UML files, and code evidence after human approval.
-
-This file shall not duplicate detailed requirements owned by sibling files.
+This capability shall be limited to AWS hosting, container execution, image delivery, HTTPS routing, DNS, runtime secrets, persistent AWS runtime data, deployment activation, operational verification, and the MCP deployment boundary.
 <<<
 RELATIONS:
 - TYPE: Parent
   VALUE: GHOST-SRS-FILE-TREE
 
+[REQUIREMENT]
+UID: GHOST-RUN-OPS-PRODUCT-IDENTITY
+STATUS: Draft
+TITLE: Product and Legacy Deployment Naming
+STATEMENT: >>>
+The product shall be named GHOST, meaning GenAI Hybrid Orchestrator for Software Tooling.
+
+Existing deployment identifiers containing ragstream may remain as current legacy runtime names until a separately approved migration changes them.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-RUN-OPS-AWS-ONLY-BOUNDARY
+STATUS: Draft
+TITLE: AWS-Only Requirement Boundary
+STATEMENT: >>>
+This requirement branch shall contain only requirements that reproduce the documented AWS deployment or realize the approved remote MCP endpoint on that deployment.
+
+It shall not own retrieval, memory, GUI feature behavior, prompt semantics, or any non-deployment capability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-RUN-OPS-STATUS-SEPARATION
+STATUS: Draft
+TITLE: Current Deployment and Target MCP Separation
+STATEMENT: >>>
+The documented Streamlit deployment shall be treated as CURRENT.
+
+The MCP extension shall be treated as TARGET until its server code, deployment artifacts, HTTPS route, OAuth interoperability, and client acceptance tests have been implemented and passed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3. Initial Topic Headings
-
-[[SECTION]]
-TITLE: 3.1. Local Runtime
+TITLE: 2. Current AWS Runtime Capability
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+The CURRENT requirements describe the user-supplied last-verified AWS deployment and the corresponding current repository deployment artifacts.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-RUN-CUR-HTTPS-REQUEST-PATH
+STATUS: Draft
+TITLE: Current Public HTTPS Request Path
+STATEMENT: >>>
+The current public request path shall be Route53 DNS to the EC2 public IPv4 address, then through the EC2 Security Group to nginx on HTTPS port 443, and from nginx to the Dockerized Streamlit backend on host port 8501.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-RUN-CUR-STREAMLIT-CONTAINER
+STATUS: Draft
+TITLE: Current Streamlit Container Runtime
+STATEMENT: >>>
+The current human-facing GHOST application shall run as a Docker container on one Ubuntu EC2 instance and shall serve Streamlit on container port 8501.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-RUN-CUR-IMAGE-DATA-SEPARATION
+STATUS: Draft
+TITLE: Current Image and Persistent-Data Separation
+STATEMENT: >>>
+The current Docker image shall contain application code and runtime dependencies, while the document-ingestion raw files and Chroma database shall remain outside the image on the EC2/EBS filesystem and shall be supplied by bind mounts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-RUN-CUR-ECR-DELIVERY
+STATUS: Draft
+TITLE: Current Controlled Image Delivery
+STATEMENT: >>>
+The current delivery path shall build the Docker image in GitHub Actions and push it to the configured private Amazon ECR repository only through the documented manual-dispatch or deploy-marked push conditions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-RUN-CUR-SSM-SECRET-INJECTION
+STATUS: Draft
+TITLE: Current SSM Secret Injection
+STATEMENT: >>>
+The current EC2 activation path shall obtain the OpenAI API key from AWS SSM Parameter Store at runtime and shall inject it into the application container without storing an AWS access key on the EC2 instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-RUN-CUR-DNS-ACTIVATION
+STATUS: Draft
+TITLE: Current Dynamic DNS Activation
+STATEMENT: >>>
+The current EC2 activation path shall read the instance public IPv4 address through IMDSv2 and shall update the configured Route53 A record before the deployment is considered activated.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-RUN-CUR-MANUAL-OR-BOOT-ACTIVATION
+STATUS: Draft
+TITLE: Current Manual or Boot Activation
+STATEMENT: >>>
+A newly pushed image shall become active only when the EC2 startup script is run manually or when the enabled systemd service runs that script during instance boot.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2. Python Package and Runtime Layout
+TITLE: 3. Target Remote MCP Extension
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+The TARGET requirements define only the approved deployment boundary for a remote MCP server on the existing EC2/nginx deployment. Functional prompt behavior remains owned by the preprocessing and prompt-functions requirements.
 <<<
+
+[REQUIREMENT]
+UID: GHOST-RUN-TGT-MCP-SEPARATE-CONTAINER
+STATUS: Draft
+TITLE: Target Separate MCP Container
+STATEMENT: >>>
+The initial remote MCP server shall run as a container separate from the current Streamlit container on the same EC2 instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-RUN-TGT-MCP-HTTPS-ENTRY
+STATUS: Draft
+TITLE: Target MCP HTTPS Entry
+STATEMENT: >>>
+The remote MCP server shall be exposed externally only as https://ragstream.rusbehabtahi.com/mcp through the existing nginx HTTPS entry point.
+
+The MCP backend port shall not be exposed as a public Security Group port.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-TGT-MCP-SEPARATE-CONTAINER
+
+[REQUIREMENT]
+UID: GHOST-RUN-TGT-MCP-LOOPBACK-PROXY
+STATUS: Draft
+TITLE: Target MCP Loopback Proxy
+STATEMENT: >>>
+nginx shall proxy the public /mcp route to the MCP container through an EC2 loopback-bound host port so that the connection from nginx to the MCP backend remains local to the instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-TGT-MCP-HTTPS-ENTRY
+
+[REQUIREMENT]
+UID: GHOST-RUN-TGT-MCP-TOOL-SCOPE
+STATUS: Draft
+TITLE: Target MCP Tool Scope
+STATEMENT: >>>
+The initial MCP server shall expose only the single ghost_engineer_prompt tool defined by 73_mcp_interface.sdoc.
+
+That tool shall reuse the existing deterministic prompt-construction function and then the existing A2 PromptShaper on the same request-isolated SuperPrompt. PreProcessing and A2 shall not be advertised as separate MCP tools.
+
+The MCP server shall not expose document ingestion, document retrieval, reranking, A3, A4, memory, file management, Streamlit control, answer generation, or the full GHOST pipeline.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-TGT-MCP-SEPARATE-CONTAINER
+
+[REQUIREMENT]
+UID: GHOST-RUN-TGT-MCP-OAUTH-INTEROPERABILITY
+STATUS: Draft
+TITLE: Target Claude and ChatGPT OAuth Interoperability
+STATEMENT: >>>
+The remote MCP endpoint shall use the MCP authorization model for HTTP transports and shall complete authenticated connection and invocation of ghost_engineer_prompt from:
+
+- the owner's ChatGPT web client through its custom MCP plugin capability; and
+- Claude through its remote custom connector capability.
+
+Acceptance shall be demonstrated against both real clients rather than inferred only from a local test client or MCP Inspector.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-TGT-MCP-HTTPS-ENTRY
+
+[REQUIREMENT]
+UID: GHOST-RUN-TGT-MCP-STREAMLIT-NONREGRESSION
+STATUS: Draft
+TITLE: Target MCP Streamlit Non-Regression
+STATEMENT: >>>
+Adding or restarting the MCP container shall not replace the current Streamlit container, change the current public root application route, open port 8501 or the MCP backend port publicly, or alter the current document-ingestion bind mounts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-TGT-MCP-SEPARATE-CONTAINER
 
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.3. runtime_config.json
+TITLE: 4. Ownership and Explicit Exclusions
 
 [TEXT]
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+This section fixes the requirement-file boundaries and prevents unrelated operational or product themes from entering this branch.
 <<<
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.4. Data Roots
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-RUN-OPS-AWS-CHILD-OWNERSHIP
+STATUS: Draft
+TITLE: AWS Child Requirement Ownership
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+81_aws_deployment_and_operations.sdoc shall own the detailed current AWS deployment requirements and the detailed target MCP deployment requirements refining this parent capability.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.5. AWS Phase-1 Deployment
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-RUN-OPS-LOCAL-PROFILE-OWNERSHIP
+STATUS: Draft
+TITLE: Local Deployment Profile Ownership
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+81_aws_deployment_profile.local.md shall record exact environment-specific current values, exact current executable deployment artifacts, approved target MCP values, and implementation-assigned target values once those values exist.
+
+The local profile shall contain references and placeholders only for secrets, never secret values.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
 
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.6. Docker / EC2 / ECR
-
-[TEXT]
+[REQUIREMENT]
+UID: GHOST-RUN-OPS-PHASE1-NONGOALS
+STATUS: Draft
+TITLE: Current Phase-1 Non-Goals
 STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
+The current deployment requirements shall not claim Cognito-driven EC2 auto-start, an Application Load Balancer, CloudFront as an always-on front door, autoscaling, multi-instance operation, or multi-tenant hardening.
 <<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.7. nginx / HTTPS / Route53
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.8. SSM Secrets
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.9. Persistent /app/data Mount
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.10. GitHub Actions CI/CD
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.11. Single-User / Private-Instance Boundary
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: 3.12. Future Backend / Session / API Runtime Model
-
-[TEXT]
-STATEMENT: >>>
-Placeholder section. Detailed requirements for this topic shall be added after evidence-based migration from legacy requirements and current implementation.
-<<<
-
-[[/SECTION]]
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-RUN-OPS-CAPABILITY
 
 [[/SECTION]]

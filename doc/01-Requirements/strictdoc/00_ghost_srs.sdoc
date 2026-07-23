@@ -1,7 +1,7 @@
 [DOCUMENT]
 TITLE: GHOST Software Requirements Specification
 UID: GHOST-SRS
-VERSION: 0.5-draft
+VERSION: 0.6-draft
 ROOT: True
 OPTIONS:
   MARKUP: Text
@@ -50,7 +50,7 @@ TITLE: 1.3 Scope
 
 [TEXT]
 STATEMENT: >>>
-The current GHOST scope covers:
+The GHOST product scope covered by this SRS includes:
 
 - engineered prompt construction,
 - deterministic preprocessing,
@@ -67,7 +67,8 @@ The current GHOST scope covers:
 - memory merge and ActiveBrief direction,
 - GUI-based human control,
 - structured logging direction,
-- AWS-compatible runtime deployment,
+- documented current AWS runtime deployment,
+- target remote MCP prompt-engineering interface for approved external AI clients,
 - future requirement-architecture-code-test traceability direction.
 
 The root SRS distinguishes current executable behavior from target architecture and future vision.
@@ -194,8 +195,11 @@ The requirements documentation system used for the future requirement source-of-
 Ghost2:
 Future product vision for human-mediated multi-brain orchestration, shared board behavior, shared memory, and deterministic requirement-architecture-code-test traceability.
 
+MCP:
+Model Context Protocol. The protocol used by the target remote GHOST interface through which approved external AI clients invoke a bounded GHOST capability. Detailed MCP behavior belongs to 73_mcp_interface.sdoc.
+
 AWS:
-Amazon Web Services runtime environment used by the current deployment direction.
+Amazon Web Services runtime environment used by the documented current deployment and the approved target MCP deployment extension.
 
 EC2:
 AWS Elastic Compute Cloud runtime host.
@@ -260,8 +264,9 @@ At the highest level, GHOST contains:
 - project document stores,
 - memory stores,
 - structured logging direction,
-- local runtime support,
-- AWS deployment infrastructure.
+- local development execution,
+- current AWS deployment infrastructure,
+- target remote MCP interface infrastructure.
 
 The architecture separates document ingestion and retrieval, memory recording and retrieval, prompt shaping and context construction, customizable agents, hard-rule direction, logging and observability, deployment, runtime persistence, and future traceability synchronization.
 <<<
@@ -297,11 +302,13 @@ ReRanker or pass-through
 A3
 A4
 
-A2, A3, and A4 currently use the agent/LLM path where configured.
+The ActiveBrief relation classifier within the normal PreProcessing path, plus A2, A3, and A4, use the agent/LLM path where their execution conditions and configurations require it.
 
 A5 is reserved/postponed and shall not be described as live behavior.
 
 Prompt Builder is a target final assembly/send-boundary concept. Current GUI-visible rendered prompt output is owned by SuperPromptProjector and SuperPrompt prompt-ready composition.
+
+The target MCP interface defines a separate bounded prompt-engineering path for approved external AI clients. It returns an engineered prompt and does not by itself execute the full GHOST retrieval, memory, evidence, or answer-generation pipeline. Detailed MCP behavior belongs to 73_mcp_interface.sdoc.
 
 The UI may present a visual macro-flow such as User Prompt, Prompt Qualification, Prompt Shaping, Memory Context, Document Evidence, Context Synthesis, Hard Rule Integration, and LLM Ready Context. This visual flow shall not be confused with the current backend executable runner.
 <<<
@@ -396,7 +403,7 @@ The current implementation baseline includes:
 - hybrid retrieval backbone,
 - composite Retrieval stage with document retrieval and optional memory retrieval,
 - document-only ReRanker behavior,
-- AWS Phase-1 deployment direction,
+- documented current Streamlit AWS deployment,
 - TextForge/RagLog logging direction,
 - memory recording,
 - memory ingestion,
@@ -418,6 +425,8 @@ The following areas are incomplete, postponed, optional, placeholder, or future:
 - multi-user support,
 - Blackboard Actor persistence,
 - automatic requirement-architecture-code synchronization,
+- target remote MCP prompt-engineering interface and its AWS deployment extension,
+- future React/TypeScript and FastAPI interface,
 - ColBERT/reranking improvement as evaluated future topic.
 
 The root SRS shall preserve the distinction between implemented behavior, documented design, planned near-term work, optional experiments, placeholders, and future vision.
@@ -443,7 +452,7 @@ Local runtime dependency:
 GHOST currently depends on the local repository layout, project data directories, vector stores, and Python runtime environment during development execution.
 
 AWS runtime dependency:
-The deployed runtime direction depends on AWS infrastructure including EC2, ECR, Docker, nginx, HTTPS, Route53, SSM Parameter Store, and persistent runtime data outside the Docker image.
+The documented current AWS deployment and the approved target MCP deployment extension depend on AWS infrastructure including EC2, ECR, Docker, nginx, HTTPS, Route53, SSM Parameter Store, and explicitly required persistent runtime data outside the Docker image.
 
 Vector-store dependency:
 Document and memory retrieval depend on ChromaDB and related vector-store assets where implemented.
@@ -473,6 +482,7 @@ Legend:
 - [PARENT] parent child file with deeper child files
 - [CHILD] detailed child requirement file
 - [FUTURE] future/reserved capability, not current implementation truth
+- [TARGET] approved required capability that is not yet implementation truth
 
 Requirement File Tree::
 
@@ -506,10 +516,12 @@ Requirement File Tree::
   |
   |-- 70_human_workbench_and_interfaces.sdoc             [PARENT]
   |   |-- 71_streamlit_workbench_current.sdoc            [CHILD]
-  |   `-- 72_react_fastapi_interface_future.sdoc         [CHILD/FUTURE]
+  |   |-- 72_react_fastapi_interface_future.sdoc         [CHILD/FUTURE]
+  |   `-- 73_mcp_interface.sdoc                          [CHILD/TARGET]
   |
-  |-- 80_runtime_platform_and_operations.sdoc            [CHILD]
-  |   `-- Local runtime, Python runtime layout, runtime_config.json, data roots, AWS Phase-1 deployment, Docker, EC2, ECR, nginx, HTTPS, Route53, SSM, persistent /app/data mount, CI/CD, and single-user/private-instance boundary.
+  |-- 80_runtime_platform_and_operations.sdoc            [PARENT]
+  |   `-- 81_aws_deployment_and_operations.sdoc          [CHILD]
+  |       `-- Current AWS Streamlit deployment and target remote MCP deployment: Docker, EC2, ECR, nginx, HTTPS, Route53, SSM, persistence, activation, OAuth realization, and operational verification.
   |
   |-- 90_quality_governance_and_observability.sdoc       [PARENT]
   |   |-- 91_logging_textforge_raglog.sdoc               [CHILD]
@@ -518,6 +530,10 @@ Requirement File Tree::
   |
   `-- 100_future_vision_and_lifecycle_sync.sdoc           [FUTURE]
       `-- Requirement-Architecture-Code Sync reserved capability, Ghost2 boundary, Blackboard architecture boundary, advanced orchestration, and future capabilities not yet architecturally fixed.
+
+Non-normative local operations profile:
+
+doc-private/81_aws_deployment_profile.local.md records exact environment-specific values and implementation-assigned deployment values. It is not a StrictDoc child requirement file and shall not contain secret values.
 
 Ownership rule:
 
@@ -791,27 +807,37 @@ TITLE: 3.1.6 Runtime Operations and Deployment -> 80_runtime_platform_and_operat
 
 [TEXT]
 STATEMENT: >>>
-Child file:
+Parent child file:
 
 doc/01-Requirements/strictdoc/80_runtime_platform_and_operations.sdoc
 
-This file shall contain detailed requirements for local execution, Python/runtime layout, runtime configuration, data roots, Docker runtime, AWS deployment, persistent runtime data, secrets, network exposure, CI/CD, deployment activation, and operational troubleshooting.
+Deeper child file:
+
+doc/01-Requirements/strictdoc/81_aws_deployment_and_operations.sdoc
+
+The runtime-platform branch shall own the documented current AWS deployment and the target remote MCP deployment realization, including container execution, image delivery, HTTPS routing, DNS, runtime secrets, evidence-supported persistence, deployment activation, and operational verification.
+
+Exact environment-specific values belong in the non-normative local profile doc-private/81_aws_deployment_profile.local.md.
 <<<
 
 [REQUIREMENT]
 UID: GHOST-SRS-NFR-OPS-001
 STATUS: Draft
-TITLE: Local and AWS Runtime Parity
+TITLE: Supported Runtime Contract Preservation
 STATEMENT: >>>
-Adopted features shall preserve parity between local repository execution under the project data layout and AWS runtime execution under the deployed persistent data model.
+Adopted capabilities shall preserve the explicitly specified functional and data contracts across their supported runtime environments.
+
+This requirement shall not be interpreted as requiring identical directory layouts, storage mounts, process topology, or deployment infrastructure between local development execution and AWS deployment.
 <<<
 
 [REQUIREMENT]
 UID: GHOST-SRS-NFR-OPS-002
 STATUS: Draft
-TITLE: Persistent Runtime Data Separation
+TITLE: Evidence-Bounded Persistent Runtime Data Separation
 STATEMENT: >>>
-AWS runtime behavior shall keep persistent runtime data outside the Docker image and compatible with the documented EC2/EBS-backed runtime data direction.
+Deployed runtime data that is explicitly required to survive container replacement shall remain outside the Docker image as defined by the owning deployment requirements.
+
+Current persistence claims shall not exceed the evidence-supported bind mounts and paths documented by 81_aws_deployment_and_operations.sdoc. Additional target persistence shall require an explicit approved requirement.
 <<<
 
 [REQUIREMENT]
@@ -819,7 +845,7 @@ UID: GHOST-SRS-NFR-OPS-003
 STATUS: Draft
 TITLE: AWS Deployment Components
 STATEMENT: >>>
-The AWS runtime direction shall remain compatible with the documented Docker, ECR, EC2, nginx, HTTPS, Route53, SSM Parameter Store, and persistent runtime data architecture.
+The current Streamlit AWS deployment and the target MCP deployment extension shall remain compatible with the approved Docker, ECR, EC2, nginx, HTTPS, Route53, SSM Parameter Store, and evidence-bounded persistence architecture defined by the owning deployment requirements.
 <<<
 
 [[/SECTION]]
@@ -1176,8 +1202,9 @@ Deeper child files:
 
 - doc/01-Requirements/strictdoc/71_streamlit_workbench_current.sdoc
 - doc/01-Requirements/strictdoc/72_react_fastapi_interface_future.sdoc
+- doc/01-Requirements/strictdoc/73_mcp_interface.sdoc
 
-This area separates the current implemented Streamlit workbench from the future React/TypeScript and FastAPI interface architecture.
+This area owns the interface family consisting of the current Streamlit workbench, the future React/TypeScript and FastAPI interface, and the target MCP interface for approved external AI clients. Detailed behavior remains in the corresponding child file.
 <<<
 
 [REQUIREMENT]
@@ -1219,7 +1246,7 @@ TITLE: 3.2.7 External Interfaces and AI Tooling Boundary
 
 [TEXT]
 STATEMENT: >>>
-This section gives only root-level interface categories. Detailed API endpoints, exact GUI behavior, React/FastAPI behavior, and deployment interface details belong in child files after approval.
+This section gives only root-level interface categories. Detailed MCP tools, schemas, transport behavior, authorization behavior, GUI behavior, React/FastAPI behavior, and deployment realization belong in the approved child files, particularly 73_mcp_interface.sdoc and 81_aws_deployment_and_operations.sdoc.
 <<<
 
 [REQUIREMENT]
@@ -1228,6 +1255,16 @@ STATUS: Draft
 TITLE: External AI Tooling Compatibility
 STATEMENT: >>>
 GHOST shall support workflows where engineered prompts and selected context can be used with external AI tooling while keeping surrounding context construction, memory, rules direction, retrieval, and synchronization direction under GHOST control.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-SRS-FR-EXT-006
+STATUS: Draft
+TITLE: Target MCP Prompt-Engineering Interface
+STATEMENT: >>>
+GHOST shall provide a target remote MCP interface through which the approved ChatGPT and Claude clients can invoke the bounded prompt-engineering capability defined in 73_mcp_interface.sdoc and receive the resulting engineered prompt.
+
+The detailed MCP tool contract, request and result schemas, transport, authorization, error behavior, and client acceptance criteria shall remain owned by 73_mcp_interface.sdoc. The concrete AWS deployment realization shall remain owned by 81_aws_deployment_and_operations.sdoc.
 <<<
 
 [REQUIREMENT]
@@ -1251,7 +1288,7 @@ UID: GHOST-SRS-FR-EXT-004
 STATUS: Draft
 TITLE: Runtime Network Boundary
 STATEMENT: >>>
-The deployed GUI shall be exposed through the documented AWS reverse-proxy and HTTPS path rather than treating internal application ports as public product interfaces.
+The deployed Streamlit GUI and the target remote MCP interface shall be exposed through their documented AWS reverse-proxy and HTTPS paths rather than treating internal application or container ports as public product interfaces.
 <<<
 
 [REQUIREMENT]
@@ -1269,11 +1306,15 @@ TITLE: 3.2.8 Runtime Platform and Operations -> 80_runtime_platform_and_operatio
 
 [TEXT]
 STATEMENT: >>>
-Child file:
+Parent child file:
 
 doc/01-Requirements/strictdoc/80_runtime_platform_and_operations.sdoc
 
-This file shall contain detailed functional and non-functional runtime requirements for local execution, Python/runtime layout, runtime_config.json, data roots, Docker, AWS, deployment activation, and operational troubleshooting.
+Deeper child file:
+
+doc/01-Requirements/strictdoc/81_aws_deployment_and_operations.sdoc
+
+This branch shall contain the functional and non-functional requirements for the documented current AWS deployment and the target remote MCP deployment realization. Exact environment-specific values shall remain in the non-normative local profile doc-private/81_aws_deployment_profile.local.md.
 <<<
 
 [REQUIREMENT]
@@ -1281,7 +1322,7 @@ UID: GHOST-SRS-FR-RUN-001
 STATUS: Draft
 TITLE: Runtime Platform and Operations Capability
 STATEMENT: >>>
-GHOST shall support local development execution and AWS-compatible deployment through the documented Docker, ECR, EC2, nginx, HTTPS, Route53, SSM Parameter Store, and persistent runtime data path.
+GHOST shall support the documented current AWS Streamlit deployment and the approved target remote MCP deployment through the runtime and operations contracts defined by 80_runtime_platform_and_operations.sdoc and 81_aws_deployment_and_operations.sdoc.
 <<<
 
 [REQUIREMENT]
@@ -1289,7 +1330,9 @@ UID: GHOST-SRS-FR-RUN-002
 STATUS: Draft
 TITLE: Runtime Persistence Capability
 STATEMENT: >>>
-GHOST shall preserve project data, memory data, vector stores, logs, and runtime artifacts through a persistent runtime data path that remains outside the Docker image in deployed mode.
+The current AWS deployment shall preserve only the evidence-supported raw-document and Chroma-database data through external bind mounts across Streamlit container replacement.
+
+Memory data, logs, other vector stores, and additional runtime artifacts shall not be claimed as currently persistent unless an owning current requirement and deployment artifact establish that behavior. Target persistence shall be specified explicitly before implementation.
 <<<
 
 [REQUIREMENT]

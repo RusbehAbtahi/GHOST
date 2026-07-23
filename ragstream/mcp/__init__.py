@@ -1,0 +1,1 @@
+"""GHOST MCP interface package."""
