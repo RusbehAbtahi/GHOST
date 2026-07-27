@@ -2,7 +2,9 @@
 
 GHOST is a human-controlled AI orchestration platform for software engineering. It combines deterministic and heuristic context-engineering methods with LLM-based agents, project retrieval, reusable memory, and external AI tooling in one controlled workflow.
 
-The goal of GHOST is to make AI-assisted engineering work more reliable, inspectable, and reusable. It reduces context drift, makes AI-assisted work traceable, preserves reusable engineering memory, supports long-running requirements/architecture/code work, and keeps the human engineer in control of what context is selected, shared, sent, stored, or excluded.
+The goal of GHOST is to make AI-assisted engineering work more reliable, inspectable, and reusable. It reduces context drift, makes AI-assisted work traceable, preserves reusable engineering memory, supports long-running requirements, architecture, and code work, and keeps the human engineer in control of what context is selected, shared, sent, stored, or excluded.
+
+GHOST currently exposes its orchestration capabilities through an MCP server, enabling integration with Claude and ChatGPT. This allows both AI platforms to invoke GHOST workflows and use its engineered context, project retrieval, and reusable memory.
 
 ## Motivation
 
