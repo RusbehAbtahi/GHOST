@@ -6,6 +6,12 @@ The goal of GHOST is to make AI-assisted engineering work more reliable, inspect
 
 GHOST currently exposes its orchestration capabilities through an MCP server, enabling integration with Claude and ChatGPT. This allows both AI platforms to invoke GHOST workflows and use its engineered context, project retrieval, and reusable memory.
 
+## Requirements and Technical Documentation
+
+The current GHOST requirements and technical documentation are available here:
+
+**[GHOST Requirements Documentation](https://rusbehabtahi.github.io/GHOST/)**
+
 ## Motivation
 
 Modern AI platforms such as ChatGPT UI, Codex, Copilot, Claude, and similar systems provide increasingly powerful tooling capabilities. They can support coding, repository interaction, deep research, online search, reasoning, document analysis, and other advanced model-side workflows. These capabilities are valuable and should be used where they are strong.
