@@ -1,0 +1,291 @@
+@startuml GHOST_MCP_Overall_Architecture
+
+title GHOST MCP Overall ArchitecturenVersion 1 Target Deployment with Current Python Runtime
+
+top to bottom direction
+
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam shadowing false
+hide stereotype
+
+
+'──────────────────────────────────────────────────────────────
+' 1. CLIENT
+'──────────────────────────────────────────────────────────────
+
+rectangle 1. Client as Entity1 {
+
+    actor ChatGPT or Claude as AIClient
+}
+
+
+'──────────────────────────────────────────────────────────────
+' 2. CLIENT INTERFACE
+'──────────────────────────────────────────────────────────────
+
+rectangle 2. Client Interface as Entity2 {
+
+    component MCP Clientninside ChatGPT or Claude as MCPClient
+}
+
+
+'──────────────────────────────────────────────────────────────
+' 3. COMMUNICATION CHANNEL
+'──────────────────────────────────────────────────────────────
+
+cloud 3. Communication ChannelnnInternetnHTTPSnStreamable HTTP as Channel
+
+
+'──────────────────────────────────────────────────────────────
+' 4. SERVER INTERFACE
+'──────────────────────────────────────────────────────────────
+
+rectangle 4. Server Interface as Entity4 {
+
+    node AWS Public EntrynTARGET - not yet activated as PublicEntry {
+
+        component AWS Route 53nnragstream.rusbehabtahi.comnDNS resolution only as Route53
+
+        component EC2 Public IPnTCP port 443 as PublicIP
+    }
+
+
+    node AWS EC2 InstancenTARGET - not yet activated as EC2 {
+
+        component nginxnnTLS terminationnmcp reverse proxy as Nginx
+
+
+        node Docker Host as DockerHost {
+
+            component Loopback-only port mappingnn127.0.0.18000n- MCP container port 8000 as PortMapping
+
+
+            node GHOST MCP ContainernTARGET - not yet deployed as MCPContainer {
+
+                component UvicornnnHTTP network servernExternal library object as Uvicorn
+
+                component Starlettennmcp route selectornExternal library object as Starlette
+
+                component GhostMcpRuntimennserver.pynASGI bridge and runtime owner as Runtime
+
+                component StreamableHTTPSessionManagernnHTTP-to-MCP transport managernExternal MCP SDK object as SessionManager
+
+                component Low-level MCP ServernnMCP protocol interpreternand request dispatchernExternal MCP SDK object as MCPServer
+
+
+                component Authentication Gatennauth.pynSCAFFOLDED - not integrated as Authentication
+
+                component Rate-Limit Gatennrate_limiter.pynIMPLEMENTED - not integrated as RateLimiter
+            }
+        }
+    }
+}
+
+
+'──────────────────────────────────────────────────────────────
+' BOUNDARY BETWEEN ENTITY 4 AND ENTITY 5
+'──────────────────────────────────────────────────────────────
+
+component GhostMcpApplicationnnserver.pynnBoundary betweennServer Interface and Server as ApplicationBoundary
+
+
+'──────────────────────────────────────────────────────────────
+' 5. SERVER  GHOST APPLICATION LOGIC
+'──────────────────────────────────────────────────────────────
+
+rectangle 5. ServernGHOST Application Logic as Entity5 {
+
+    component GhostEngineerPromptToolnnghost_engineer_prompt.py as Tool
+
+    component PromptEngineeringRunnernnprompt_engineering_runner.py as Runner
+
+    component PreProcessingnnpreprocessing.py as PreProcessing
+
+    component A2 PromptShapernna2_promptshaper.py as A2
+
+    component Agent Stackn+nLLMClient as AgentStack
+}
+
+
+'──────────────────────────────────────────────────────────────
+' EXTERNAL SERVICE USED BY A2
+'──────────────────────────────────────────────────────────────
+
+cloud External LLM ServicenOpenAI API as OpenAI
+
+
+'──────────────────────────────────────────────────────────────
+' MAIN REQUEST FLOW
+'──────────────────────────────────────────────────────────────
+
+AIClient -- MCPClient  decides to calln ghost_engineer_prompt
+
+
+' Route53 performs DNS resolution only.
+MCPClient -- Route53  DNS lookupnragstream.rusbehabtahi.com
+
+Route53 -- PublicIP  DNS record resolves tonEC2 public IP
+
+
+' HTTPS request path.
+MCPClient -- Channel  MCP toolscallnprompt_textnaccess token after OAuth integration
+
+Channel -- PublicIP  HTTPS POST mcpnTCP port 443
+
+PublicIP -- Nginx  encrypted HTTPS request
+
+Nginx -- PortMapping  proxy_passnmcp
+
+PortMapping -- Uvicorn  internal HTTPncontainer port 8000
+
+Uvicorn -- Starlette  ASGI request
+
+Starlette -- Runtime  selects mcp route
+
+Runtime -- SessionManager  handle_request(nscope, receive, sendn)
+
+SessionManager -- MCPServer  parsed MCP request
+
+MCPServer -- ApplicationBoundary  toolscallnname + arguments
+
+ApplicationBoundary -- Tool  call_sanitized(arguments)
+
+Tool -- Runner  run(prompt_text)
+
+Runner -- PreProcessing  preprocess(...)
+
+Runner -- A2  run(...)
+
+A2 -- AgentStack  composenLLM callnparse
+
+AgentStack -- OpenAI  HTTPS requestnand structured response
+
+Runner -- Tool  engineered prompt
+
+Tool -- ApplicationBoundary  GhostToolResult
+
+ApplicationBoundary -- MCPServer  validatednCallToolResult
+
+
+'──────────────────────────────────────────────────────────────
+' PLANNED SECURITY INTEGRATION
+'──────────────────────────────────────────────────────────────
+
+Authentication .. Runtime  future authenticationnbefore MCP execution
+
+RateLimiter .. ApplicationBoundary  future quota check beforenGHOST processing
+
+
+'──────────────────────────────────────────────────────────────
+' NOTES
+'──────────────────────────────────────────────────────────────
+
+note right of Route53
+
+Route 53 resolves the public
+domain name to the EC2 public IP.
+
+It does not carry or forward
+the HTTPS request.
+
+end note
+
+
+note right of Runtime
+
+GhostMcpRuntime is implemented
+inside server.py.
+
+It creates and connects
+
+- Starlette application
+- exact mcp route
+- Session Manager
+- low-level MCP Server
+
+end note
+
+
+note right of Uvicorn
+
+Uvicorn, Starlette,
+StreamableHTTPSessionManager
+and the low-level MCP Server
+are external library objects.
+
+server.py instantiates,
+configures and connects them.
+
+end note
+
+
+note right of ApplicationBoundary
+
+GhostMcpApplication is implemented
+inside server.py.
+
+Architecturally, it forms the boundary
+
+Server Interface
+- validates and dispatches the MCP call
+
+Server
+- executes the GHOST tool logic
+
+end note
+
+
+note right of Authentication
+
+auth.py exists inside
+ragstreammcp.
+
+It is not yet called
+by server.py.
+
+end note
+
+
+note right of RateLimiter
+
+rate_limiter.py exists inside
+ragstreammcp.
+
+It is not yet called
+by server.py.
+
+end note
+
+
+note right of Entity5
+
+Version 1 executes only
+
+fresh SuperPrompt
+- PreProcessing
+- A2 PromptShaper
+- engineered prompt
+
+It does not execute
+
+Retrieval
+Memory Retrieval
+ReRanker
+A3
+A4
+MemoryMerge
+
+end note
+
+
+note bottom of Channel
+
+The MCP result returns through
+the same architecture in the
+opposite direction.
+
+end note
+
+@enduml

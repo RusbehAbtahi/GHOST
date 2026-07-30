@@ -1,0 +1,535 @@
+@startuml GHOST_MCP_Python_Implementation
+
+title GHOST MCP Python Implementation
+
+top to bottom direction
+
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide empty members
+
+
+'──────────────────────────────────────────────────────────────
+' CLIENT AND EXTERNAL SERVICE
+'──────────────────────────────────────────────────────────────
+
+package "Client and External Service" {
+
+    class ChatGPT_Claude {
+        + MCP client
+        + tools/list
+        + tools/call
+    }
+
+    class OpenAI_API
+}
+
+
+'──────────────────────────────────────────────────────────────
+' EXTERNAL PYTHON LIBRARIES
+'──────────────────────────────────────────────────────────────
+
+package "External Python Libraries" {
+
+    class Uvicorn
+
+    class Starlette
+
+    class StreamableHTTPSessionManager
+
+    class LowLevelMcpServer
+
+    class TransportSecuritySettings
+
+    class McpTypes
+
+    class Anyio
+}
+
+
+'──────────────────────────────────────────────────────────────
+' ragstream/mcp
+'──────────────────────────────────────────────────────────────
+
+package "ragstream/mcp" {
+
+
+    '──────────────────────────────────────────────────────────
+    ' __init__.py
+    '──────────────────────────────────────────────────────────
+
+    package "__init__.py" {
+
+        class McpPackageModule {
+            + __all__ : list
+        }
+    }
+
+
+    '──────────────────────────────────────────────────────────
+    ' server.py
+    '──────────────────────────────────────────────────────────
+
+    package "server.py" {
+
+        class ServerModule {
+            + SERVER_NAME : str
+            + SERVER_VERSION : str
+            + SERVER_INSTRUCTIONS : str
+            + MCP_PATH : str
+            + MCP_HTTP_METHODS : tuple
+            + DEFAULT_HOST : str
+            + DEFAULT_PORT : int
+            + DEFAULT_UVICORN_LOG_LEVEL : str
+            + ALLOWED_UVICORN_LOG_LEVELS : set
+            + DEFAULT_ALLOWED_HOSTS : tuple
+            + DEFAULT_ALLOWED_ORIGINS : tuple
+            --
+            - _read_host() : str
+            - _read_port() : int
+            - _read_uvicorn_log_level() : str
+            - _read_csv_values(name, defaults) : list
+            - _create_transport_security() : TransportSecuritySettings
+            + main() : None
+        }
+
+
+        class GhostMcpApplication {
+            + tool : GhostEngineerPromptTool
+            --
+            + __init__(tool)
+            + list_tools() : list
+            + call_tool(name, arguments) : CallToolResult
+            - _to_mcp_result(result) : CallToolResult
+            - _single_text(content) : str?
+            - _error_result(message) : CallToolResult
+        }
+
+
+        class GhostMcpRuntime {
+            + ghost_application : GhostMcpApplication
+            + mcp_server : LowLevelMcpServer
+            + session_manager : StreamableHTTPSessionManager
+            + starlette_app : Starlette
+            --
+            + __init__(ghost_application, transport_security)
+            + handle_list_tools() : list
+            + handle_call_tool_request(request) : ServerResult
+            + __call__(scope, receive, send) : None
+            + lifespan(application) : AsyncIterator
+        }
+    }
+
+
+    '──────────────────────────────────────────────────────────
+    ' ghost_engineer_prompt.py
+    '──────────────────────────────────────────────────────────
+
+    package "ghost_engineer_prompt.py" {
+
+        class ToolContractModule {
+            + TOOL_NAME : str
+            + TOOL_TITLE : str
+            + TOOL_DESCRIPTION : str
+            + INPUT_SCHEMA : dict
+            + OUTPUT_SCHEMA : dict
+            --
+            + validate_arguments(arguments) : str
+            + tool_metadata() : dict
+        }
+
+
+        class ToolInputError
+
+
+        class ToolExecutionError
+
+
+        class GhostToolResult {
+            + content : list
+            + structuredContent : dict
+            + isError : bool
+        }
+
+
+        class GhostEngineerPromptTool {
+            - _runner : PromptEngineeringRunner
+            --
+            + __init__(runner)
+            + call(arguments) : GhostToolResult
+            + call_sanitized(arguments) : GhostToolResult
+        }
+    }
+
+
+    '──────────────────────────────────────────────────────────
+    ' prompt_engineering_runner.py
+    '──────────────────────────────────────────────────────────
+
+    package "prompt_engineering_runner.py" {
+
+        class RunnerModule {
+            - _default_schema_path() : Path
+        }
+
+
+        class PromptEngineeringError
+
+
+        class PromptEngineeringRunner {
+            - _schema : PromptSchema
+            - _super_prompt_factory : Callable
+            - _preprocess : Callable
+            - _agent_factory : AgentFactory
+            - _llm_client : LLMClient
+            - _a2_factory : Callable
+            --
+            + __init__(schema, factories, clients)
+            + run(prompt_text) : str
+        }
+    }
+
+
+    '──────────────────────────────────────────────────────────
+    ' auth.py
+    '──────────────────────────────────────────────────────────
+
+    package "auth.py" {
+
+        class AuthenticationError
+
+
+        class AuthorizationError
+
+
+        class AuthConfig {
+            + issuer : str
+            + resource : str
+            + required_scopes : tuple
+            + leeway_seconds : int
+        }
+
+
+        class Principal {
+            + subject : str
+            + issuer : str
+            + resource : str
+            + scopes : tuple
+            + expires_at:int?
+        }
+
+
+        ' Python Protocol
+        class TokenVerifier {
+            + verify_bearer_token(token) : Principal
+        }
+
+
+        class ConfigurableTokenVerifier {
+            - _config : AuthConfig
+            - _decoder : Callable
+            --
+            + __init__(config, decoder)
+            + verify_bearer_token(token) : Principal
+        }
+
+
+        class AuthModule {
+            + extract_bearer_token(authorization_header) : str
+            + authenticate_request(authorization_header, verifier) : Principal
+            - _parse_scopes(value) : tuple
+        }
+    }
+
+
+    '──────────────────────────────────────────────────────────
+    ' rate_limiter.py
+    '──────────────────────────────────────────────────────────
+
+    package "rate_limiter.py" {
+
+        class RateLimitDecision {
+            + allowed : bool
+            + retry_after_seconds : float
+            + limit : int
+            + window_seconds : float
+        }
+
+
+        class InMemoryRateLimiter {
+            - _limit : int
+            - _window_seconds : float
+            - _clock : Callable
+            - _lock : Lock
+            - _windows : dict
+            --
+            + __init__(limit, window_seconds, clock)
+            + check(key) : RateLimitDecision
+        }
+    }
+}
+
+
+'──────────────────────────────────────────────────────────────
+' EXISTING GHOST DEPENDENCIES
+' NAMES ONLY
+'──────────────────────────────────────────────────────────────
+
+package "Existing GHOST Dependencies" {
+
+    class SuperPrompt
+
+    class PromptSchema
+
+    class "preprocess()" as PreProcessing
+
+    class A2PromptShaper
+
+    class AgentFactory
+
+    class LLMClient
+
+    class LogNoGUI
+}
+
+
+'──────────────────────────────────────────────────────────────
+' CLIENT ENTRY
+'──────────────────────────────────────────────────────────────
+
+' Logical entry; runtime path: Uvicorn -> Starlette -> GhostMcpRuntime
+ChatGPT_Claude --> GhostMcpRuntime : MCP request to /mcp
+
+
+'──────────────────────────────────────────────────────────────
+' server.py STARTUP
+'──────────────────────────────────────────────────────────────
+
+ServerModule --> TransportSecuritySettings : creates
+
+ServerModule --> GhostMcpApplication : main() creates
+
+ServerModule --> GhostMcpRuntime : main() creates
+
+ServerModule --> Uvicorn : creates Config and Server
+
+
+'──────────────────────────────────────────────────────────────
+' GhostMcpRuntime OBJECT GRAPH
+'──────────────────────────────────────────────────────────────
+
+GhostMcpRuntime o-- GhostMcpApplication : ghost_application
+
+GhostMcpRuntime o-- LowLevelMcpServer : mcp_server
+
+GhostMcpRuntime o-- StreamableHTTPSessionManager : session_manager
+
+GhostMcpRuntime o-- Starlette : starlette_app
+
+GhostMcpRuntime --> Anyio : run synchronous tool\nin worker thread
+
+GhostMcpRuntime --> McpTypes : request and result types
+
+GhostMcpRuntime --> LogNoGUI : lifecycle logging
+
+
+'──────────────────────────────────────────────────────────────
+' MCP REQUEST DISPATCH
+'──────────────────────────────────────────────────────────────
+
+Starlette --> GhostMcpRuntime : invokes __call__()
+
+GhostMcpRuntime --> StreamableHTTPSessionManager : handle_request()
+
+StreamableHTTPSessionManager --> LowLevelMcpServer : parsed MCP request
+
+LowLevelMcpServer --> GhostMcpRuntime : registered tools/list\nand tools/call handlers
+
+GhostMcpRuntime --> GhostMcpApplication : list_tools()\nor call_tool()
+
+
+'──────────────────────────────────────────────────────────────
+' GhostMcpApplication
+'──────────────────────────────────────────────────────────────
+
+GhostMcpApplication o-- GhostEngineerPromptTool : tool
+
+GhostMcpApplication --> ToolContractModule : tool_metadata()
+
+GhostMcpApplication --> GhostToolResult : validates internal result
+
+GhostMcpApplication --> McpTypes : creates Tool\nand CallToolResult
+
+GhostMcpApplication --> LogNoGUI : invalid-result logging
+
+
+'──────────────────────────────────────────────────────────────
+' TOOL CONTRACT
+'──────────────────────────────────────────────────────────────
+
+McpPackageModule --> ToolContractModule : lists public name
+
+GhostEngineerPromptTool o-- PromptEngineeringRunner : _runner
+
+GhostEngineerPromptTool --> ToolContractModule : validate_arguments()
+
+GhostEngineerPromptTool --> GhostToolResult : creates result
+
+GhostEngineerPromptTool --> ToolInputError : invalid arguments
+
+GhostEngineerPromptTool --> ToolExecutionError : sanitized execution failure
+
+GhostEngineerPromptTool --> PromptEngineeringError : catches expected failure
+
+
+'──────────────────────────────────────────────────────────────
+' PROMPT ENGINEERING RUNNER
+'──────────────────────────────────────────────────────────────
+
+PromptEngineeringRunner --> RunnerModule : reads default schema path
+
+PromptEngineeringRunner o-- PromptSchema : _schema
+
+PromptEngineeringRunner o-- AgentFactory : _agent_factory
+
+PromptEngineeringRunner o-- LLMClient : _llm_client
+
+PromptEngineeringRunner --> SuperPrompt : creates fresh object
+
+PromptEngineeringRunner --> PreProcessing : executes first
+
+PromptEngineeringRunner --> A2PromptShaper : executes second
+
+A2PromptShaper --> AgentFactory : uses
+
+A2PromptShaper --> LLMClient : uses
+
+LLMClient --> OpenAI_API : model request
+
+PromptEngineeringRunner --> PromptEngineeringError : controlled phase errors
+
+
+'──────────────────────────────────────────────────────────────
+' AUTHENTICATION IMPLEMENTATION
+'──────────────────────────────────────────────────────────────
+
+TokenVerifier <|.. ConfigurableTokenVerifier
+
+ConfigurableTokenVerifier o-- AuthConfig : _config
+
+ConfigurableTokenVerifier --> Principal : returns
+
+ConfigurableTokenVerifier --> AuthenticationError : invalid token
+
+ConfigurableTokenVerifier --> AuthorizationError : invalid resource\nor missing scope
+
+AuthModule --> TokenVerifier : uses verifier
+
+AuthModule --> Principal : returns
+
+AuthModule --> AuthenticationError : missing bearer token
+
+
+'──────────────────────────────────────────────────────────────
+' RATE LIMITER IMPLEMENTATION
+'──────────────────────────────────────────────────────────────
+
+InMemoryRateLimiter --> RateLimitDecision : check() returns
+
+
+'──────────────────────────────────────────────────────────────
+' CURRENTLY MISSING CONNECTIONS
+'──────────────────────────────────────────────────────────────
+
+AuthModule ..> GhostMcpRuntime : planned authentication gate
+
+InMemoryRateLimiter ..> GhostMcpApplication : planned rate-limit gate
+
+
+'──────────────────────────────────────────────────────────────
+' NOTES
+'──────────────────────────────────────────────────────────────
+
+note right of GhostMcpRuntime
+
+Creates and connects:
+
+- low-level MCP Server
+- Streamable HTTP Session Manager
+- Starlette application
+- exact /mcp route
+
+Registers:
+
+- tools/list
+- tools/call
+
+end note
+
+
+note right of GhostMcpApplication
+
+Boundary between the MCP protocol
+and the GHOST tool implementation.
+
+Validates the tool name,
+invokes the tool and converts
+GhostToolResult to CallToolResult.
+
+end note
+
+
+note right of GhostEngineerPromptTool
+
+call():
+
+1. validates prompt_text
+2. invokes the runner
+3. creates GhostToolResult
+
+call_sanitized():
+
+- catches public tool errors
+- returns isError = true
+- hides internal exceptions
+
+end note
+
+
+note right of PromptEngineeringRunner
+
+One request:
+
+1. creates fresh SuperPrompt
+2. executes preprocess()
+3. verifies preprocessed stage
+4. creates A2PromptShaper
+5. executes A2 version 003
+6. verifies same SuperPrompt
+7. verifies a2 stage
+8. returns prompt_ready
+
+end note
+
+
+note right of AuthModule
+
+Implemented authentication boundary.
+
+Not currently imported or called
+by server.py.
+
+end note
+
+
+note right of InMemoryRateLimiter
+
+Implemented fixed-window limiter.
+
+Not currently imported or called
+by server.py.
+
+end note
+
+@enduml
