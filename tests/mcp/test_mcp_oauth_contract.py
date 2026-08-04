@@ -13,8 +13,10 @@ from ragstream.mcp.auth import (
     AuthenticationError,
     AuthenticationServiceError,
     AuthorizationError,
+    Principal,
 )
 from ragstream.mcp.ghost_engineer_prompt import (
+    ANSWER_PROMPT_MODE,
     GhostToolResult,
     TOOL_NAME,
     tool_metadata,
@@ -66,9 +68,16 @@ class AllowingVerifier:
     def verify_bearer_token(
         self,
         token: str,
-    ) -> object:
+    ) -> Principal:
         assert token == "valid-token"
-        return object()
+        return Principal(
+            subject="oauth-contract-test-user",
+            issuer=ISSUER,
+            client_id=APP_CLIENT_ID,
+            resource=RESOURCE,
+            scopes=(REQUIRED_SCOPE,),
+            expires_at=2_000_000_000,
+        )
 
 
 class InvalidTokenVerifier:
@@ -135,6 +144,7 @@ class StubTool:
             structuredContent={
                 "engineered_prompt": engineered_prompt,
                 "stage": "a2",
+                "mode": ANSWER_PROMPT_MODE,
             },
             isError=False,
         )
@@ -145,7 +155,7 @@ def _build_runtime(
 ) -> GhostMcpRuntime:
     """Create one isolated authenticated MCP runtime."""
     ghost_application = GhostMcpApplication(
-        tool=StubTool(),
+        tool=StubTool(),  # type: ignore[arg-type]
         required_scope=REQUIRED_SCOPE,
     )
 
@@ -355,7 +365,7 @@ def test_authenticated_initialize_succeeds() -> None:
     assert result["protocolVersion"] == "2025-06-18"
     assert result["serverInfo"] == {
         "name": "GHOST",
-        "version": "0.1.0",
+        "version": "0.2.0",
     }
 
 
@@ -438,6 +448,7 @@ def test_authenticated_tool_call_succeeds() -> None:
     assert result["structuredContent"] == {
         "engineered_prompt": "ENGINEERED: Explain OAuth.",
         "stage": "a2",
+        "mode": ANSWER_PROMPT_MODE,
     }
 
     assert result["content"] == [

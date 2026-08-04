@@ -29,6 +29,9 @@ from mcp.shared.memory import create_connected_server_and_client_session
 from starlette.routing import Route
 
 from ragstream.mcp.ghost_engineer_prompt import (
+    ANSWER_PROMPT_MODE,
+    ANSWER_PROMPT_WITH_MEMORY_MODE,
+    SHOW_PROMPT_ONLY_MODE,
     GhostEngineerPromptTool,
     GhostToolResult,
     INPUT_SCHEMA,
@@ -43,6 +46,11 @@ from ragstream.mcp.server import GhostMcpApplication, GhostMcpRuntime
 
 ENGINEERED_PROMPT = "## TASK\nExplain the GHOST MCP server architecture."
 RAW_PROMPT = "Explain the GHOST MCP server architecture."
+SUPPORTIVE_CONTEXT = "The immediately preceding assistant response."
+MEMORY_ENGINEERED_PROMPT = (
+    f"{ENGINEERED_PROMPT}\n\n"
+    f"## Supportive Context\n\n{SUPPORTIVE_CONTEXT}"
+)
 
 
 @dataclass
@@ -162,24 +170,63 @@ async def test_protocol_lists_exactly_one_ghost_tool(
 
 
 @pytest.mark.anyio
-async def test_protocol_calls_tool_and_returns_exact_success_contract(
+@pytest.mark.parametrize(
+    (
+        "arguments",
+        "expected_runner_prompt",
+        "expected_engineered_prompt",
+        "expected_mode",
+    ),
+    [
+        pytest.param(
+            {"prompt_text": RAW_PROMPT},
+            RAW_PROMPT,
+            ENGINEERED_PROMPT,
+            ANSWER_PROMPT_MODE,
+            id="normal",
+        ),
+        pytest.param(
+            {"prompt_text": f"PROMPT: {RAW_PROMPT}"},
+            RAW_PROMPT,
+            ENGINEERED_PROMPT,
+            SHOW_PROMPT_ONLY_MODE,
+            id="prompt",
+        ),
+        pytest.param(
+            {
+                "prompt_text": f"MEM: {RAW_PROMPT}",
+                "supportive_context": SUPPORTIVE_CONTEXT,
+            },
+            RAW_PROMPT,
+            MEMORY_ENGINEERED_PROMPT,
+            ANSWER_PROMPT_WITH_MEMORY_MODE,
+            id="memory",
+        ),
+    ],
+)
+async def test_protocol_calls_all_three_modes_and_returns_exact_contract(
     client_session: ClientSession,
     runner: RecordingRunner,
+    arguments: dict[str, str],
+    expected_runner_prompt: str,
+    expected_engineered_prompt: str,
+    expected_mode: str,
 ) -> None:
-    """tools/call must preserve text, structured content, and a2 stage."""
+    """tools/call must route Normal, PROMPT:, and MEM: exactly."""
 
     result = await client_session.call_tool(
         TOOL_NAME,
-        arguments={"prompt_text": RAW_PROMPT},
+        arguments=arguments,
     )
 
     assert result.isError is False
-    assert _single_text(result) == ENGINEERED_PROMPT
+    assert _single_text(result) == expected_engineered_prompt
     assert result.structuredContent == {
-        "engineered_prompt": ENGINEERED_PROMPT,
+        "engineered_prompt": expected_engineered_prompt,
         "stage": "a2",
+        "mode": expected_mode,
     }
-    assert runner.calls == [RAW_PROMPT]
+    assert runner.calls == [expected_runner_prompt]
 
 
 @pytest.mark.anyio
@@ -211,6 +258,28 @@ async def test_unknown_tool_is_protocol_error_and_does_not_execute_ghost(
         (
             {"prompt_text": RAW_PROMPT, "unsupported": True},
             "unsupported input property",
+        ),
+        (
+            {"prompt_text": f"MEM: {RAW_PROMPT}"},
+            "MEM: was requested, but ChatGPT did not supply "
+            "supportive_context. Refresh the GHOST Local tool metadata, "
+            "start a new conversation, and retry.",
+        ),
+        (
+            {
+                "prompt_text": RAW_PROMPT,
+                "supportive_context": SUPPORTIVE_CONTEXT,
+            },
+            "supportive_context is allowed only when prompt_text begins "
+            "with MEM:",
+        ),
+        (
+            {
+                "prompt_text": f"PROMPT: {RAW_PROMPT}",
+                "supportive_context": SUPPORTIVE_CONTEXT,
+            },
+            "supportive_context is allowed only when prompt_text begins "
+            "with MEM:",
         ),
     ],
 )
@@ -276,6 +345,7 @@ async def test_unexpected_runner_failure_is_sanitized(
             structuredContent={
                 "engineered_prompt": ENGINEERED_PROMPT,
                 "stage": "a2",
+                "mode": ANSWER_PROMPT_MODE,
             },
         ),
         GhostToolResult(
@@ -283,6 +353,7 @@ async def test_unexpected_runner_failure_is_sanitized(
             structuredContent={
                 "engineered_prompt": ENGINEERED_PROMPT,
                 "stage": "a2",
+                "mode": ANSWER_PROMPT_MODE,
             },
         ),
         GhostToolResult(
@@ -290,6 +361,7 @@ async def test_unexpected_runner_failure_is_sanitized(
             structuredContent={
                 "engineered_prompt": ENGINEERED_PROMPT,
                 "stage": "preprocessed",
+                "mode": ANSWER_PROMPT_MODE,
             },
         ),
         GhostToolResult(
@@ -297,6 +369,7 @@ async def test_unexpected_runner_failure_is_sanitized(
             structuredContent={
                 "engineered_prompt": ENGINEERED_PROMPT,
                 "stage": "a2",
+                "mode": ANSWER_PROMPT_MODE,
                 "unexpected": "value",
             },
         ),
@@ -305,6 +378,15 @@ async def test_unexpected_runner_failure_is_sanitized(
             structuredContent={
                 "engineered_prompt": "   ",
                 "stage": "a2",
+                "mode": ANSWER_PROMPT_MODE,
+            },
+        ),
+        GhostToolResult(
+            content=[{"type": "text", "text": ENGINEERED_PROMPT}],
+            structuredContent={
+                "engineered_prompt": ENGINEERED_PROMPT,
+                "stage": "a2",
+                "mode": "unsupported_mode",
             },
         ),
     ],

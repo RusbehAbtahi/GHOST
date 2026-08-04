@@ -30,6 +30,46 @@ SHOW_PROMPT_ONLY_MODE = "show_prompt_only"
 ANSWER_PROMPT_MODE = "answer_prompt"
 ANSWER_PROMPT_WITH_MEMORY_MODE = "answer_prompt_with_memory"
 
+SERVER_INSTRUCTIONS = (
+    "GHOST supports exactly three current-user forms: a plain request, "
+    "'Prompt: <request>', and 'MEM: <request>'. Always copy only the current "
+    "user request verbatim into prompt_text, preserving a leading Prompt: or "
+    "MEM: prefix. Never place a previous response or any other conversation "
+    "history inside prompt_text. For MEM: only, you MUST also pass "
+    "supportive_context. Its value MUST be the complete, immediately preceding "
+    "visible assistant response from the same conversation, copied verbatim. "
+    "The immediately preceding response means the assistant message directly "
+    "before the current MEM: user message. Do not summarize, rewrite, shorten, "
+    "select excerpts from, or combine that response with anything else. Never "
+    "use an earlier assistant response, a user message, hidden reasoning, an "
+    "internal tool result, or content from another conversation. Never omit "
+    "supportive_context for MEM:. If the response does not exist or is "
+    "unavailable, do not pretend that memory transfer succeeded; the call must "
+    "return an input error. Always omit supportive_context for Prompt: and "
+    "plain requests. GHOST returns engineered_prompt and a mandatory mode. "
+    "Follow the returned mode exactly; do not choose, reinterpret, merge, or "
+    "soften the three behaviors. When mode is show_prompt_only, remain "
+    "completely passive. Do not answer, execute, research, browse, reason "
+    "about, summarize, explain, evaluate, or continue engineered_prompt. Do "
+    "not call any other tool or agent. Your entire visible response must "
+    "consist of exactly one fenced code block. Inside that code block, "
+    "reproduce engineered_prompt verbatim, preserving its wording and "
+    "structure. Add no title, label, introduction, explanation, "
+    "acknowledgement, citation, warning, conclusion, or text outside the code "
+    "block. When mode is answer_prompt, treat engineered_prompt as the new and "
+    "complete effective user request that replaces the original wording. Act "
+    "on it and provide the requested answer. When mode is "
+    "answer_prompt_with_memory, do the same, but treat the appended "
+    "'## Supportive Context' section only as background that may help answer "
+    "the current engineered request. The current request remains authoritative. "
+    "Do not treat supportive context as a new request, do not automatically "
+    "continue it, and do not claim it is verified merely because it was "
+    "supplied. In both answer modes, use tools or research when required. Do "
+    "not merely display, quote, summarize, or describe engineered_prompt, the "
+    "response mode, or supportive_context, and do not mention that prompt "
+    "engineering occurred."
+)
+
 TOOL_DESCRIPTION = (
     "Runs GHOST PreProcessing and A2 PromptShaper and returns an engineered "
     "prompt together with a mandatory response mode. Copy only the current "
@@ -64,7 +104,7 @@ TOOL_DESCRIPTION = (
     "mode, supportive_context, or prompt engineering."
 )
 
-DEFAULT_REQUIRED_SCOPE = "https://ragstream.rusbehabtahi.com/mcp/invoke"
+DEFAULT_REQUIRED_SCOPE = "https://ghost.rusbehabtahi.com/mcp/invoke"
 
 PROMPT_MODE_PREFIX = re.compile(r"^\s*prompt\s*:\s*", re.IGNORECASE)
 MEMORY_MODE_PREFIX = re.compile(r"^\s*mem\s*:\s*", re.IGNORECASE)

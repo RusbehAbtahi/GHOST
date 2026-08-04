@@ -7,6 +7,8 @@ on:
       - "ragstream/**"
       - "requirements.txt"
       - "Dockerfile"
+      # MCP Docker image definition.
+      - "Dockerfile.mcp"
       - ".github/workflows/deploy-to-ecr.yml"
   workflow_dispatch:
 
@@ -14,6 +16,8 @@ env:
   AWS_REGION: eu-central-1
   ECR_REGISTRY: 108782059508.dkr.ecr.eu-central-1.amazonaws.com
   ECR_REPOSITORY: ragstream-web
+  # ECR repository for the new MCP image.
+  MCP_ECR_REPOSITORY: ghost-mcp
   IMAGE_TAG: latest
 
 jobs:
@@ -48,3 +52,19 @@ jobs:
       - name: Push image to ECR
         run: |
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      # ------------------------------------------------------------
+      # MCP IMAGE — NEW PART
+      # ------------------------------------------------------------
+
+      - name: Build MCP image
+        run: |
+          docker build -f Dockerfile.mcp -t "$MCP_ECR_REPOSITORY:$IMAGE_TAG" .
+
+      - name: Tag MCP image for ECR
+        run: |
+          docker tag "$MCP_ECR_REPOSITORY:$IMAGE_TAG" "$ECR_REGISTRY/$MCP_ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Push MCP image to ECR
+        run: |
+          docker push "$ECR_REGISTRY/$MCP_ECR_REPOSITORY:$IMAGE_TAG"

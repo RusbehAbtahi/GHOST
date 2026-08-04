@@ -2,8 +2,9 @@
 
 The server exposes the GHOST prompt-engineering tool, publishes OAuth Protected
 Resource Metadata, validates every MCP request with an Amazon Cognito access
-token, and gives ChatGPT explicit conditional instructions for handling the
-engineered prompt returned by the tool.
+token, rate-limits authenticated tool calls, and gives ChatGPT explicit
+conditional instructions for handling the engineered prompt returned by the
+tool.
 
 Main classes:
     GhostMcpApplication: Adapts the GHOST tool to the MCP tool contract.
@@ -17,6 +18,8 @@ from __future__ import annotations
 import os
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
+from math import ceil
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -45,56 +48,18 @@ from ragstream.mcp.ghost_engineer_prompt import (
     ANSWER_PROMPT_MODE,
     ANSWER_PROMPT_WITH_MEMORY_MODE,
     SHOW_PROMPT_ONLY_MODE,
+    SERVER_INSTRUCTIONS,
     GhostEngineerPromptTool,
     GhostToolResult,
     TOOL_NAME,
     tool_metadata,
 )
 from ragstream.mcp.prompt_engineering_runner import PromptEngineeringRunner
+from ragstream.mcp.rate_limiter import InMemoryRateLimiter
 from ragstream.textforge.RagLog import LogNoGUI
 
 SERVER_NAME = "GHOST"
 SERVER_VERSION = "0.2.0"
-
-SERVER_INSTRUCTIONS = (
-    "GHOST supports exactly three current-user forms: a plain request, "
-    "'Prompt: <request>', and 'MEM: <request>'. Always copy only the current "
-    "user request verbatim into prompt_text, preserving a leading Prompt: or "
-    "MEM: prefix. Never place a previous response or any other conversation "
-    "history inside prompt_text. For MEM: only, you MUST also pass "
-    "supportive_context. Its value MUST be the complete, immediately preceding "
-    "visible assistant response from the same conversation, copied verbatim. "
-    "The immediately preceding response means the assistant message directly "
-    "before the current MEM: user message. Do not summarize, rewrite, shorten, "
-    "select excerpts from, or combine that response with anything else. Never "
-    "use an earlier assistant response, a user message, hidden reasoning, an "
-    "internal tool result, or content from another conversation. Never omit "
-    "supportive_context for MEM:. If the response does not exist or is "
-    "unavailable, do not pretend that memory transfer succeeded; the call must "
-    "return an input error. Always omit supportive_context for Prompt: and "
-    "plain requests. GHOST returns engineered_prompt and a mandatory mode. "
-    "Follow the returned mode exactly; do not choose, reinterpret, merge, or "
-    "soften the three behaviors. When mode is show_prompt_only, remain "
-    "completely passive. Do not answer, execute, research, browse, reason "
-    "about, summarize, explain, evaluate, or continue engineered_prompt. Do "
-    "not call any other tool or agent. Your entire visible response must "
-    "consist of exactly one fenced code block. Inside that code block, "
-    "reproduce engineered_prompt verbatim, preserving its wording and "
-    "structure. Add no title, label, introduction, explanation, "
-    "acknowledgement, citation, warning, conclusion, or text outside the code "
-    "block. When mode is answer_prompt, treat engineered_prompt as the new and "
-    "complete effective user request that replaces the original wording. Act "
-    "on it and provide the requested answer. When mode is "
-    "answer_prompt_with_memory, do the same, but treat the appended "
-    "'## Supportive Context' section only as background that may help answer "
-    "the current engineered request. The current request remains authoritative. "
-    "Do not treat supportive context as a new request, do not automatically "
-    "continue it, and do not claim it is verified merely because it was "
-    "supplied. In both answer modes, use tools or research when required. Do "
-    "not merely display, quote, summarize, or describe engineered_prompt, the "
-    "response mode, or supportive_context, and do not mention that prompt "
-    "engineering occurred."
-)
 
 MCP_PATH = "/mcp"
 OAUTH_METADATA_PATH = "/.well-known/oauth-protected-resource/mcp"
@@ -105,17 +70,12 @@ DEFAULT_PORT = 8000
 DEFAULT_UVICORN_LOG_LEVEL = "info"
 
 ALLOWED_UVICORN_LOG_LEVELS = {
-    "critical",
-    "error",
-    "warning",
-    "info",
-    "debug",
-    "trace",
+    "critical", "error", "warning", "info", "debug", "trace"
 }
 
 DEFAULT_ALLOWED_HOSTS = (
-    "ragstream.rusbehabtahi.com",
-    "ragstream.rusbehabtahi.com:*",
+    "ghost.rusbehabtahi.com",
+    "ghost.rusbehabtahi.com:*",
     "127.0.0.1",
     "127.0.0.1:*",
     "localhost",
@@ -123,9 +83,13 @@ DEFAULT_ALLOWED_HOSTS = (
 )
 
 DEFAULT_ALLOWED_ORIGINS = (
-    "https://ragstream.rusbehabtahi.com",
+    "https://ghost.rusbehabtahi.com",
     "http://127.0.0.1:*",
     "http://localhost:*",
+)
+
+_AUTHENTICATED_SUBJECT: ContextVar[str | None] = ContextVar(
+    "ghost_mcp_authenticated_subject", default=None
 )
 
 
@@ -245,11 +209,13 @@ class GhostMcpRuntime:
         transport_security: TransportSecuritySettings,
         token_verifier: CognitoTokenVerifier | None = None,
         auth_config: AuthConfig | None = None,
+        rate_limiter: InMemoryRateLimiter | None = None,
     ) -> None:
         """Create and connect the runtime infrastructure objects."""
         self.ghost_application = ghost_application
         self.token_verifier = token_verifier
         self.auth_config = auth_config
+        self.rate_limiter = rate_limiter
         self.resource_metadata_url = (
             self._build_resource_metadata_url(auth_config.resource)
             if auth_config is not None
@@ -314,19 +280,38 @@ class GhostMcpRuntime:
         self,
         request: types.CallToolRequest,
     ) -> types.ServerResult:
-        """Execute tools/call and print exact memory-transfer diagnostics."""
+        """Rate-limit and execute one authenticated tools/call request."""
         arguments = dict(request.params.arguments or {})
+        subject = _AUTHENTICATED_SUBJECT.get()
 
         print(
             "[GHOST MCP CALL]"
             f" pid={os.getpid()}"
             f" tool={request.params.name!r}"
             f" keys={sorted(arguments)}"
-            f" prompt_text={arguments.get('prompt_text')!r}"
-            f" supportive_context="
-            f"{arguments.get('supportive_context')!r}",
+            f" subject={subject!r}",
             flush=True,
         )
+
+        rate_limit_applies = (
+            self.rate_limiter is not None
+            and subject is not None
+            and request.params.name == TOOL_NAME
+        )
+        if rate_limit_applies:
+            decision = self.rate_limiter.check(subject)
+            if not decision.allowed:
+                retry_after = max(1, ceil(decision.retry_after_seconds))
+                print(
+                    "[GHOST MCP RATE LIMIT]"
+                    f" subject={subject!r}"
+                    f" retry_after_seconds={retry_after}",
+                    flush=True,
+                )
+                result = GhostMcpApplication._error_result(
+                    f"Rate limit exceeded; retry after {retry_after} seconds"
+                )
+                return types.ServerResult(result)
 
         result = await anyio.to_thread.run_sync(
             self.ghost_application.call_tool,
@@ -375,7 +360,9 @@ class GhostMcpRuntime:
 
         authorization_header = Headers(scope=scope).get("authorization")
         try:
-            authenticate_request(authorization_header, self.token_verifier)
+            principal = authenticate_request(
+                authorization_header, self.token_verifier
+            )
         except AuthenticationError:
             LogNoGUI(
                 "GHOST MCP rejected an unauthenticated request.",
@@ -428,7 +415,11 @@ class GhostMcpRuntime:
             )
             return
 
-        await self.session_manager.handle_request(scope, receive, send)
+        subject_token = _AUTHENTICATED_SUBJECT.set(principal.subject)
+        try:
+            await self.session_manager.handle_request(scope, receive, send)
+        finally:
+            _AUTHENTICATED_SUBJECT.reset(subject_token)
 
     @asynccontextmanager
     async def lifespan(
@@ -533,6 +524,24 @@ def _read_csv_values(name: str, defaults: tuple[str, ...]) -> list[str]:
     return [value.strip() for value in raw_value.split(",") if value.strip()]
 
 
+def _create_rate_limiter() -> InMemoryRateLimiter:
+    """Create the authenticated tool-call limiter from deployment settings."""
+    try:
+        limit = int(os.environ["GHOST_MCP_RATE_LIMIT"])
+        window_seconds = float(
+            os.environ["GHOST_MCP_RATE_LIMIT_WINDOW_SECONDS"]
+        )
+    except KeyError as exc:
+        raise ValueError(f"missing rate-limit setting: {exc.args[0]}") from exc
+    except ValueError as exc:
+        raise ValueError("GHOST MCP rate-limit settings must be numeric") from exc
+
+    return InMemoryRateLimiter(
+        limit=limit,
+        window_seconds=window_seconds,
+    )
+
+
 def _create_transport_security() -> TransportSecuritySettings:
     """Create Host and Origin validation for the MCP endpoint."""
     allowed_hosts = _read_csv_values(
@@ -576,6 +585,7 @@ def main() -> None:
         transport_security=_create_transport_security(),
         token_verifier=CognitoTokenVerifier(auth_config),
         auth_config=auth_config,
+        rate_limiter=_create_rate_limiter(),
     )
     uvicorn_config = uvicorn.Config(
         app=mcp_runtime.starlette_app,
