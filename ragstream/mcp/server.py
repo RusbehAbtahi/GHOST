@@ -1,13 +1,11 @@
 """Run the authenticated GHOST MCP server over Streamable HTTP.
 
-The server exposes the GHOST prompt-engineering tool, publishes OAuth Protected
-Resource Metadata, validates every MCP request with an Amazon Cognito access
-token, rate-limits authenticated tool calls, and gives ChatGPT explicit
-conditional instructions for handling the engineered prompt returned by the
-tool.
+The server exposes prompt engineering and two memory tools, publishes OAuth
+Protected Resource Metadata, validates every MCP request with an Amazon Cognito
+access token, and rate-limits authenticated tool calls.
 
 Main classes:
-    GhostMcpApplication: Adapts the GHOST tool to the MCP tool contract.
+    GhostMcpApplication: Owns and dispatches the three GHOST tools.
     GhostMcpRuntime: Connects authentication, MCP, Streamable HTTP, and Starlette.
 
 Requires mcp>=1.27,<2 and PyJWT[crypto]>=2.10,<3.
@@ -19,6 +17,7 @@ import os
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
+from dataclasses import asdict
 from math import ceil
 from typing import Any
 from urllib.parse import urlsplit
@@ -48,18 +47,37 @@ from ragstream.mcp.ghost_engineer_prompt import (
     ANSWER_PROMPT_MODE,
     ANSWER_PROMPT_WITH_MEMORY_MODE,
     SHOW_PROMPT_ONLY_MODE,
-    SERVER_INSTRUCTIONS,
+    SERVER_INSTRUCTIONS as PROMPT_SERVER_INSTRUCTIONS,
     GhostEngineerPromptTool,
     GhostToolResult,
-    TOOL_NAME,
-    tool_metadata,
+    TOOL_NAME as PROMPT_TOOL_NAME,
+    tool_metadata as prompt_tool_metadata,
+)
+from ragstream.mcp.ghost_memory_recall import (
+    GhostMemoryRecallTool,
+    TOOL_NAME as MEMORY_RECALL_TOOL_NAME,
+    tool_metadata as memory_recall_tool_metadata,
+)
+from ragstream.mcp.ghost_memory_tag import (
+    GhostMemoryTagTool,
+    TOOL_NAME as MEMORY_TAG_TOOL_NAME,
+    tool_metadata as memory_tag_tool_metadata,
 )
 from ragstream.mcp.prompt_engineering_runner import PromptEngineeringRunner
 from ragstream.mcp.rate_limiter import InMemoryRateLimiter
+from ragstream.memory.mcp_memory_store import McpMemoryStore
 from ragstream.textforge.RagLog import LogNoGUI
 
 SERVER_NAME = "GHOST"
-SERVER_VERSION = "0.2.0"
+SERVER_VERSION = "0.3.0"
+
+SERVER_INSTRUCTIONS = (
+    "After every ghost_memory_tag call, report its receipt. Claim success only "
+    "when saved is true, and include the returned recall key and record ID. If "
+    "the call fails, state that the memory was not saved and give its returned "
+    "sanitized reason. "
+    + PROMPT_SERVER_INSTRUCTIONS
+)
 
 MCP_PATH = "/mcp"
 OAUTH_METADATA_PATH = "/.well-known/oauth-protected-resource/mcp"
@@ -94,41 +112,67 @@ _AUTHENTICATED_SUBJECT: ContextVar[str | None] = ContextVar(
 
 
 class GhostMcpApplication:
-    """Own the GHOST tool and convert its result to the MCP contract."""
+    """Own the three GHOST tools and convert their results to MCP."""
 
     def __init__(
         self,
         tool: GhostEngineerPromptTool | None = None,
         required_scope: str | None = None,
+        memory_store: McpMemoryStore | None = None,
     ) -> None:
-        """Create the production tool or accept injected test dependencies."""
+        """Create the production tools or accept injected test dependencies."""
         if tool is None:
             tool = GhostEngineerPromptTool(PromptEngineeringRunner())
+        if memory_store is None:
+            memory_store = McpMemoryStore()
 
         self.tool = tool
+        self.memory_tag_tool = GhostMemoryTagTool(memory_store)
+        self.memory_recall_tool = GhostMemoryRecallTool(memory_store)
         self.required_scope = required_scope
 
     def list_tools(self) -> list[types.Tool]:
-        """Return the single OAuth-protected tool advertised to MCP clients."""
-        definition = tool_metadata(self.required_scope)
-        definition["annotations"]["openWorldHint"] = True
-        return [types.Tool.model_validate(definition)]
+        """Return the three OAuth-protected tools advertised to MCP clients."""
+        prompt = prompt_tool_metadata(self.required_scope)
+        prompt["annotations"]["openWorldHint"] = True
+
+        definitions = (
+            prompt,
+            memory_tag_tool_metadata(self.required_scope),
+            memory_recall_tool_metadata(self.required_scope),
+        )
+        return [types.Tool.model_validate(item) for item in definitions]
 
     def call_tool(
         self,
         name: str,
         arguments: Mapping[str, Any] | None,
+        owner_sub: str | None = None,
     ) -> types.CallToolResult:
         """Execute the requested tool and return a complete MCP result."""
-        if name != TOOL_NAME:
-            raise McpError(
-                types.ErrorData(
-                    code=types.INVALID_PARAMS,
-                    message=f"Unknown tool: {name}",
-                )
-            )
+        if name == PROMPT_TOOL_NAME:
+            return self._to_mcp_result(self.tool.call_sanitized(arguments))
 
-        return self._to_mcp_result(self.tool.call_sanitized(arguments))
+        if name == MEMORY_TAG_TOOL_NAME:
+            result = self.memory_tag_tool.call_sanitized(
+                owner_sub or "",
+                arguments,
+            )
+            return types.CallToolResult.model_validate(asdict(result))
+
+        if name == MEMORY_RECALL_TOOL_NAME:
+            result = self.memory_recall_tool.call_sanitized(
+                owner_sub or "",
+                arguments,
+            )
+            return types.CallToolResult.model_validate(asdict(result))
+
+        raise McpError(
+            types.ErrorData(
+                code=types.INVALID_PARAMS,
+                message=f"Unknown tool: {name}",
+            )
+        )
 
     @classmethod
     def _to_mcp_result(cls, result: GhostToolResult) -> types.CallToolResult:
@@ -296,7 +340,11 @@ class GhostMcpRuntime:
         rate_limit_applies = (
             self.rate_limiter is not None
             and subject is not None
-            and request.params.name == TOOL_NAME
+            and request.params.name in {
+                PROMPT_TOOL_NAME,
+                MEMORY_TAG_TOOL_NAME,
+                MEMORY_RECALL_TOOL_NAME,
+            }
         )
         if rate_limit_applies:
             decision = self.rate_limiter.check(subject)
@@ -317,6 +365,7 @@ class GhostMcpRuntime:
             self.ghost_application.call_tool,
             request.params.name,
             request.params.arguments,
+            subject,
         )
 
         structured_content = result.structuredContent or {}
@@ -565,7 +614,7 @@ def _create_transport_security() -> TransportSecuritySettings:
 def main() -> None:
     """Create the authenticated GHOST MCP server and start Uvicorn."""
     auth_config = AuthConfig.from_environment()
-    descriptor = tool_metadata(auth_config.required_scope)
+    descriptor = prompt_tool_metadata(auth_config.required_scope)
 
     print(
         "[GHOST MCP START]"

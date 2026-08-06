@@ -159,12 +159,16 @@ class MemoryIndexLookup:
         self,
         direct_recall_key: str,
         cfg: dict[str, Any],
+        owner_sub: str | None = None,
     ) -> dict[str, Any] | None:
         """
         Lookup a Direct Recall candidate across all memory histories.
 
         Automatic retrieval stays current-file only, but Direct Recall is allowed
         to cross histories through exact key lookup.
+
+        When owner_sub is supplied, matching is restricted to memory files owned
+        by that authenticated subject. Omitting it preserves normal GHOST lookup.
         """
         key = str(direct_recall_key or "").strip()
         if not key:
@@ -177,21 +181,36 @@ class MemoryIndexLookup:
         exclude_tags = self._as_list(direct_cfg.get("exclude_tags", ["Black"]))
 
         query = """
-            SELECT *
-            FROM memory_records
-            WHERE direct_recall_key = ?
+            SELECT mr.*
+            FROM memory_records AS mr
         """
-        params: list[Any] = [key]
+        params: list[Any] = []
+
+        if owner_sub is None:
+            query += " WHERE mr.direct_recall_key = ?"
+        else:
+            clean_owner_sub = str(owner_sub).strip()
+            if not clean_owner_sub:
+                return None
+
+            query += """
+                JOIN memory_files AS mf ON mf.file_id = mr.file_id
+                WHERE mf.owner_sub = ?
+                  AND mr.direct_recall_key = ?
+            """
+            params.append(clean_owner_sub)
+
+        params.append(key)
 
         if exclude_tags:
             placeholders = ",".join("?" for _ in exclude_tags)
-            query += f" AND tag NOT IN ({placeholders})"
+            query += f" AND mr.tag NOT IN ({placeholders})"
             params.extend(exclude_tags)
 
         query += """
             ORDER BY
-              CASE tag WHEN 'Gold' THEN 0 WHEN 'Green' THEN 1 ELSE 2 END,
-              created_at_utc DESC
+              CASE mr.tag WHEN 'Gold' THEN 0 WHEN 'Green' THEN 1 ELSE 2 END,
+              mr.created_at_utc DESC
             LIMIT 1
         """
 
