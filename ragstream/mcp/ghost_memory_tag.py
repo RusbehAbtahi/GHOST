@@ -19,7 +19,10 @@ from ragstream.mcp.ghost_engineer_prompt import (
     DEFAULT_REQUIRED_SCOPE,
     GhostToolResult,
 )
-from ragstream.memory.mcp_memory_store import McpMemoryStore
+from ragstream.memory.mcp_memory_store import (
+    MAX_EPISODE_TITLE_LENGTH,
+    McpMemoryStore,
+)
 
 
 TOOL_NAME = "ghost_memory_tag"
@@ -28,6 +31,10 @@ TOOL_DESCRIPTION = (
     "Saves one visible user/assistant pair from the current conversation under "
     "an exact recall key. By default, use the immediately preceding pair. If the "
     "user identifies an older pair by its text or position, use that pair instead. "
+    "Generate episode_title yourself as a short descriptive title for the selected "
+    f"pair, preferably 3-10 words and no more than {MAX_EPISODE_TITLE_LENGTH} "
+    "characters; do not ask the "
+    "user to provide the title. Base the title only on the selected visible pair. "
     "Copy the selected user message into input_text and its complete assistant "
     "response into output_text, both verbatim. One call saves one pair; call the "
     "tool separately for each pair when the user requests several. Do not use a "
@@ -41,6 +48,15 @@ INPUT_SCHEMA = {
             "type": "string",
             "minLength": 1,
         },
+        "episode_title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": MAX_EPISODE_TITLE_LENGTH,
+            "description": (
+                "Generate a short descriptive title for the selected visible "
+                "user/assistant pair, preferably 3-10 words."
+            ),
+        },
         "input_text": {
             "type": "string",
             "minLength": 1,
@@ -50,7 +66,7 @@ INPUT_SCHEMA = {
             "minLength": 1,
         },
     },
-    "required": ["recall_key", "input_text", "output_text"],
+    "required": ["recall_key", "episode_title", "input_text", "output_text"],
     "additionalProperties": False,
 }
 
@@ -63,6 +79,11 @@ OUTPUT_SCHEMA = {
         "recall_key": {
             "type": "string",
             "minLength": 1,
+        },
+        "episode_title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": MAX_EPISODE_TITLE_LENGTH,
         },
         "record_id": {
             "type": "string",
@@ -93,17 +114,30 @@ class GhostMemoryTagTool:
             return self._failure("memory tag input is required")
 
         if set(arguments).difference(
-            {"recall_key", "input_text", "output_text"}
+            {"recall_key", "episode_title", "input_text", "output_text"}
         ):
             return self._failure("unsupported input property")
 
         recall_key = arguments.get("recall_key")
+        episode_title = arguments.get("episode_title")
         input_text = arguments.get("input_text")
         output_text = arguments.get("output_text")
 
         if not isinstance(recall_key, str) or not recall_key.strip():
             return self._failure(
                 "recall_key is required and must be a non-empty string"
+            )
+
+        if not isinstance(episode_title, str) or not episode_title.strip():
+            return self._failure(
+                "episode_title is required and must be a non-empty string"
+            )
+
+        clean_episode_title = episode_title.strip()
+        if len(clean_episode_title) > MAX_EPISODE_TITLE_LENGTH:
+            return self._failure(
+                f"episode_title must be at most "
+                f"{MAX_EPISODE_TITLE_LENGTH} characters"
             )
 
         if not isinstance(input_text, str) or not input_text.strip():
@@ -122,6 +156,7 @@ class GhostMemoryTagTool:
             record = self._memory_store.tag_memory(
                 owner_sub=owner_sub,
                 recall_key=clean_recall_key,
+                episode_title=clean_episode_title,
                 input_text=input_text,
                 output_text=output_text,
             )
@@ -137,6 +172,7 @@ class GhostMemoryTagTool:
                     "type": "text",
                     "text": (
                         "Memory saved successfully.\n"
+                        f"Episode title: {clean_episode_title}\n"
                         f"Recall key: {clean_recall_key}\n"
                         f"Record ID: {record.record_id}"
                     ),
@@ -145,6 +181,7 @@ class GhostMemoryTagTool:
             structuredContent={
                 "saved": True,
                 "recall_key": clean_recall_key,
+                "episode_title": clean_episode_title,
                 "record_id": record.record_id,
             },
         )

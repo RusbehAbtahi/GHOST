@@ -1,23 +1,29 @@
-"""Run the authenticated GHOST MCP server over Streamable HTTP.
+"""Run the authenticated GHOST MCP runtime over Streamable HTTP.
 
-The server exposes prompt engineering and two memory tools, publishes OAuth
-Protected Resource Metadata, validates every MCP request with an Amazon Cognito
-access token, and rate-limits authenticated tool calls.
+The server owns the MCP/HTTP runtime boundary: OAuth Protected Resource
+Metadata, Amazon Cognito authentication, authenticated request context, rate
+limiting, Streamable HTTP, Starlette routing, and Uvicorn startup. Tool creation,
+metadata, dispatch, and tool-result conversion live in ghost_mcp_app.py.
 
 Main classes:
-    GhostMcpApplication: Owns and dispatches the three GHOST tools.
-    GhostMcpRuntime: Connects authentication, MCP, Streamable HTTP, and Starlette.
+    GhostMcpRuntime:
+        Connects authentication, MCP, Streamable HTTP, and Starlette.
 
-Requires mcp>=1.27,<2 and PyJWT[crypto]>=2.10,<3.
+Main functions:
+    main():
+        Builds the authenticated runtime and starts Uvicorn.
+
+Important notes:
+    All five GHOST tools are rate-limited by authenticated Cognito subject.
+    Requires mcp>=1.27,<2 and PyJWT[crypto]>=2.10,<3.
 """
 
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
-from dataclasses import asdict
 from math import ceil
 from typing import Any
 from urllib.parse import urlsplit
@@ -28,7 +34,6 @@ import uvicorn
 from mcp.server.lowlevel import Server
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from mcp.server.transport_security import TransportSecuritySettings
-from mcp.shared.exceptions import McpError
 from starlette.applications import Starlette
 from starlette.datastructures import Headers
 from starlette.responses import JSONResponse
@@ -43,41 +48,17 @@ from ragstream.mcp.auth import (
     CognitoTokenVerifier,
     authenticate_request,
 )
-from ragstream.mcp.ghost_engineer_prompt import (
-    ANSWER_PROMPT_MODE,
-    ANSWER_PROMPT_WITH_MEMORY_MODE,
-    SHOW_PROMPT_ONLY_MODE,
-    SERVER_INSTRUCTIONS as PROMPT_SERVER_INSTRUCTIONS,
-    GhostEngineerPromptTool,
-    GhostToolResult,
-    TOOL_NAME as PROMPT_TOOL_NAME,
-    tool_metadata as prompt_tool_metadata,
+from ragstream.mcp.ghost_mcp_app import (
+    GHOST_TOOL_NAMES,
+    SERVER_INSTRUCTIONS,
+    GhostMcpApplication,
 )
-from ragstream.mcp.ghost_memory_recall import (
-    GhostMemoryRecallTool,
-    TOOL_NAME as MEMORY_RECALL_TOOL_NAME,
-    tool_metadata as memory_recall_tool_metadata,
-)
-from ragstream.mcp.ghost_memory_tag import (
-    GhostMemoryTagTool,
-    TOOL_NAME as MEMORY_TAG_TOOL_NAME,
-    tool_metadata as memory_tag_tool_metadata,
-)
-from ragstream.mcp.prompt_engineering_runner import PromptEngineeringRunner
 from ragstream.mcp.rate_limiter import InMemoryRateLimiter
-from ragstream.memory.mcp_memory_store import McpMemoryStore
 from ragstream.textforge.RagLog import LogNoGUI
+
 
 SERVER_NAME = "GHOST"
 SERVER_VERSION = "0.3.0"
-
-SERVER_INSTRUCTIONS = (
-    "After every ghost_memory_tag call, report its receipt. Claim success only "
-    "when saved is true, and include the returned recall key and record ID. If "
-    "the call fails, state that the memory was not saved and give its returned "
-    "sanitized reason. "
-    + PROMPT_SERVER_INSTRUCTIONS
-)
 
 MCP_PATH = "/mcp"
 OAUTH_METADATA_PATH = "/.well-known/oauth-protected-resource/mcp"
@@ -88,7 +69,12 @@ DEFAULT_PORT = 8000
 DEFAULT_UVICORN_LOG_LEVEL = "info"
 
 ALLOWED_UVICORN_LOG_LEVELS = {
-    "critical", "error", "warning", "info", "debug", "trace"
+    "critical",
+    "error",
+    "warning",
+    "info",
+    "debug",
+    "trace",
 }
 
 DEFAULT_ALLOWED_HOSTS = (
@@ -107,141 +93,9 @@ DEFAULT_ALLOWED_ORIGINS = (
 )
 
 _AUTHENTICATED_SUBJECT: ContextVar[str | None] = ContextVar(
-    "ghost_mcp_authenticated_subject", default=None
+    "ghost_mcp_authenticated_subject",
+    default=None,
 )
-
-
-class GhostMcpApplication:
-    """Own the three GHOST tools and convert their results to MCP."""
-
-    def __init__(
-        self,
-        tool: GhostEngineerPromptTool | None = None,
-        required_scope: str | None = None,
-        memory_store: McpMemoryStore | None = None,
-    ) -> None:
-        """Create the production tools or accept injected test dependencies."""
-        if tool is None:
-            tool = GhostEngineerPromptTool(PromptEngineeringRunner())
-        if memory_store is None:
-            memory_store = McpMemoryStore()
-
-        self.tool = tool
-        self.memory_tag_tool = GhostMemoryTagTool(memory_store)
-        self.memory_recall_tool = GhostMemoryRecallTool(memory_store)
-        self.required_scope = required_scope
-
-    def list_tools(self) -> list[types.Tool]:
-        """Return the three OAuth-protected tools advertised to MCP clients."""
-        prompt = prompt_tool_metadata(self.required_scope)
-        prompt["annotations"]["openWorldHint"] = True
-
-        definitions = (
-            prompt,
-            memory_tag_tool_metadata(self.required_scope),
-            memory_recall_tool_metadata(self.required_scope),
-        )
-        return [types.Tool.model_validate(item) for item in definitions]
-
-    def call_tool(
-        self,
-        name: str,
-        arguments: Mapping[str, Any] | None,
-        owner_sub: str | None = None,
-    ) -> types.CallToolResult:
-        """Execute the requested tool and return a complete MCP result."""
-        if name == PROMPT_TOOL_NAME:
-            return self._to_mcp_result(self.tool.call_sanitized(arguments))
-
-        if name == MEMORY_TAG_TOOL_NAME:
-            result = self.memory_tag_tool.call_sanitized(
-                owner_sub or "",
-                arguments,
-            )
-            return types.CallToolResult.model_validate(asdict(result))
-
-        if name == MEMORY_RECALL_TOOL_NAME:
-            result = self.memory_recall_tool.call_sanitized(
-                owner_sub or "",
-                arguments,
-            )
-            return types.CallToolResult.model_validate(asdict(result))
-
-        raise McpError(
-            types.ErrorData(
-                code=types.INVALID_PARAMS,
-                message=f"Unknown tool: {name}",
-            )
-        )
-
-    @classmethod
-    def _to_mcp_result(cls, result: GhostToolResult) -> types.CallToolResult:
-        """Validate and convert one internal GHOST result to MCP."""
-        text = cls._single_text(result.content)
-        if result.isError:
-            return cls._error_result(text or "GHOST prompt engineering failed")
-
-        structured_content = result.structuredContent
-        engineered_prompt = structured_content.get("engineered_prompt")
-        mode = structured_content.get("mode")
-
-        valid_result = (
-            text is not None
-            and isinstance(engineered_prompt, str)
-            and bool(engineered_prompt.strip())
-            and text == engineered_prompt
-            and structured_content.get("stage") == "a2"
-            and mode in {
-                SHOW_PROMPT_ONLY_MODE,
-                ANSWER_PROMPT_MODE,
-                ANSWER_PROMPT_WITH_MEMORY_MODE,
-            }
-            and set(structured_content) == {"engineered_prompt", "stage", "mode"}
-        )
-
-        if not valid_result:
-            LogNoGUI(
-                "GHOST MCP rejected an invalid internal tool result.",
-                "ERROR",
-                "INTERNAL",
-            )
-            return cls._error_result("GHOST returned an invalid tool result")
-
-        return types.CallToolResult(
-            content=[types.TextContent(type="text", text=engineered_prompt)],
-            structuredContent={
-                "engineered_prompt": engineered_prompt,
-                "stage": "a2",
-                "mode": mode,
-            },
-            isError=False,
-        )
-
-    @staticmethod
-    def _single_text(content: object) -> str | None:
-        """Return text only when content contains one exact text item."""
-        if not isinstance(content, list) or len(content) != 1:
-            return None
-
-        item = content[0]
-        if not isinstance(item, Mapping):
-            return None
-
-        text = item.get("text")
-        valid_item = (
-            set(item) == {"type", "text"}
-            and item.get("type") == "text"
-            and isinstance(text, str)
-        )
-        return text if valid_item else None
-
-    @staticmethod
-    def _error_result(message: str) -> types.CallToolResult:
-        """Create one sanitized MCP tool-error response."""
-        return types.CallToolResult(
-            content=[types.TextContent(type="text", text=message)],
-            isError=True,
-        )
 
 
 class GhostMcpRuntime:
@@ -284,7 +138,13 @@ class GhostMcpRuntime:
             security_settings=transport_security,
         )
 
-        routes = [Route(MCP_PATH, endpoint=self, methods=MCP_HTTP_METHODS)]
+        routes = [
+            Route(
+                MCP_PATH,
+                endpoint=self,
+                methods=MCP_HTTP_METHODS,
+            )
+        ]
         if self.auth_config is not None:
             routes.insert(
                 0,
@@ -310,10 +170,16 @@ class GhostMcpRuntime:
         return JSONResponse(
             {
                 "resource": self.auth_config.resource,
-                "authorization_servers": [self.auth_config.issuer],
-                "scopes_supported": [self.auth_config.required_scope],
+                "authorization_servers": [
+                    self.auth_config.issuer,
+                ],
+                "scopes_supported": [
+                    self.auth_config.required_scope,
+                ],
             },
-            headers={"Cache-Control": "no-store"},
+            headers={
+                "Cache-Control": "no-store",
+            },
         )
 
     async def handle_list_tools(self) -> list[types.Tool]:
@@ -340,24 +206,32 @@ class GhostMcpRuntime:
         rate_limit_applies = (
             self.rate_limiter is not None
             and subject is not None
-            and request.params.name in {
-                PROMPT_TOOL_NAME,
-                MEMORY_TAG_TOOL_NAME,
-                MEMORY_RECALL_TOOL_NAME,
-            }
+            and request.params.name in GHOST_TOOL_NAMES
         )
         if rate_limit_applies:
             decision = self.rate_limiter.check(subject)
             if not decision.allowed:
-                retry_after = max(1, ceil(decision.retry_after_seconds))
+                retry_after = max(
+                    1,
+                    ceil(decision.retry_after_seconds),
+                )
                 print(
                     "[GHOST MCP RATE LIMIT]"
                     f" subject={subject!r}"
                     f" retry_after_seconds={retry_after}",
                     flush=True,
                 )
-                result = GhostMcpApplication._error_result(
-                    f"Rate limit exceeded; retry after {retry_after} seconds"
+                result = types.CallToolResult(
+                    content=[
+                        types.TextContent(
+                            type="text",
+                            text=(
+                                "Rate limit exceeded; retry after "
+                                f"{retry_after} seconds"
+                            ),
+                        )
+                    ],
+                    isError=True,
                 )
                 return types.ServerResult(result)
 
@@ -407,10 +281,14 @@ class GhostMcpRuntime:
             )
             return
 
-        authorization_header = Headers(scope=scope).get("authorization")
+        authorization_header = Headers(
+            scope=scope
+        ).get("authorization")
+
         try:
             principal = authenticate_request(
-                authorization_header, self.token_verifier
+                authorization_header,
+                self.token_verifier,
             )
         except AuthenticationError:
             LogNoGUI(
@@ -419,7 +297,9 @@ class GhostMcpRuntime:
                 "INTERNAL",
             )
             challenge_error = (
-                "invalid_token" if authorization_header is not None else None
+                "invalid_token"
+                if authorization_header is not None
+                else None
             )
             await self._send_http_error(
                 scope,
@@ -464,9 +344,15 @@ class GhostMcpRuntime:
             )
             return
 
-        subject_token = _AUTHENTICATED_SUBJECT.set(principal.subject)
+        subject_token = _AUTHENTICATED_SUBJECT.set(
+            principal.subject
+        )
         try:
-            await self.session_manager.handle_request(scope, receive, send)
+            await self.session_manager.handle_request(
+                scope,
+                receive,
+                send,
+            )
         finally:
             _AUTHENTICATED_SUBJECT.reset(subject_token)
 
@@ -477,7 +363,11 @@ class GhostMcpRuntime:
     ) -> AsyncIterator[None]:
         """Keep the session manager active for Starlette's lifetime."""
         async with self.session_manager.run():
-            LogNoGUI("GHOST MCP session manager started.", "INFO", "INTERNAL")
+            LogNoGUI(
+                "GHOST MCP session manager started.",
+                "INFO",
+                "INTERNAL",
+            )
             try:
                 yield
             finally:
@@ -487,7 +377,11 @@ class GhostMcpRuntime:
                     "INTERNAL",
                 )
 
-    def _authorization_challenge(self, *, error: str | None = None) -> str:
+    def _authorization_challenge(
+        self,
+        *,
+        error: str | None = None,
+    ) -> str:
         """Build the OAuth Bearer challenge returned to MCP clients."""
         if self.auth_config is None or self.resource_metadata_url is None:
             return 'Bearer realm="GHOST MCP"'
@@ -497,18 +391,31 @@ class GhostMcpRuntime:
             f'scope="{self.auth_config.required_scope}"',
         ]
         if error is not None:
-            parameters.append(f'error="{error}"')
+            parameters.append(
+                f'error="{error}"'
+            )
+
         return "Bearer " + ", ".join(parameters)
 
     @staticmethod
-    def _build_resource_metadata_url(resource: str) -> str:
+    def _build_resource_metadata_url(
+        resource: str,
+    ) -> str:
         """Build the absolute metadata URL from the canonical resource."""
         parsed = urlsplit(resource)
-        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        if (
+            parsed.scheme not in {"http", "https"}
+            or not parsed.netloc
+        ):
             raise ValueError(
                 "GHOST MCP resource must be an absolute HTTP(S) URL"
             )
-        return f"{parsed.scheme}://{parsed.netloc}{OAUTH_METADATA_PATH}"
+
+        return (
+            f"{parsed.scheme}://"
+            f"{parsed.netloc}"
+            f"{OAUTH_METADATA_PATH}"
+        )
 
     @staticmethod
     async def _send_http_error(
@@ -521,36 +428,60 @@ class GhostMcpRuntime:
         www_authenticate: str | None = None,
     ) -> None:
         """Return one sanitized HTTP error before MCP processing."""
-        headers = {"Cache-Control": "no-store"}
+        headers = {
+            "Cache-Control": "no-store",
+        }
         if www_authenticate is not None:
             headers["WWW-Authenticate"] = www_authenticate
 
         response = JSONResponse(
-            {"error": error},
+            {
+                "error": error,
+            },
             status_code=status_code,
             headers=headers,
         )
-        await response(scope, receive, send)
+        await response(
+            scope,
+            receive,
+            send,
+        )
 
 
 def _read_host() -> str:
     """Read and validate the network address used by Uvicorn."""
-    host = os.getenv("GHOST_MCP_HOST", DEFAULT_HOST).strip()
+    host = os.getenv(
+        "GHOST_MCP_HOST",
+        DEFAULT_HOST,
+    ).strip()
+
     if not host:
-        raise ValueError("GHOST_MCP_HOST must not be empty")
+        raise ValueError(
+            "GHOST_MCP_HOST must not be empty"
+        )
+
     return host
 
 
 def _read_port() -> int:
     """Read and validate the TCP port opened by Uvicorn."""
-    raw_port = os.getenv("GHOST_MCP_PORT", str(DEFAULT_PORT))
+    raw_port = os.getenv(
+        "GHOST_MCP_PORT",
+        str(DEFAULT_PORT),
+    )
+
     try:
         port = int(raw_port)
     except ValueError as exc:
-        raise ValueError("GHOST_MCP_PORT must be an integer") from exc
+        raise ValueError(
+            "GHOST_MCP_PORT must be an integer"
+        ) from exc
 
     if not 1 <= port <= 65535:
-        raise ValueError("GHOST_MCP_PORT must be between 1 and 65535")
+        raise ValueError(
+            "GHOST_MCP_PORT must be between 1 and 65535"
+        )
+
     return port
 
 
@@ -560,30 +491,50 @@ def _read_uvicorn_log_level() -> str:
         "GHOST_MCP_LOG_LEVEL",
         DEFAULT_UVICORN_LOG_LEVEL,
     ).strip().lower()
+
     if log_level not in ALLOWED_UVICORN_LOG_LEVELS:
-        raise ValueError("GHOST_MCP_LOG_LEVEL has an unsupported value")
+        raise ValueError(
+            "GHOST_MCP_LOG_LEVEL has an unsupported value"
+        )
+
     return log_level
 
 
-def _read_csv_values(name: str, defaults: tuple[str, ...]) -> list[str]:
+def _read_csv_values(
+    name: str,
+    defaults: tuple[str, ...],
+) -> list[str]:
     """Read one comma-separated environment variable."""
     raw_value = os.getenv(name)
     if raw_value is None:
         return list(defaults)
-    return [value.strip() for value in raw_value.split(",") if value.strip()]
+
+    return [
+        value.strip()
+        for value in raw_value.split(",")
+        if value.strip()
+    ]
 
 
 def _create_rate_limiter() -> InMemoryRateLimiter:
     """Create the authenticated tool-call limiter from deployment settings."""
     try:
-        limit = int(os.environ["GHOST_MCP_RATE_LIMIT"])
+        limit = int(
+            os.environ["GHOST_MCP_RATE_LIMIT"]
+        )
         window_seconds = float(
-            os.environ["GHOST_MCP_RATE_LIMIT_WINDOW_SECONDS"]
+            os.environ[
+                "GHOST_MCP_RATE_LIMIT_WINDOW_SECONDS"
+            ]
         )
     except KeyError as exc:
-        raise ValueError(f"missing rate-limit setting: {exc.args[0]}") from exc
+        raise ValueError(
+            f"missing rate-limit setting: {exc.args[0]}"
+        ) from exc
     except ValueError as exc:
-        raise ValueError("GHOST MCP rate-limit settings must be numeric") from exc
+        raise ValueError(
+            "GHOST MCP rate-limit settings must be numeric"
+        ) from exc
 
     return InMemoryRateLimiter(
         limit=limit,
@@ -598,12 +549,15 @@ def _create_transport_security() -> TransportSecuritySettings:
         DEFAULT_ALLOWED_HOSTS,
     )
     if not allowed_hosts:
-        raise ValueError("GHOST_MCP_ALLOWED_HOSTS must not be empty")
+        raise ValueError(
+            "GHOST_MCP_ALLOWED_HOSTS must not be empty"
+        )
 
     allowed_origins = _read_csv_values(
         "GHOST_MCP_ALLOWED_ORIGINS",
         DEFAULT_ALLOWED_ORIGINS,
     )
+
     return TransportSecuritySettings(
         enable_dns_rebinding_protection=True,
         allowed_hosts=allowed_hosts,
@@ -614,35 +568,40 @@ def _create_transport_security() -> TransportSecuritySettings:
 def main() -> None:
     """Create the authenticated GHOST MCP server and start Uvicorn."""
     auth_config = AuthConfig.from_environment()
-    descriptor = prompt_tool_metadata(auth_config.required_scope)
 
     print(
         "[GHOST MCP START]"
         f" pid={os.getpid()}"
         f" server_file={os.path.realpath(__file__)}"
         f" version={SERVER_VERSION}"
-        f" input_fields="
-        f"{sorted(descriptor['inputSchema']['properties'])}",
+        f" tools={sorted(GHOST_TOOL_NAMES)}",
         flush=True,
     )
 
     ghost_application = GhostMcpApplication(
         required_scope=auth_config.required_scope
     )
+
     mcp_runtime = GhostMcpRuntime(
         ghost_application=ghost_application,
         transport_security=_create_transport_security(),
-        token_verifier=CognitoTokenVerifier(auth_config),
+        token_verifier=CognitoTokenVerifier(
+            auth_config
+        ),
         auth_config=auth_config,
         rate_limiter=_create_rate_limiter(),
     )
+
     uvicorn_config = uvicorn.Config(
         app=mcp_runtime.starlette_app,
         host=_read_host(),
         port=_read_port(),
         log_level=_read_uvicorn_log_level(),
     )
-    uvicorn.Server(uvicorn_config).run()
+
+    uvicorn.Server(
+        uvicorn_config
+    ).run()
 
 
 if __name__ == "__main__":  # pragma: no cover

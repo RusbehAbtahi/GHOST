@@ -73,11 +73,7 @@ The normal maximum size of one Python module is **500 lines**, including comment
 * 501–600 lines: exceptional; warn before writing and justify why one module is still better than a split.
 * Above 600 lines: do not write it as one module; split by responsibility.
 
-These limits are **design gates, not formatting targets**. Code must grow naturally from a clear and readable implementation. Never aim for an exact line count or artificially compress code to finish at or below 500 or 600 lines.
-
-Never sacrifice functionality, validation, error handling, robustness, testability, readability, or required documentation to satisfy a line limit. Do not use compressed formatting, dense expressions, combined statements, shortened names, or removed documentation merely to reduce the line count.
-
-If the natural implementation is expected to exceed 600 lines, or can remain below 600 only through such compromises, **stop before writing or presenting the final code**. Warn the user, explain why the file is growing, propose concrete options such as a responsibility-based companion module, removal of genuinely optional documentation, or another clearly justified design, and ask for explicit permission. Do not choose or implement one of these compromises without the user's approval.
+Do not use compressed formatting, removed documentation, or dense expressions merely to stay below the limit.
 
 ## 6. Split by responsibility, not by arbitrary size
 

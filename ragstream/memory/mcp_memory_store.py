@@ -1,4 +1,4 @@
-"""Persist and recall MCP memory without running the GUI memory workflow.
+"""Persist and administer MCP memory without the GUI memory workflow.
 
 Main classes:
     McpMemoryStore:
@@ -9,10 +9,13 @@ Main methods:
         Saves one exact input/output pair under an authenticated owner and key.
     recall_memory():
         Returns the owner-scoped Direct Recall result for an exact key.
+    list_memories():
+        Lists the authenticated owner's episodes from newest to oldest.
+    delete_memory():
+        Deletes one selected episode or all exact-key matches for one owner.
 
 Important notes:
-    Stable record serialization remains owned by MemoryRecord. MCP data is kept
-    below data/mcp/memory by default and is not vector-ingested.
+    MemoryRecord owns serialization; MCP data is not vector-ingested.
 """
 
 from __future__ import annotations
@@ -32,6 +35,8 @@ from ragstream.memory.retrieval.memory_index_lookup import MemoryIndexLookup
 
 
 DEFAULT_MEMORY_ROOT = Path("data/mcp/memory")
+MAX_EPISODE_TITLE_LENGTH = 120
+
 _OWNER_SUB_PATTERN = re.compile(r"[A-Za-z0-9._-]+")
 _RECORD_PATTERN = re.compile(
     rf"{re.escape(RECORD_START)}\n(.*?)\n{re.escape(RECORD_END)}",
@@ -58,7 +63,7 @@ def _unique(values: list[str]) -> list[str]:
 
 
 class McpMemoryStore:
-    """Own MCP-specific memory persistence and authenticated Direct Recall."""
+    """Own MCP memory persistence, lookup, listing, and deletion."""
 
     def __init__(
         self,
@@ -83,12 +88,18 @@ class McpMemoryStore:
         self,
         owner_sub: str,
         recall_key: str,
+        episode_title: str,
         input_text: str,
         output_text: str,
     ) -> MemoryRecord:
         """Save one exact input/output pair in the owner's UTC daily file."""
         owner = self._validate_owner_sub(owner_sub)
         key = self._require_text(recall_key, "recall_key", trim=True)
+        title = self._require_text(episode_title, "episode_title", trim=True)
+        if len(title) > MAX_EPISODE_TITLE_LENGTH:
+            raise ValueError(
+                f"episode_title must be at most {MAX_EPISODE_TITLE_LENGTH} characters."
+            )
         exact_input = self._require_text(input_text, "input_text")
         exact_output = self._require_text(output_text, "output_text")
 
@@ -104,6 +115,7 @@ class McpMemoryStore:
                 embedded_files_snapshot=[],
                 retrieval_source_mode="QA",
                 direct_recall_key=key,
+                episode_title=title,
                 active_retrieval_brief_title="",
                 active_retrieval_brief="",
                 active_retrieval_brief_contributor_ids=[],
@@ -153,6 +165,168 @@ class McpMemoryStore:
                 memory_root=self.memory_root,
             )
             return lookup.get_direct_recall(key, {}, owner_sub=owner)
+
+    def list_memories(
+        self,
+        owner_sub: str,
+    ) -> list[dict[str, str]]:
+        """List one owner's tagged episodes in deterministic newest-first order."""
+        owner = self._validate_owner_sub(owner_sub)
+
+        with self._lock, sqlite3.connect(self.sqlite_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+                SELECT mr.direct_recall_key AS recall_key,
+                       mr.episode_title,
+                       mr.record_id, mr.created_at_utc
+                FROM memory_records AS mr
+                JOIN memory_files AS mf ON mf.file_id = mr.file_id
+                WHERE mf.owner_sub = ?
+                  AND mr.direct_recall_key <> ''
+                ORDER BY mr.created_at_utc DESC, mr.record_id DESC
+                """,
+                [owner],
+            ).fetchall()
+
+        return [dict(row) for row in rows]
+
+    def delete_memory(
+        self,
+        owner_sub: str,
+        *,
+        recall_key: str | None = None,
+        record_id: str | None = None,
+        delete_all_matches: bool = False,
+    ) -> dict[str, Any]:
+        """Delete an owner-scoped episode while keeping files and SQLite aligned."""
+        owner = self._validate_owner_sub(owner_sub)
+        key = (
+            self._require_text(recall_key, "recall_key", trim=True)
+            if recall_key is not None else None
+        )
+        identifier = (
+            self._require_text(record_id, "record_id", trim=True)
+            if record_id is not None else None
+        )
+        if (key is None) == (identifier is None):
+            raise ValueError("exactly one of recall_key or record_id is required.")
+        if not isinstance(delete_all_matches, bool):
+            raise ValueError("delete_all_matches must be a boolean.")
+        if identifier is not None and delete_all_matches:
+            raise ValueError("delete_all_matches is allowed only with recall_key.")
+
+        with self._lock:
+            selector = (
+                "mr.direct_recall_key = ?" if key is not None else "mr.record_id = ?"
+            )
+            selector_value = key if key is not None else identifier
+            with sqlite3.connect(self.sqlite_path) as conn:
+                conn.row_factory = sqlite3.Row
+                rows = conn.execute(
+                    f"""
+                    SELECT mr.file_id, mr.record_id,
+                        mr.direct_recall_key AS recall_key,
+                        mr.created_at_utc
+                    FROM memory_records AS mr
+                    JOIN memory_files AS mf ON mf.file_id = mr.file_id
+                    WHERE mf.owner_sub = ?
+                      AND {selector}
+                    ORDER BY mr.created_at_utc DESC, mr.record_id DESC
+                    """,
+                    [owner, selector_value],
+                ).fetchall()
+
+            matches = [
+                {
+                    "recall_key": str(row["recall_key"]),
+                    "record_id": str(row["record_id"]),
+                    "created_at_utc": str(row["created_at_utc"]),
+                }
+                for row in rows
+            ]
+            result: dict[str, Any] = {
+                "deleted": False,
+                "deleted_count": 0,
+                "requires_selection": False,
+                "matches": matches,
+            }
+            if not rows:
+                return result
+            if key is not None and len(rows) > 1 and not delete_all_matches:
+                result["requires_selection"] = True
+                return result
+            if identifier is not None and len(rows) > 1:
+                raise ValueError("MCP memory index contains a duplicate record_id.")
+
+            selected_rows = rows if delete_all_matches else rows[:1]
+            rows_by_file: dict[str, list[sqlite3.Row]] = {}
+            for row in selected_rows:
+                rows_by_file.setdefault(str(row["file_id"]), []).append(row)
+
+            for file_id, file_rows in rows_by_file.items():
+                utc_date = str(file_rows[0]["created_at_utc"])[:10]
+                target_ids = {str(row["record_id"]) for row in file_rows}
+                self._delete_from_daily_history(
+                    owner,
+                    file_id,
+                    utc_date,
+                    target_ids,
+                )
+
+            selected_ids = {str(row["record_id"]) for row in selected_rows}
+            result["deleted"] = True
+            result["matches"] = [
+                match for match in matches if match["record_id"] in selected_ids
+            ]
+            result["deleted_count"] = len(result["matches"])
+            return result
+
+    def _delete_from_daily_history(
+        self,
+        owner_sub: str,
+        file_id: str,
+        utc_date: str,
+        target_ids: set[str],
+    ) -> None:
+        ragmem_path, meta_path, filename_ragmem, filename_meta = (
+            self._resolve_daily_history(owner_sub, utc_date)
+        )
+        loaded_file_id, records = self._load_daily_history(
+            owner_sub, ragmem_path, meta_path
+        )
+        if loaded_file_id != file_id:
+            raise ValueError("MCP memory index and metadata do not match.")
+        if not target_ids.issubset({record.record_id for record in records}):
+            raise ValueError("MCP memory index and file contents do not match.")
+
+        remaining = [record for record in records if record.record_id not in target_ids]
+        if not remaining:
+            ragmem_path.unlink()
+            meta_path.unlink()
+            with sqlite3.connect(self.sqlite_path) as conn:
+                conn.execute("DELETE FROM memory_records WHERE file_id = ?", [file_id])
+                conn.execute("DELETE FROM memory_files WHERE file_id = ?", [file_id])
+                conn.commit()
+            return
+
+        ragmem_path.write_text(
+            "".join(f"{record.to_ragmem_block()}\n" for record in remaining),
+            encoding="utf-8",
+        )
+        metainfo = self._build_metainfo(
+            owner_sub=owner_sub,
+            file_id=file_id,
+            title=f"MCP_MEM_{utc_date}",
+            filename_ragmem=filename_ragmem,
+            filename_meta=filename_meta,
+            records=remaining,
+        )
+        meta_path.write_text(
+            json.dumps(metainfo, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        self._refresh_sqlite_index(metainfo, remaining)
 
     def _resolve_daily_history(
         self,
@@ -310,11 +484,11 @@ class McpMemoryStore:
                     INSERT INTO memory_records (
                         file_id, record_id, parent_id, created_at_utc,
                         source, tag, retrieval_source_mode, direct_recall_key,
-                        auto_keywords_json, user_keywords_json,
+                        episode_title, auto_keywords_json, user_keywords_json,
                         active_project_name, embedded_files_snapshot_json,
                         input_hash, output_hash
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(file_id, record_id) DO UPDATE SET
                         parent_id = excluded.parent_id,
                         created_at_utc = excluded.created_at_utc,
@@ -322,6 +496,7 @@ class McpMemoryStore:
                         tag = excluded.tag,
                         retrieval_source_mode = excluded.retrieval_source_mode,
                         direct_recall_key = excluded.direct_recall_key,
+                        episode_title = excluded.episode_title,
                         auto_keywords_json = excluded.auto_keywords_json,
                         user_keywords_json = excluded.user_keywords_json,
                         active_project_name = excluded.active_project_name,
@@ -338,6 +513,7 @@ class McpMemoryStore:
                         index_data["tag"],
                         index_data["retrieval_source_mode"],
                         index_data["direct_recall_key"],
+                        index_data["episode_title"],
                         json.dumps(index_data["auto_keywords"], ensure_ascii=False),
                         json.dumps(index_data["user_keywords"], ensure_ascii=False),
                         index_data["active_project_name"],
@@ -366,7 +542,7 @@ class McpMemoryStore:
         self.sqlite_path.parent.mkdir(parents=True, exist_ok=True)
 
         with sqlite3.connect(self.sqlite_path) as conn:
-            conn.execute(
+            conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS memory_files (
                     file_id TEXT PRIMARY KEY,
@@ -377,11 +553,7 @@ class McpMemoryStore:
                     updated_at_utc TEXT NOT NULL,
                     record_count INTEGER NOT NULL,
                     owner_sub TEXT NOT NULL
-                )
-                """
-            )
-            conn.execute(
-                """
+                );
                 CREATE TABLE IF NOT EXISTS memory_records (
                     file_id TEXT NOT NULL,
                     record_id TEXT NOT NULL,
@@ -391,6 +563,7 @@ class McpMemoryStore:
                     tag TEXT NOT NULL,
                     retrieval_source_mode TEXT NOT NULL DEFAULT 'QA',
                     direct_recall_key TEXT NOT NULL DEFAULT '',
+                    episode_title TEXT NOT NULL DEFAULT '',
                     auto_keywords_json TEXT NOT NULL,
                     user_keywords_json TEXT NOT NULL,
                     active_project_name TEXT,
@@ -398,7 +571,7 @@ class McpMemoryStore:
                     input_hash TEXT NOT NULL,
                     output_hash TEXT NOT NULL,
                     PRIMARY KEY (file_id, record_id)
-                )
+                );
                 """
             )
 
@@ -412,28 +585,23 @@ class McpMemoryStore:
                     "ADD COLUMN owner_sub TEXT NOT NULL DEFAULT ''"
                 )
 
-            conn.execute(
+            record_columns = {
+                str(row[1])
+                for row in conn.execute("PRAGMA table_info(memory_records)").fetchall()
+            }
+            if "episode_title" not in record_columns:
+                conn.execute(
+                    "ALTER TABLE memory_records "
+                    "ADD COLUMN episode_title TEXT NOT NULL DEFAULT ''"
+                )
+
+            conn.executescript(
                 """
-                CREATE INDEX IF NOT EXISTS idx_memory_files_owner_sub
-                ON memory_files(owner_sub)
-                """
-            )
-            conn.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_memory_records_tag
-                ON memory_records(tag)
-                """
-            )
-            conn.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_memory_records_project
-                ON memory_records(active_project_name)
-                """
-            )
-            conn.execute(
-                """
+                CREATE INDEX IF NOT EXISTS idx_memory_files_owner_sub ON memory_files(owner_sub);
+                CREATE INDEX IF NOT EXISTS idx_memory_records_tag ON memory_records(tag);
+                CREATE INDEX IF NOT EXISTS idx_memory_records_project ON memory_records(active_project_name);
                 CREATE INDEX IF NOT EXISTS idx_memory_records_direct_recall_key
-                ON memory_records(direct_recall_key)
+                ON memory_records(direct_recall_key);
                 """
             )
             conn.commit()

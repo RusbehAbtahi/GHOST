@@ -1,20 +1,24 @@
 # ragstream/memory/memory_record.py
 # -*- coding: utf-8 -*-
-"""
-MemoryRecord
-============
-One accepted input/output memory unit.
+"""Represent one accepted input/output memory episode and its metadata.
 
-Authority split:
-- .ragmem stores only the stable append-only memory body.
-- .ragmeta.json stores current metadata.
-- SQLite mirrors .ragmeta.json for fast lookup/indexing.
+MemoryRecord keeps stable episode body fields separate from current metadata.
+Only stable body fields are serialized into .ragmem; current metadata is exposed
+through to_index_dict() for .ragmeta.json and compatible SQLite mirrors.
 
-A MemoryRecord in RAM contains both:
-- stable body fields
-- current metadata fields
+Main classes:
+    MemoryRecord:
+        Owns one memory episode, serialization, and metadata projection.
 
-Only stable body fields are serialized into .ragmem.
+Main methods:
+    update_editable_metadata():
+        Applies user-editable metadata changes.
+    update_metadata_overlay():
+        Applies current metadata loaded from .ragmeta.json.
+    to_ragmem_block():
+        Serializes the stable append-only episode body.
+    to_index_dict():
+        Projects current metadata for .ragmeta.json and SQLite.
 """
 
 from __future__ import annotations
@@ -91,6 +95,7 @@ class MemoryRecord:
         embedded_files_snapshot: list[str] | None = None,
         retrieval_source_mode: str = "QA",
         direct_recall_key: str = "",
+        episode_title: str = "",
         active_retrieval_brief_title: str = "",
         active_retrieval_brief: str = "",
         active_retrieval_brief_contributor_ids: list[str] | None = None,
@@ -113,6 +118,7 @@ class MemoryRecord:
         self.user_keywords: list[str] = _clean_list(user_keywords)
         self.retrieval_source_mode: str = _clean_retrieval_source_mode(retrieval_source_mode)
         self.direct_recall_key: str = _clean_direct_recall_key(direct_recall_key)
+        self.episode_title: str = str(episode_title or "").strip()
 
         self.active_project_name: str | None = active_project_name
         self.embedded_files_snapshot: list[str] = list(embedded_files_snapshot or [])
@@ -215,6 +221,9 @@ class MemoryRecord:
             direct_recall_key=metadata.get("direct_recall_key"),
         )
 
+        if "episode_title" in metadata:
+            self.episode_title = str(metadata.get("episode_title") or "").strip()
+
         if "auto_keywords" in metadata:
             self.auto_keywords = _clean_list(list(metadata.get("auto_keywords") or []))
 
@@ -266,6 +275,7 @@ class MemoryRecord:
             "tag": self.tag,
             "retrieval_source_mode": self.retrieval_source_mode,
             "direct_recall_key": self.direct_recall_key,
+            "episode_title": self.episode_title,
             "auto_keywords": self.auto_keywords,
             "user_keywords": self.user_keywords,
             "active_project_name": self.active_project_name,
@@ -286,6 +296,7 @@ class MemoryRecord:
                 "tag": self.tag,
                 "retrieval_source_mode": self.retrieval_source_mode,
                 "direct_recall_key": self.direct_recall_key,
+                "episode_title": self.episode_title,
                 "auto_keywords": self.auto_keywords,
                 "user_keywords": self.user_keywords,
                 "active_project_name": self.active_project_name,
@@ -318,6 +329,7 @@ class MemoryRecord:
             embedded_files_snapshot=list(data.get("embedded_files_snapshot") or []),
             retrieval_source_mode=str(data.get("retrieval_source_mode", "QA")),
             direct_recall_key=str(data.get("direct_recall_key", "")),
+            episode_title=str(data.get("episode_title", "") or ""),
             active_retrieval_brief_title=str(data.get("active_retrieval_brief_title", "") or ""),
             active_retrieval_brief=str(data.get("active_retrieval_brief", "") or ""),
             active_retrieval_brief_contributor_ids=list(
