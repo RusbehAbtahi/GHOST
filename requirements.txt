@@ -34,4 +34,4 @@ llama-index-core==0.12.52   # semantic sentence-based chunking for MemoryRecord 
 playwright>=1.53.0        # render/read ChatGPT shared-link pages for memory import
 urllib3[socks]>=2.6.3,<3
 mcp>=1.27,<2
-PyJWT[crypto]>=2.10,<3 
+PyJWT[crypto]>=2.10,<3
