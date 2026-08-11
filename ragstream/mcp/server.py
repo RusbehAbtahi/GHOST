@@ -15,6 +15,7 @@ Main functions:
 
 Important notes:
     All five GHOST tools are rate-limited by authenticated Cognito subject.
+    Form Elicitation uses the active MCP session when the client advertises it.
     Requires mcp>=1.27,<2 and PyJWT[crypto]>=2.10,<3.
 """
 
@@ -63,6 +64,7 @@ SERVER_VERSION = "0.3.0"
 MCP_PATH = "/mcp"
 OAUTH_METADATA_PATH = "/.well-known/oauth-protected-resource/mcp"
 MCP_HTTP_METHODS = ("GET", "POST", "DELETE")
+AUTHENTICATED_SUBJECT_SCOPE_KEY = "ghost.authenticated_subject"
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
@@ -126,31 +128,25 @@ class GhostMcpRuntime:
             instructions=SERVER_INSTRUCTIONS,
         )
         self.mcp_server.list_tools()(self.handle_list_tools)
-        self.mcp_server.request_handlers[
-            types.CallToolRequest
-        ] = self.handle_call_tool_request
+        self.mcp_server.request_handlers[types.CallToolRequest] = (
+            self.handle_call_tool_request
+        )
 
         self.session_manager = StreamableHTTPSessionManager(
             app=self.mcp_server,
             event_store=None,
-            json_response=True,
-            stateless=True,
+            json_response=False,
+            stateless=False,
             security_settings=transport_security,
         )
 
-        routes = [
-            Route(
-                MCP_PATH,
-                endpoint=self,
-                methods=MCP_HTTP_METHODS,
-            )
-        ]
+        routes = [Route(MCP_PATH, endpoint=self, methods=MCP_HTTP_METHODS)]
         if self.auth_config is not None:
             routes.insert(
                 0,
                 Route(
                     OAUTH_METADATA_PATH,
-                    endpoint=self.handle_protected_resource_metadata,
+                    self.handle_protected_resource_metadata,
                     methods=("GET",),
                 ),
             )
@@ -170,16 +166,10 @@ class GhostMcpRuntime:
         return JSONResponse(
             {
                 "resource": self.auth_config.resource,
-                "authorization_servers": [
-                    self.auth_config.issuer,
-                ],
-                "scopes_supported": [
-                    self.auth_config.required_scope,
-                ],
+                "authorization_servers": [self.auth_config.issuer],
+                "scopes_supported": [self.auth_config.required_scope],
             },
-            headers={
-                "Cache-Control": "no-store",
-            },
+            headers={"Cache-Control": "no-store"},
         )
 
     async def handle_list_tools(self) -> list[types.Tool]:
@@ -193,6 +183,20 @@ class GhostMcpRuntime:
         """Rate-limit and execute one authenticated tools/call request."""
         arguments = dict(request.params.arguments or {})
         subject = _AUTHENTICATED_SUBJECT.get()
+
+        try:
+            request_context = self.mcp_server.request_context
+        except LookupError:
+            request_context = None
+
+        if request_context is not None:
+            try:
+                subject = request_context.request.scope.get(
+                    AUTHENTICATED_SUBJECT_SCOPE_KEY,
+                    subject,
+                )
+            except AttributeError:
+                pass
 
         print(
             "[GHOST MCP CALL]"
@@ -235,10 +239,18 @@ class GhostMcpRuntime:
                 )
                 return types.ServerResult(result)
 
+        if request_context is not None:
+            arguments = await self.ghost_application.resolve_tool_arguments(
+                request.params.name,
+                arguments,
+                request_context.session,
+                request_context.request_id,
+            )
+
         result = await anyio.to_thread.run_sync(
             self.ghost_application.call_tool,
             request.params.name,
-            request.params.arguments,
+            arguments,
             subject,
         )
 
@@ -281,9 +293,7 @@ class GhostMcpRuntime:
             )
             return
 
-        authorization_header = Headers(
-            scope=scope
-        ).get("authorization")
+        authorization_header = Headers(scope=scope).get("authorization")
 
         try:
             principal = authenticate_request(
@@ -344,9 +354,9 @@ class GhostMcpRuntime:
             )
             return
 
-        subject_token = _AUTHENTICATED_SUBJECT.set(
-            principal.subject
-        )
+        subject_token = _AUTHENTICATED_SUBJECT.set(principal.subject)
+        scope[AUTHENTICATED_SUBJECT_SCOPE_KEY] = principal.subject
+
         try:
             await self.session_manager.handle_request(
                 scope,
@@ -354,6 +364,7 @@ class GhostMcpRuntime:
                 send,
             )
         finally:
+            scope.pop(AUTHENTICATED_SUBJECT_SCOPE_KEY, None)
             _AUTHENTICATED_SUBJECT.reset(subject_token)
 
     @asynccontextmanager
@@ -391,9 +402,7 @@ class GhostMcpRuntime:
             f'scope="{self.auth_config.required_scope}"',
         ]
         if error is not None:
-            parameters.append(
-                f'error="{error}"'
-            )
+            parameters.append(f'error="{error}"')
 
         return "Bearer " + ", ".join(parameters)
 
@@ -403,19 +412,12 @@ class GhostMcpRuntime:
     ) -> str:
         """Build the absolute metadata URL from the canonical resource."""
         parsed = urlsplit(resource)
-        if (
-            parsed.scheme not in {"http", "https"}
-            or not parsed.netloc
-        ):
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             raise ValueError(
                 "GHOST MCP resource must be an absolute HTTP(S) URL"
             )
 
-        return (
-            f"{parsed.scheme}://"
-            f"{parsed.netloc}"
-            f"{OAUTH_METADATA_PATH}"
-        )
+        return f"{parsed.scheme}://{parsed.netloc}{OAUTH_METADATA_PATH}"
 
     @staticmethod
     async def _send_http_error(
@@ -428,59 +430,39 @@ class GhostMcpRuntime:
         www_authenticate: str | None = None,
     ) -> None:
         """Return one sanitized HTTP error before MCP processing."""
-        headers = {
-            "Cache-Control": "no-store",
-        }
+        headers = {"Cache-Control": "no-store"}
         if www_authenticate is not None:
             headers["WWW-Authenticate"] = www_authenticate
 
         response = JSONResponse(
-            {
-                "error": error,
-            },
+            {"error": error},
             status_code=status_code,
             headers=headers,
         )
-        await response(
-            scope,
-            receive,
-            send,
-        )
+        await response(scope, receive, send)
 
 
 def _read_host() -> str:
     """Read and validate the network address used by Uvicorn."""
-    host = os.getenv(
-        "GHOST_MCP_HOST",
-        DEFAULT_HOST,
-    ).strip()
+    host = os.getenv("GHOST_MCP_HOST", DEFAULT_HOST).strip()
 
     if not host:
-        raise ValueError(
-            "GHOST_MCP_HOST must not be empty"
-        )
+        raise ValueError("GHOST_MCP_HOST must not be empty")
 
     return host
 
 
 def _read_port() -> int:
     """Read and validate the TCP port opened by Uvicorn."""
-    raw_port = os.getenv(
-        "GHOST_MCP_PORT",
-        str(DEFAULT_PORT),
-    )
+    raw_port = os.getenv("GHOST_MCP_PORT", str(DEFAULT_PORT))
 
     try:
         port = int(raw_port)
     except ValueError as exc:
-        raise ValueError(
-            "GHOST_MCP_PORT must be an integer"
-        ) from exc
+        raise ValueError("GHOST_MCP_PORT must be an integer") from exc
 
     if not 1 <= port <= 65535:
-        raise ValueError(
-            "GHOST_MCP_PORT must be between 1 and 65535"
-        )
+        raise ValueError("GHOST_MCP_PORT must be between 1 and 65535")
 
     return port
 
@@ -519,13 +501,9 @@ def _read_csv_values(
 def _create_rate_limiter() -> InMemoryRateLimiter:
     """Create the authenticated tool-call limiter from deployment settings."""
     try:
-        limit = int(
-            os.environ["GHOST_MCP_RATE_LIMIT"]
-        )
+        limit = int(os.environ["GHOST_MCP_RATE_LIMIT"])
         window_seconds = float(
-            os.environ[
-                "GHOST_MCP_RATE_LIMIT_WINDOW_SECONDS"
-            ]
+            os.environ["GHOST_MCP_RATE_LIMIT_WINDOW_SECONDS"]
         )
     except KeyError as exc:
         raise ValueError(
@@ -549,9 +527,7 @@ def _create_transport_security() -> TransportSecuritySettings:
         DEFAULT_ALLOWED_HOSTS,
     )
     if not allowed_hosts:
-        raise ValueError(
-            "GHOST_MCP_ALLOWED_HOSTS must not be empty"
-        )
+        raise ValueError("GHOST_MCP_ALLOWED_HOSTS must not be empty")
 
     allowed_origins = _read_csv_values(
         "GHOST_MCP_ALLOWED_ORIGINS",
@@ -585,9 +561,7 @@ def main() -> None:
     mcp_runtime = GhostMcpRuntime(
         ghost_application=ghost_application,
         transport_security=_create_transport_security(),
-        token_verifier=CognitoTokenVerifier(
-            auth_config
-        ),
+        token_verifier=CognitoTokenVerifier(auth_config),
         auth_config=auth_config,
         rate_limiter=_create_rate_limiter(),
     )
@@ -599,9 +573,7 @@ def main() -> None:
         log_level=_read_uvicorn_log_level(),
     )
 
-    uvicorn.Server(
-        uvicorn_config
-    ).run()
+    uvicorn.Server(uvicorn_config).run()
 
 
 if __name__ == "__main__":  # pragma: no cover

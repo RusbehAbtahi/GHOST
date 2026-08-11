@@ -5,6 +5,8 @@ Main classes:
         Validates one tag request and passes it to the MCP memory store.
 
 Main methods and functions:
+    needs_recall_key():
+        Reports whether a tag call still needs the user's recall key.
     call_sanitized():
         Saves the authenticated user's selected visible input/output pair.
     tool_metadata():
@@ -27,10 +29,32 @@ from ragstream.memory.mcp_memory_store import (
 
 TOOL_NAME = "ghost_memory_tag"
 TOOL_TITLE = "GHOST Memory Tag"
+
+RECALL_KEY_ELICITATION_MESSAGE = (
+    "GHOST needs a recall key before saving this memory. "
+    "What recall key would you like to use?"
+)
+
+RECALL_KEY_ELICITATION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "recall_key": {
+            "type": "string",
+            "title": "Recall key",
+            "description": "Exact key to use later with ghost_memory_recall.",
+            "minLength": 1,
+        }
+    },
+    "required": ["recall_key"],
+}
+
 TOOL_DESCRIPTION = (
     "Saves one visible user/assistant pair from the current conversation under "
-    "an exact recall key. By default, use the immediately preceding pair. If the "
-    "user identifies an older pair by its text or position, use that pair instead. "
+    "an exact recall key. If the user supplied a recall key, pass it exactly. Never "
+    "invent or generate a recall key. If the user did not supply one, omit recall_key; "
+    "GHOST may request it through MCP Elicitation when the client supports that flow. "
+    "By default, use the immediately preceding pair. If the user identifies an older "
+    "pair by its text or position, use that pair instead. "
     "Generate episode_title yourself as a short descriptive title for the selected "
     f"pair, preferably 3-10 words and no more than {MAX_EPISODE_TITLE_LENGTH} "
     "characters; do not ask the "
@@ -47,6 +71,10 @@ INPUT_SCHEMA = {
         "recall_key": {
             "type": "string",
             "minLength": 1,
+            "description": (
+                "Exact user-selected key for later recall. Do not invent one. "
+                "Omit it when the user did not provide one."
+            ),
         },
         "episode_title": {
             "type": "string",
@@ -66,7 +94,7 @@ INPUT_SCHEMA = {
             "minLength": 1,
         },
     },
-    "required": ["recall_key", "episode_title", "input_text", "output_text"],
+    "required": ["episode_title", "input_text", "output_text"],
     "additionalProperties": False,
 }
 
@@ -100,6 +128,17 @@ class GhostMemoryTagTool:
 
     def __init__(self, memory_store: McpMemoryStore) -> None:
         self._memory_store = memory_store
+
+    @staticmethod
+    def needs_recall_key(
+        arguments: Mapping[str, Any] | None,
+    ) -> bool:
+        """Return True when a tag call still needs a non-empty recall key."""
+        if not isinstance(arguments, Mapping):
+            return False
+
+        recall_key = arguments.get("recall_key")
+        return not isinstance(recall_key, str) or not recall_key.strip()
 
     def call_sanitized(
         self,

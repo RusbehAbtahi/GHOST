@@ -12,6 +12,8 @@ Main classes:
 Main methods:
     list_tools():
         Returns the five OAuth-protected MCP tool definitions.
+    resolve_tool_arguments():
+        Resolves supported client-input needs before tool execution.
     call_tool():
         Executes one named GHOST tool and converts its result to MCP.
 
@@ -27,6 +29,7 @@ from dataclasses import asdict
 from typing import Any
 
 import mcp.types as types
+from mcp.server.session import ServerSession
 from mcp.shared.exceptions import McpError
 
 from ragstream.mcp.ghost_engineer_prompt import (
@@ -55,6 +58,8 @@ from ragstream.mcp.ghost_memory_recall import (
     tool_metadata as memory_recall_tool_metadata,
 )
 from ragstream.mcp.ghost_memory_tag import (
+    RECALL_KEY_ELICITATION_MESSAGE,
+    RECALL_KEY_ELICITATION_SCHEMA,
     GhostMemoryTagTool,
     TOOL_NAME as MEMORY_TAG_TOOL_NAME,
     tool_metadata as memory_tag_tool_metadata,
@@ -118,6 +123,60 @@ class GhostMcpApplication:
             memory_delete_tool_metadata(self.required_scope),
         )
         return [types.Tool.model_validate(item) for item in definitions]
+
+    async def resolve_tool_arguments(
+        self,
+        name: str,
+        arguments: Mapping[str, Any] | None,
+        session: ServerSession,
+        request_id: types.RequestId,
+    ) -> dict[str, Any]:
+        """Resolve supported missing tool input through MCP client interaction."""
+        resolved = dict(arguments or {})
+        if (
+            name != MEMORY_TAG_TOOL_NAME
+            or not self.memory_tag_tool.needs_recall_key(resolved)
+        ):
+            return resolved
+
+        client_params = session.client_params
+        if client_params is None:
+            return resolved
+
+        elicitation = client_params.capabilities.elicitation
+        if elicitation is None:
+            return resolved
+
+        supports_form = (
+            elicitation.form is not None
+            or (elicitation.form is None and elicitation.url is None)
+        )
+        if not supports_form:
+            return resolved
+
+        try:
+            result = await session.elicit_form(
+                message=RECALL_KEY_ELICITATION_MESSAGE,
+                requestedSchema=RECALL_KEY_ELICITATION_SCHEMA,
+                related_request_id=request_id,
+            )
+        except Exception:  # noqa: BLE001
+            LogNoGUI(
+                "GHOST MCP form elicitation failed; using normal validation.",
+                "WARN",
+                "INTERNAL",
+            )
+            return resolved
+
+        if result.action != "accept" or not isinstance(result.content, Mapping):
+            return resolved
+
+        recall_key = result.content.get("recall_key")
+        if not isinstance(recall_key, str) or not recall_key.strip():
+            return resolved
+
+        resolved["recall_key"] = recall_key.strip()
+        return resolved
 
     def call_tool(
         self,
