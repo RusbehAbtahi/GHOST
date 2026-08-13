@@ -14,7 +14,7 @@ Main functions:
         Builds the authenticated runtime and starts Uvicorn.
 
 Important notes:
-    All five GHOST tools are rate-limited by authenticated Cognito subject.
+    All advertised GHOST tools are rate-limited by authenticated Cognito subject.
     Form Elicitation uses the active MCP session when the client advertises it.
     Requires mcp>=1.27,<2 and PyJWT[crypto]>=2.10,<3.
 """

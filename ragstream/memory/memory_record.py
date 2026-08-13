@@ -37,6 +37,48 @@ RECORD_END = "----- MEMORY RECORD END -----"
 
 RETRIEVAL_SOURCE_MODES = {"QA", "Q", "A"}
 
+_RAGMEM_FIELDS = {
+    "record_id",
+    "parent_id",
+    "sequence_number",
+    "created_at_utc",
+    "actor_id",
+    "chat_stream_id",
+    "input_text",
+    "output_text",
+    "source",
+    "input_hash",
+    "output_hash",
+    "episode_description",
+    "active_retrieval_brief_title",
+    "active_retrieval_brief",
+    "active_retrieval_brief_contributor_ids",
+}
+
+_INDEX_FIELDS = {
+    "record_id",
+    "parent_id",
+    "sequence_number",
+    "created_at_utc",
+    "actor_id",
+    "chat_stream_id",
+    "source",
+    "tag",
+    "retrieval_source_mode",
+    "direct_recall_key",
+    "episode_title",
+    "episode_description",
+    "auto_keywords",
+    "user_keywords",
+    "active_project_name",
+    "embedded_files_snapshot",
+    "expires_at_utc",
+    "input_hash",
+    "output_hash",
+}
+
+_KNOWN_RECORD_FIELDS = _RAGMEM_FIELDS | _INDEX_FIELDS
+
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -82,6 +124,19 @@ def _optional_str(value: Any) -> str | None:
     return text if text else None
 
 
+def _list_or_empty(value: Any) -> list[Any]:
+    return list(value) if isinstance(value, list) else []
+
+
+def _nonnegative_int(value: Any) -> int:
+    try:
+        result = int(value)
+    except (TypeError, ValueError):
+        return 0
+
+    return result if result >= 0 else 0
+
+
 class MemoryRecord:
     def __init__(
         self,
@@ -105,14 +160,26 @@ class MemoryRecord:
         auto_keywords: list[str] | None = None,
         input_hash: str | None = None,
         output_hash: str | None = None,
+        sequence_number: int = 0,
+        actor_id: str = "",
+        chat_stream_id: str = "",
+        episode_description: str = "",
+        expires_at_utc: str | None = None,
+        _ragmem_extensions: dict[str, Any] | None = None,
+        _metadata_extensions: dict[str, Any] | None = None,
     ) -> None:
         self.record_id: str = record_id or uuid.uuid4().hex
         self.parent_id: str | None = parent_id
+        self.sequence_number: int = _nonnegative_int(sequence_number)
         self.created_at_utc: str = created_at_utc or _utc_now()
+
+        self.actor_id: str = str(actor_id or "").strip()
+        self.chat_stream_id: str = str(chat_stream_id or "").strip()
 
         self.input_text: str = input_text or ""
         self.output_text: str = output_text or ""
         self.source: str = source or ""
+        self.episode_description: str = str(episode_description or "").strip()
 
         self.tag: str = tag or "Green"
         self.user_keywords: list[str] = _clean_list(user_keywords)
@@ -122,6 +189,7 @@ class MemoryRecord:
 
         self.active_project_name: str | None = active_project_name
         self.embedded_files_snapshot: list[str] = list(embedded_files_snapshot or [])
+        self.expires_at_utc: str | None = _optional_str(expires_at_utc)
 
         self.active_retrieval_brief_title: str = str(active_retrieval_brief_title or "").strip()
         self.active_retrieval_brief: str = str(active_retrieval_brief or "").strip()
@@ -131,6 +199,9 @@ class MemoryRecord:
 
         self.input_hash: str = input_hash or _sha256(self.input_text)
         self.output_hash: str = output_hash or _sha256(self.output_text)
+
+        self._ragmem_extensions: dict[str, Any] = dict(_ragmem_extensions or {})
+        self._metadata_extensions: dict[str, Any] = dict(_metadata_extensions or {})
 
         if auto_keywords is None:
             self.auto_keywords: list[str] = self.generate_auto_keywords()
@@ -201,12 +272,16 @@ class MemoryRecord:
         This method deliberately does not modify stable .ragmem body fields:
         - record_id
         - parent_id
+        - sequence_number
         - created_at_utc
+        - actor_id
+        - chat_stream_id
         - input_text
         - output_text
         - source
         - input_hash
         - output_hash
+        - episode_description
         - active_retrieval_brief_title
         - active_retrieval_brief
         - active_retrieval_brief_contributor_ids
@@ -216,7 +291,7 @@ class MemoryRecord:
 
         self.update_editable_metadata(
             tag=metadata.get("tag"),
-            user_keywords=list(metadata.get("user_keywords") or []),
+            user_keywords=_list_or_empty(metadata.get("user_keywords")),
             retrieval_source_mode=metadata.get("retrieval_source_mode"),
             direct_recall_key=metadata.get("direct_recall_key"),
         )
@@ -225,13 +300,26 @@ class MemoryRecord:
             self.episode_title = str(metadata.get("episode_title") or "").strip()
 
         if "auto_keywords" in metadata:
-            self.auto_keywords = _clean_list(list(metadata.get("auto_keywords") or []))
+            self.auto_keywords = _clean_list(_list_or_empty(metadata.get("auto_keywords")))
 
         if "active_project_name" in metadata:
             self.active_project_name = _optional_str(metadata.get("active_project_name"))
 
         if "embedded_files_snapshot" in metadata:
-            self.embedded_files_snapshot = list(metadata.get("embedded_files_snapshot") or [])
+            self.embedded_files_snapshot = _list_or_empty(
+                metadata.get("embedded_files_snapshot")
+            )
+
+        if "expires_at_utc" in metadata:
+            self.expires_at_utc = _optional_str(metadata.get("expires_at_utc"))
+
+        self._metadata_extensions.update(
+            {
+                key: value
+                for key, value in metadata.items()
+                if key not in _KNOWN_RECORD_FIELDS
+            }
+        )
 
     def to_ragmem_dict(self) -> dict[str, Any]:
         """
@@ -239,19 +327,29 @@ class MemoryRecord:
 
         Editable GUI metadata is intentionally excluded from this dictionary.
         """
-        return {
-            "record_id": self.record_id,
-            "parent_id": self.parent_id,
-            "created_at_utc": self.created_at_utc,
-            "input_text": self.input_text,
-            "output_text": self.output_text,
-            "source": self.source,
-            "input_hash": self.input_hash,
-            "output_hash": self.output_hash,
-            "active_retrieval_brief_title": self.active_retrieval_brief_title,
-            "active_retrieval_brief": self.active_retrieval_brief,
-            "active_retrieval_brief_contributor_ids": self.active_retrieval_brief_contributor_ids,
-        }
+        data = dict(self._ragmem_extensions)
+        data.update(
+            {
+                "record_id": self.record_id,
+                "parent_id": self.parent_id,
+                "sequence_number": self.sequence_number,
+                "created_at_utc": self.created_at_utc,
+                "actor_id": self.actor_id,
+                "chat_stream_id": self.chat_stream_id,
+                "input_text": self.input_text,
+                "output_text": self.output_text,
+                "source": self.source,
+                "input_hash": self.input_hash,
+                "output_hash": self.output_hash,
+                "episode_description": self.episode_description,
+                "active_retrieval_brief_title": self.active_retrieval_brief_title,
+                "active_retrieval_brief": self.active_retrieval_brief,
+                "active_retrieval_brief_contributor_ids": (
+                    self.active_retrieval_brief_contributor_ids
+                ),
+            }
+        )
+        return data
 
     def to_ragmem_block(self) -> str:
         body = json.dumps(self.to_ragmem_dict(), ensure_ascii=False, indent=2)
@@ -267,22 +365,31 @@ class MemoryRecord:
 
         It does not duplicate full input_text, output_text, or full ActiveBrief text.
         """
-        return {
-            "record_id": self.record_id,
-            "parent_id": self.parent_id,
-            "created_at_utc": self.created_at_utc,
-            "source": self.source,
-            "tag": self.tag,
-            "retrieval_source_mode": self.retrieval_source_mode,
-            "direct_recall_key": self.direct_recall_key,
-            "episode_title": self.episode_title,
-            "auto_keywords": self.auto_keywords,
-            "user_keywords": self.user_keywords,
-            "active_project_name": self.active_project_name,
-            "embedded_files_snapshot": self.embedded_files_snapshot,
-            "input_hash": self.input_hash,
-            "output_hash": self.output_hash,
-        }
+        data = dict(self._metadata_extensions)
+        data.update(
+            {
+                "record_id": self.record_id,
+                "parent_id": self.parent_id,
+                "sequence_number": self.sequence_number,
+                "created_at_utc": self.created_at_utc,
+                "actor_id": self.actor_id,
+                "chat_stream_id": self.chat_stream_id,
+                "source": self.source,
+                "tag": self.tag,
+                "retrieval_source_mode": self.retrieval_source_mode,
+                "direct_recall_key": self.direct_recall_key,
+                "episode_title": self.episode_title,
+                "episode_description": self.episode_description,
+                "auto_keywords": self.auto_keywords,
+                "user_keywords": self.user_keywords,
+                "active_project_name": self.active_project_name,
+                "embedded_files_snapshot": self.embedded_files_snapshot,
+                "expires_at_utc": self.expires_at_utc,
+                "input_hash": self.input_hash,
+                "output_hash": self.output_hash,
+            }
+        )
+        return data
 
     def to_full_dict(self) -> dict[str, Any]:
         """
@@ -297,10 +404,12 @@ class MemoryRecord:
                 "retrieval_source_mode": self.retrieval_source_mode,
                 "direct_recall_key": self.direct_recall_key,
                 "episode_title": self.episode_title,
+                "episode_description": self.episode_description,
                 "auto_keywords": self.auto_keywords,
                 "user_keywords": self.user_keywords,
                 "active_project_name": self.active_project_name,
                 "embedded_files_snapshot": self.embedded_files_snapshot,
+                "expires_at_utc": self.expires_at_utc,
             }
         )
         return data
@@ -316,7 +425,15 @@ class MemoryRecord:
 
         Current metadata from .ragmeta.json is applied later by MemoryManager.
         """
+        if not isinstance(data, dict):
+            raise ValueError("MemoryRecord data must be a dictionary.")
+
         auto_keywords_raw = data.get("auto_keywords")
+        ragmem_extensions = {
+            key: value
+            for key, value in data.items()
+            if key not in _KNOWN_RECORD_FIELDS
+        }
 
         return cls(
             input_text=str(data.get("input_text", "")),
@@ -324,16 +441,16 @@ class MemoryRecord:
             source=str(data.get("source", "")),
             parent_id=_optional_str(data.get("parent_id")),
             tag=str(data.get("tag", "Green")),
-            user_keywords=list(data.get("user_keywords") or []),
+            user_keywords=_list_or_empty(data.get("user_keywords")),
             active_project_name=_optional_str(data.get("active_project_name")),
-            embedded_files_snapshot=list(data.get("embedded_files_snapshot") or []),
+            embedded_files_snapshot=_list_or_empty(data.get("embedded_files_snapshot")),
             retrieval_source_mode=str(data.get("retrieval_source_mode", "QA")),
             direct_recall_key=str(data.get("direct_recall_key", "")),
             episode_title=str(data.get("episode_title", "") or ""),
             active_retrieval_brief_title=str(data.get("active_retrieval_brief_title", "") or ""),
             active_retrieval_brief=str(data.get("active_retrieval_brief", "") or ""),
-            active_retrieval_brief_contributor_ids=list(
-                data.get("active_retrieval_brief_contributor_ids") or []
+            active_retrieval_brief_contributor_ids=_list_or_empty(
+                data.get("active_retrieval_brief_contributor_ids")
             ),
             record_id=str(data.get("record_id") or uuid.uuid4().hex),
             created_at_utc=str(data.get("created_at_utc") or _utc_now()),
@@ -344,4 +461,10 @@ class MemoryRecord:
             ),
             input_hash=data.get("input_hash"),
             output_hash=data.get("output_hash"),
+            sequence_number=_nonnegative_int(data.get("sequence_number", 0)),
+            actor_id=str(data.get("actor_id", "") or ""),
+            chat_stream_id=str(data.get("chat_stream_id", "") or ""),
+            episode_description=str(data.get("episode_description", "") or ""),
+            expires_at_utc=_optional_str(data.get("expires_at_utc")),
+            _ragmem_extensions=ragmem_extensions,
         )

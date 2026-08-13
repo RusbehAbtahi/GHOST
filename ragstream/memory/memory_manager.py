@@ -35,12 +35,15 @@ from ragstream.memory.memory_record import (
 )
 from ragstream.textforge.RagLog import LogDeveloper as _logger_dev
 
+
 DEV_LOG_ENABLED = False
+
 
 def logger_dev(*args, **kwargs):
     if DEV_LOG_ENABLED:
         return _logger_dev(*args, **kwargs)
     return None
+
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -55,6 +58,18 @@ def _safe_title(title: str) -> str:
     value = re.sub(r"[^A-Za-z0-9._-]+", "-", value)
     value = re.sub(r"-{2,}", "-", value).strip("-._")
     return value or "Untitled"
+
+
+def _clean_storage_folder(storage_folder: str) -> str:
+    value = str(storage_folder or "").strip().replace("\\", "/")
+    if not value:
+        return ""
+
+    path = Path(value)
+    if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+        raise ValueError("storage_folder must be a safe relative path.")
+
+    return "/".join(path.parts)
 
 
 def _unique(values: list[str]) -> list[str]:
@@ -74,6 +89,30 @@ def _unique(values: list[str]) -> list[str]:
         seen.add(key)
 
     return result
+
+
+def _optional_str(value: Any) -> str | None:
+    if value is None:
+        return None
+
+    text = str(value).strip()
+    return text if text else None
+
+
+def _list_or_empty(value: Any) -> list[Any]:
+    return list(value) if isinstance(value, list) else []
+
+
+def _actors_from_json(value: Any) -> list[Any]:
+    if not isinstance(value, str) or not value.strip():
+        return []
+
+    try:
+        decoded = json.loads(value)
+    except json.JSONDecodeError:
+        return []
+
+    return _list_or_empty(decoded)
 
 
 def _clean_retrieval_source_mode(value: str | None) -> str | None:
@@ -100,9 +139,22 @@ class MemoryManager:
         memory_root: Path,
         sqlite_path: Path,
         title: str = "",
+        *,
+        memory_type: str = "",
+        memory_description: str = "",
+        actors: list[Any] | None = None,
+        owner_sub: str = "",
+        expires_at_utc: str | None = None,
     ) -> None:
         self.file_id: str = uuid.uuid4().hex
         self.title: str = ""
+        self.memory_type: str = str(memory_type or "").strip()
+        self.memory_description: str = str(memory_description or "").strip()
+        self.actors: list[Any] = _list_or_empty(actors)
+        self.owner_sub: str = str(owner_sub or "").strip()
+        self.expires_at_utc: str | None = _optional_str(expires_at_utc)
+        self.created_at_utc: str = ""
+        self.updated_at_utc: str = ""
         self.filename_ragmem: str = ""
         self.filename_meta: str = ""
 
@@ -126,7 +178,14 @@ class MemoryManager:
         self._init_sqlite()
 
         if title.strip():
-            self.start_new_history(title)
+            self.start_new_history(
+                title,
+                memory_type=self.memory_type,
+                memory_description=self.memory_description,
+                actors=self.actors,
+                owner_sub=self.owner_sub,
+                expires_at_utc=self.expires_at_utc,
+            )
 
     @property
     def files_root(self) -> Path:
@@ -140,26 +199,51 @@ class MemoryManager:
     def meta_path(self) -> Path:
         return self.files_root / self.filename_meta
 
-    def start_new_history(self, title: str) -> None:
+    def start_new_history(
+        self,
+        title: str,
+        *,
+        memory_type: str = "",
+        memory_description: str = "",
+        actors: list[Any] | None = None,
+        owner_sub: str = "",
+        expires_at_utc: str | None = None,
+        storage_folder: str = "",
+    ) -> None:
         clean_title = (title or "").strip()
         if not clean_title:
             raise ValueError("Memory title must not be empty.")
 
         self.file_id = uuid.uuid4().hex
         self.title = clean_title
+        self.memory_type = str(memory_type or "").strip()
+        self.memory_description = str(memory_description or "").strip()
+        self.actors = _list_or_empty(actors)
+        self.owner_sub = str(owner_sub or "").strip()
+        self.expires_at_utc = _optional_str(expires_at_utc)
+        self.created_at_utc = _utc_now()
+        self.updated_at_utc = self.created_at_utc
         self.records = []
         self.metainfo = {}
         self.pending_activebrief_topic_buffer = {}
         self.b_file_created = False
 
+        relative_folder = _clean_storage_folder(storage_folder)
         stem = f"{_filename_timestamp()}-{_safe_title(clean_title)}"
         filename_ragmem = f"{stem}.ragmem"
         filename_meta = f"{stem}.ragmeta.json"
+
+        if relative_folder:
+            filename_ragmem = f"{relative_folder}/{filename_ragmem}"
+            filename_meta = f"{relative_folder}/{filename_meta}"
 
         if (self.files_root / filename_ragmem).exists():
             stem = f"{stem}-{self.file_id[:8]}"
             filename_ragmem = f"{stem}.ragmem"
             filename_meta = f"{stem}.ragmeta.json"
+            if relative_folder:
+                filename_ragmem = f"{relative_folder}/{filename_ragmem}"
+                filename_meta = f"{relative_folder}/{filename_meta}"
 
         self.filename_ragmem = filename_ragmem
         self.filename_meta = filename_meta
@@ -171,6 +255,15 @@ class MemoryManager:
 
         self.file_id = file_row["file_id"]
         self.title = file_row["title"]
+        self.memory_type = str(file_row.get("memory_type", "") or "").strip()
+        self.memory_description = str(
+            file_row.get("memory_description", "") or ""
+        ).strip()
+        self.actors = _actors_from_json(file_row.get("actors_json", "[]"))
+        self.owner_sub = str(file_row.get("owner_sub", "") or "").strip()
+        self.expires_at_utc = _optional_str(file_row.get("expires_at_utc"))
+        self.created_at_utc = str(file_row.get("created_at_utc", "") or "")
+        self.updated_at_utc = str(file_row.get("updated_at_utc", "") or "")
         self.filename_ragmem = file_row["filename_ragmem"]
         self.filename_meta = file_row["filename_meta"]
 
@@ -182,6 +275,7 @@ class MemoryManager:
             with self.meta_path.open("r", encoding="utf-8") as f:
                 loaded_meta = json.load(f)
             self.metainfo = loaded_meta if isinstance(loaded_meta, dict) else {}
+            self._apply_file_metainfo()
             self._apply_metainfo_overlay_to_records()
         else:
             self.save_metainfo()
@@ -193,14 +287,22 @@ class MemoryManager:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(
                 """
-                SELECT file_id, title, filename_ragmem, filename_meta,
-                       created_at_utc, updated_at_utc, record_count
+                SELECT file_id, title, memory_type, memory_description,
+                       actors_json, filename_ragmem, filename_meta,
+                       created_at_utc, updated_at_utc, record_count,
+                       owner_sub, expires_at_utc
                 FROM memory_files
                 ORDER BY updated_at_utc DESC
                 """
             ).fetchall()
 
-        return [dict(row) for row in rows]
+        histories: list[dict[str, Any]] = []
+        for row in rows:
+            history = dict(row)
+            history["actors"] = _actors_from_json(history.pop("actors_json", "[]"))
+            histories.append(history)
+
+        return histories
 
     def capture_pair(
         self,
@@ -212,6 +314,10 @@ class MemoryManager:
         active_project_name: str | None = None,
         embedded_files_snapshot: list[str] | None = None,
     ) -> MemoryRecord:
+        next_sequence_number = max(
+            len(self.records),
+            max((record.sequence_number for record in self.records), default=0),
+        ) + 1
         record = MemoryRecord(
             input_text=input_text,
             output_text=output_text,
@@ -223,6 +329,7 @@ class MemoryManager:
             embedded_files_snapshot=embedded_files_snapshot,
             retrieval_source_mode="QA",
             direct_recall_key="",
+            sequence_number=next_sequence_number,
         )
 
         if not self.title.strip():
@@ -230,7 +337,14 @@ class MemoryManager:
                 record=record,
                 active_project_name=active_project_name,
             )
-            self.start_new_history(auto_title)
+            self.start_new_history(
+                auto_title,
+                memory_type=self.memory_type,
+                memory_description=self.memory_description,
+                actors=self.actors,
+                owner_sub=self.owner_sub,
+                expires_at_utc=self.expires_at_utc,
+            )
 
         self._update_active_retrieval_brief(record)
 
@@ -293,7 +407,7 @@ class MemoryManager:
         if not self.filename_meta:
             return
 
-        self.files_root.mkdir(parents=True, exist_ok=True)
+        self.meta_path.parent.mkdir(parents=True, exist_ok=True)
         with self.meta_path.open("w", encoding="utf-8") as f:
             json.dump(self.metainfo, f, ensure_ascii=False, indent=2)
 
@@ -314,26 +428,38 @@ class MemoryManager:
             conn.execute(
                 """
                 INSERT INTO memory_files (
-                    file_id, title, filename_ragmem, filename_meta,
-                    created_at_utc, updated_at_utc, record_count
+                    file_id, title, memory_type, memory_description,
+                    actors_json, filename_ragmem, filename_meta,
+                    created_at_utc, updated_at_utc, record_count,
+                    owner_sub, expires_at_utc
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(file_id) DO UPDATE SET
                     title = excluded.title,
+                    memory_type = excluded.memory_type,
+                    memory_description = excluded.memory_description,
+                    actors_json = excluded.actors_json,
                     filename_ragmem = excluded.filename_ragmem,
                     filename_meta = excluded.filename_meta,
                     created_at_utc = excluded.created_at_utc,
                     updated_at_utc = excluded.updated_at_utc,
-                    record_count = excluded.record_count
+                    record_count = excluded.record_count,
+                    owner_sub = excluded.owner_sub,
+                    expires_at_utc = excluded.expires_at_utc
                 """,
                 (
                     self.file_id,
                     self.title,
+                    self.memory_type,
+                    self.memory_description,
+                    json.dumps(self.actors, ensure_ascii=False),
                     self.filename_ragmem,
                     self.filename_meta,
                     created_at_utc,
                     updated_at_utc,
                     record_count,
+                    self.owner_sub,
+                    self.expires_at_utc,
                 ),
             )
 
@@ -343,24 +469,32 @@ class MemoryManager:
                 conn.execute(
                     """
                     INSERT INTO memory_records (
-                        file_id, record_id, parent_id, created_at_utc,
-                        source, tag, retrieval_source_mode, direct_recall_key,
-                        auto_keywords_json, user_keywords_json,
-                        active_project_name, embedded_files_snapshot_json,
+                        file_id, record_id, parent_id, sequence_number,
+                        created_at_utc, actor_id, chat_stream_id, source, tag,
+                        retrieval_source_mode, direct_recall_key, episode_title,
+                        episode_description, auto_keywords_json,
+                        user_keywords_json, active_project_name,
+                        embedded_files_snapshot_json, expires_at_utc,
                         input_hash, output_hash
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(file_id, record_id) DO UPDATE SET
                         parent_id = excluded.parent_id,
+                        sequence_number = excluded.sequence_number,
                         created_at_utc = excluded.created_at_utc,
+                        actor_id = excluded.actor_id,
+                        chat_stream_id = excluded.chat_stream_id,
                         source = excluded.source,
                         tag = excluded.tag,
                         retrieval_source_mode = excluded.retrieval_source_mode,
                         direct_recall_key = excluded.direct_recall_key,
+                        episode_title = excluded.episode_title,
+                        episode_description = excluded.episode_description,
                         auto_keywords_json = excluded.auto_keywords_json,
                         user_keywords_json = excluded.user_keywords_json,
                         active_project_name = excluded.active_project_name,
                         embedded_files_snapshot_json = excluded.embedded_files_snapshot_json,
+                        expires_at_utc = excluded.expires_at_utc,
                         input_hash = excluded.input_hash,
                         output_hash = excluded.output_hash
                     """,
@@ -368,15 +502,21 @@ class MemoryManager:
                         self.file_id,
                         index_data["record_id"],
                         index_data["parent_id"],
+                        index_data["sequence_number"],
                         index_data["created_at_utc"],
+                        index_data["actor_id"],
+                        index_data["chat_stream_id"],
                         index_data["source"],
                         index_data["tag"],
                         index_data["retrieval_source_mode"],
                         index_data["direct_recall_key"],
+                        index_data["episode_title"],
+                        index_data["episode_description"],
                         json.dumps(index_data["auto_keywords"], ensure_ascii=False),
                         json.dumps(index_data["user_keywords"], ensure_ascii=False),
                         index_data["active_project_name"],
                         json.dumps(index_data["embedded_files_snapshot"], ensure_ascii=False),
+                        index_data["expires_at_utc"],
                         index_data["input_hash"],
                         index_data["output_hash"],
                     ),
@@ -398,24 +538,36 @@ class MemoryManager:
             auto_keywords.extend(record.auto_keywords)
             user_keywords.extend(record.user_keywords)
 
-        created_at_utc = self.records[0].created_at_utc if self.records else ""
-        updated_at_utc = _utc_now() if self.records else ""
+        if not self.created_at_utc:
+            self.created_at_utc = (
+                self.records[0].created_at_utc if self.records else _utc_now()
+            )
+        self.updated_at_utc = _utc_now()
 
-        return {
-            "file_id": self.file_id,
-            "title": self.title,
-            "filename_ragmem": self.filename_ragmem,
-            "filename_meta": self.filename_meta,
-            "created_at_utc": created_at_utc,
-            "updated_at_utc": updated_at_utc,
-            "record_count": len(self.records),
-            "record_ids": record_ids,
-            "parent_ids": parent_ids,
-            "tag_summary": tag_summary,
-            "auto_keywords": _unique(auto_keywords),
-            "user_keywords": _unique(user_keywords),
-            "records": [record.to_index_dict() for record in self.records],
-        }
+        metainfo = dict(self.metainfo)
+        metainfo.update(
+            {
+                "file_id": self.file_id,
+                "title": self.title,
+                "memory_type": self.memory_type,
+                "memory_description": self.memory_description,
+                "actors": list(self.actors),
+                "filename_ragmem": self.filename_ragmem,
+                "filename_meta": self.filename_meta,
+                "created_at_utc": self.created_at_utc,
+                "updated_at_utc": self.updated_at_utc,
+                "record_count": len(self.records),
+                "record_ids": record_ids,
+                "parent_ids": parent_ids,
+                "tag_summary": tag_summary,
+                "auto_keywords": _unique(auto_keywords),
+                "user_keywords": _unique(user_keywords),
+                "records": [record.to_index_dict() for record in self.records],
+                "owner_sub": self.owner_sub,
+                "expires_at_utc": self.expires_at_utc,
+            }
+        )
+        return metainfo
 
     def close(self) -> None:
         self.save_metainfo()
@@ -443,9 +595,15 @@ class MemoryManager:
                 pending_topic_buffer=dict(self.pending_activebrief_topic_buffer or {}),
             )
 
-            active_brief_title = str(result.get("active_retrieval_brief_title", "") or "").strip()
-            active_brief = str(result.get("active_retrieval_brief", "") or "").strip()
-            contributor_ids = list(result.get("active_retrieval_brief_contributor_ids") or [])
+            active_brief_title = str(
+                result.get("active_retrieval_brief_title", "") or ""
+            ).strip()
+            active_brief = str(
+                result.get("active_retrieval_brief", "") or ""
+            ).strip()
+            contributor_ids = list(
+                result.get("active_retrieval_brief_contributor_ids") or []
+            )
 
             record.update_active_retrieval_brief(
                 active_retrieval_brief=active_brief,
@@ -454,15 +612,21 @@ class MemoryManager:
             )
 
             new_buffer = result.get("pending_activebrief_topic_buffer", {})
-            self.pending_activebrief_topic_buffer = new_buffer if isinstance(new_buffer, dict) else {}
+            self.pending_activebrief_topic_buffer = (
+                new_buffer if isinstance(new_buffer, dict) else {}
+            )
 
             logger_dev(
                 "MemoryManager ActiveBrief update result\n"
                 + json.dumps(
                     {
                         "record_id": record.record_id,
-                        "activebrief_llm_skipped": bool(result.get("activebrief_llm_skipped", False)),
-                        "activebrief_gate_route": str(result.get("activebrief_gate_route", "") or ""),
+                        "activebrief_llm_skipped": bool(
+                            result.get("activebrief_llm_skipped", False)
+                        ),
+                        "activebrief_gate_route": str(
+                            result.get("activebrief_gate_route", "") or ""
+                        ),
                         "active_retrieval_brief_title": active_brief_title,
                         "active_retrieval_brief": active_brief,
                         "active_retrieval_brief_contributor_ids": contributor_ids,
@@ -498,7 +662,7 @@ class MemoryManager:
         if not self.filename_ragmem:
             raise ValueError("Memory filename is not initialized.")
 
-        self.files_root.mkdir(parents=True, exist_ok=True)
+        self.ragmem_path.parent.mkdir(parents=True, exist_ok=True)
 
         with self.ragmem_path.open("a", encoding="utf-8") as f:
             f.write(record.to_ragmem_block())
@@ -528,6 +692,33 @@ class MemoryManager:
                 continue
 
         return records
+
+    def _apply_file_metainfo(self) -> None:
+        """Apply optional file-level metadata without requiring new fields."""
+        if "memory_type" in self.metainfo:
+            self.memory_type = str(self.metainfo.get("memory_type") or "").strip()
+
+        if "memory_description" in self.metainfo:
+            self.memory_description = str(
+                self.metainfo.get("memory_description") or ""
+            ).strip()
+
+        if "actors" in self.metainfo:
+            self.actors = _list_or_empty(self.metainfo.get("actors"))
+
+        if "owner_sub" in self.metainfo:
+            self.owner_sub = str(self.metainfo.get("owner_sub") or "").strip()
+
+        if "expires_at_utc" in self.metainfo:
+            self.expires_at_utc = _optional_str(
+                self.metainfo.get("expires_at_utc")
+            )
+
+        if self.metainfo.get("created_at_utc"):
+            self.created_at_utc = str(self.metainfo["created_at_utc"])
+
+        if self.metainfo.get("updated_at_utc"):
+            self.updated_at_utc = str(self.metainfo["updated_at_utc"])
 
     def _apply_metainfo_overlay_to_records(self) -> None:
         """
@@ -590,8 +781,10 @@ class MemoryManager:
             conn.row_factory = sqlite3.Row
             row = conn.execute(
                 """
-                SELECT file_id, title, filename_ragmem, filename_meta,
-                       created_at_utc, updated_at_utc, record_count
+                SELECT file_id, title, memory_type, memory_description,
+                       actors_json, filename_ragmem, filename_meta,
+                       created_at_utc, updated_at_utc, record_count,
+                       owner_sub, expires_at_utc
                 FROM memory_files
                 WHERE file_id = ?
                 """,
@@ -638,11 +831,16 @@ class MemoryManager:
                 CREATE TABLE IF NOT EXISTS memory_files (
                     file_id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
+                    memory_type TEXT NOT NULL DEFAULT '',
+                    memory_description TEXT NOT NULL DEFAULT '',
+                    actors_json TEXT NOT NULL DEFAULT '[]',
                     filename_ragmem TEXT NOT NULL,
                     filename_meta TEXT NOT NULL,
                     created_at_utc TEXT NOT NULL,
                     updated_at_utc TEXT NOT NULL,
-                    record_count INTEGER NOT NULL
+                    record_count INTEGER NOT NULL,
+                    owner_sub TEXT NOT NULL DEFAULT '',
+                    expires_at_utc TEXT
                 )
                 """
             )
@@ -653,15 +851,21 @@ class MemoryManager:
                     file_id TEXT NOT NULL,
                     record_id TEXT NOT NULL,
                     parent_id TEXT,
+                    sequence_number INTEGER NOT NULL DEFAULT 0,
                     created_at_utc TEXT NOT NULL,
+                    actor_id TEXT NOT NULL DEFAULT '',
+                    chat_stream_id TEXT NOT NULL DEFAULT '',
                     source TEXT NOT NULL,
                     tag TEXT NOT NULL,
                     retrieval_source_mode TEXT NOT NULL DEFAULT 'QA',
                     direct_recall_key TEXT NOT NULL DEFAULT '',
+                    episode_title TEXT NOT NULL DEFAULT '',
+                    episode_description TEXT NOT NULL DEFAULT '',
                     auto_keywords_json TEXT NOT NULL,
                     user_keywords_json TEXT NOT NULL,
                     active_project_name TEXT,
                     embedded_files_snapshot_json TEXT NOT NULL,
+                    expires_at_utc TEXT,
                     input_hash TEXT NOT NULL,
                     output_hash TEXT NOT NULL,
                     PRIMARY KEY (file_id, record_id)
@@ -669,7 +873,22 @@ class MemoryManager:
                 """
             )
 
+            self._ensure_memory_files_columns(conn)
             self._ensure_memory_records_columns(conn)
+
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_memory_files_owner_sub
+                ON memory_files(owner_sub)
+                """
+            )
+
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_memory_files_memory_type
+                ON memory_files(memory_type)
+                """
+            )
 
             conn.execute(
                 """
@@ -692,21 +911,61 @@ class MemoryManager:
                 """
             )
 
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_memory_records_record_id
+                ON memory_records(record_id)
+                """
+            )
+
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_memory_records_file_sequence
+                ON memory_records(file_id, sequence_number)
+                """
+            )
+
             conn.commit()
 
     @staticmethod
+    def _ensure_memory_files_columns(conn: sqlite3.Connection) -> None:
+        existing_columns = {
+            str(row[1])
+            for row in conn.execute("PRAGMA table_info(memory_files)").fetchall()
+        }
+        additions = {
+            "memory_type": "TEXT NOT NULL DEFAULT ''",
+            "memory_description": "TEXT NOT NULL DEFAULT ''",
+            "actors_json": "TEXT NOT NULL DEFAULT '[]'",
+            "owner_sub": "TEXT NOT NULL DEFAULT ''",
+            "expires_at_utc": "TEXT",
+        }
+
+        for column_name, declaration in additions.items():
+            if column_name not in existing_columns:
+                conn.execute(
+                    f"ALTER TABLE memory_files ADD COLUMN {column_name} {declaration}"
+                )
+
+    @staticmethod
     def _ensure_memory_records_columns(conn: sqlite3.Connection) -> None:
-        rows = conn.execute("PRAGMA table_info(memory_records)").fetchall()
-        existing_columns = {str(row[1]) for row in rows}
+        existing_columns = {
+            str(row[1])
+            for row in conn.execute("PRAGMA table_info(memory_records)").fetchall()
+        }
+        additions = {
+            "sequence_number": "INTEGER NOT NULL DEFAULT 0",
+            "actor_id": "TEXT NOT NULL DEFAULT ''",
+            "chat_stream_id": "TEXT NOT NULL DEFAULT ''",
+            "retrieval_source_mode": "TEXT NOT NULL DEFAULT 'QA'",
+            "direct_recall_key": "TEXT NOT NULL DEFAULT ''",
+            "episode_title": "TEXT NOT NULL DEFAULT ''",
+            "episode_description": "TEXT NOT NULL DEFAULT ''",
+            "expires_at_utc": "TEXT",
+        }
 
-        if "retrieval_source_mode" not in existing_columns:
-            conn.execute(
-                "ALTER TABLE memory_records "
-                "ADD COLUMN retrieval_source_mode TEXT NOT NULL DEFAULT 'QA'"
-            )
-
-        if "direct_recall_key" not in existing_columns:
-            conn.execute(
-                "ALTER TABLE memory_records "
-                "ADD COLUMN direct_recall_key TEXT NOT NULL DEFAULT ''"
-            )
+        for column_name, declaration in additions.items():
+            if column_name not in existing_columns:
+                conn.execute(
+                    f"ALTER TABLE memory_records ADD COLUMN {column_name} {declaration}"
+                )

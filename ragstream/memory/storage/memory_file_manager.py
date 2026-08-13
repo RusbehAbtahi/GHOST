@@ -1,5 +1,15 @@
-# ragstream/memory/memory_file_manager.py
+# ragstream/memory/storage/memory_file_manager.py
 # -*- coding: utf-8 -*-
+"""Manage the files and SQLite identity of complete GHOST memory histories.
+
+Main classes:
+    MemoryFileManager:
+        Creates, loads, renames, lists, and deletes whole memory histories.
+
+Important notes:
+    file_id is stable identity; filenames and titles remain mutable metadata.
+"""
+
 from __future__ import annotations
 
 import json
@@ -14,12 +24,16 @@ from typing import Any
 from ragstream.memory.memory_manager import MemoryManager
 from ragstream.textforge.RagLog import LogALL as logger
 from ragstream.textforge.RagLog import LogDeveloper as _logger_dev
+
+
 DEV_LOG_ENABLED = False
+
 
 def logger_dev(*args, **kwargs):
     if DEV_LOG_ENABLED:
         return _logger_dev(*args, **kwargs)
     return None
+
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -60,7 +74,17 @@ class MemoryFileManager:
         """Return all memory histories from SQLite."""
         return self.memory_manager.list_histories()
 
-    def create_history(self, title: str) -> dict[str, Any]:
+    def create_history(
+        self,
+        title: str,
+        *,
+        memory_type: str = "",
+        memory_description: str = "",
+        actors: list[Any] | None = None,
+        owner_sub: str = "",
+        expires_at_utc: str | None = None,
+        storage_folder: str = "",
+    ) -> dict[str, Any]:
         """
         Create a new empty memory history and make it active.
 
@@ -73,16 +97,28 @@ class MemoryFileManager:
         if not clean_title:
             raise ValueError("title must not be empty.")
 
-        self.memory_manager.start_new_history(clean_title)
+        self.memory_manager.start_new_history(
+            clean_title,
+            memory_type=memory_type,
+            memory_description=memory_description,
+            actors=actors,
+            owner_sub=owner_sub,
+            expires_at_utc=expires_at_utc,
+            storage_folder=storage_folder,
+        )
 
-        now = _utc_now()
+        now = self.memory_manager.created_at_utc or _utc_now()
 
-        self.memory_manager.files_root.mkdir(parents=True, exist_ok=True)
+        self.memory_manager.ragmem_path.parent.mkdir(parents=True, exist_ok=True)
+        self.memory_manager.meta_path.parent.mkdir(parents=True, exist_ok=True)
         self.memory_manager.ragmem_path.touch(exist_ok=False)
 
         metainfo = {
             "file_id": self.memory_manager.file_id,
             "title": self.memory_manager.title,
+            "memory_type": self.memory_manager.memory_type,
+            "memory_description": self.memory_manager.memory_description,
+            "actors": list(self.memory_manager.actors),
             "filename_ragmem": self.memory_manager.filename_ragmem,
             "filename_meta": self.memory_manager.filename_meta,
             "created_at_utc": now,
@@ -94,6 +130,8 @@ class MemoryFileManager:
             "auto_keywords": [],
             "user_keywords": [],
             "records": [],
+            "owner_sub": self.memory_manager.owner_sub,
+            "expires_at_utc": self.memory_manager.expires_at_utc,
         }
 
         self.memory_manager.metainfo = metainfo
@@ -109,6 +147,11 @@ class MemoryFileManager:
             filename_meta=self.memory_manager.filename_meta,
             created_at_utc=now,
             updated_at_utc=now,
+            memory_type=self.memory_manager.memory_type,
+            memory_description=self.memory_manager.memory_description,
+            actors=self.memory_manager.actors,
+            owner_sub=self.memory_manager.owner_sub,
+            expires_at_utc=self.memory_manager.expires_at_utc,
         )
 
         logger_dev(
@@ -127,6 +170,9 @@ class MemoryFileManager:
             "success": True,
             "file_id": self.memory_manager.file_id,
             "title": self.memory_manager.title,
+            "memory_type": self.memory_manager.memory_type,
+            "memory_description": self.memory_manager.memory_description,
+            "actors": list(self.memory_manager.actors),
             "filename_ragmem": self.memory_manager.filename_ragmem,
             "filename_meta": self.memory_manager.filename_meta,
             "record_count": 0,
@@ -141,6 +187,9 @@ class MemoryFileManager:
             "success": True,
             "file_id": self.memory_manager.file_id,
             "title": self.memory_manager.title,
+            "memory_type": self.memory_manager.memory_type,
+            "memory_description": self.memory_manager.memory_description,
+            "actors": list(self.memory_manager.actors),
             "filename_ragmem": self.memory_manager.filename_ragmem,
             "filename_meta": self.memory_manager.filename_meta,
             "record_count": len(self.memory_manager.records),
@@ -173,19 +222,21 @@ class MemoryFileManager:
         old_ragmem = self.memory_manager.files_root / row["filename_ragmem"]
         old_meta = self.memory_manager.files_root / row["filename_meta"]
 
+        old_relative_ragmem = Path(str(row["filename_ragmem"]))
+        relative_parent = old_relative_ragmem.parent
         timestamp_prefix = self._extract_timestamp_prefix(row["filename_ragmem"])
         stem = f"{timestamp_prefix}-{_safe_title(clean_title)}"
 
-        new_ragmem_name = f"{stem}.ragmem"
-        new_meta_name = f"{stem}.ragmeta.json"
+        new_ragmem_name = str(relative_parent / f"{stem}.ragmem")
+        new_meta_name = str(relative_parent / f"{stem}.ragmeta.json")
 
         new_ragmem = self.memory_manager.files_root / new_ragmem_name
         new_meta = self.memory_manager.files_root / new_meta_name
 
         if new_ragmem.exists() or new_meta.exists():
             stem = f"{stem}-{clean_file_id[:8]}"
-            new_ragmem_name = f"{stem}.ragmem"
-            new_meta_name = f"{stem}.ragmeta.json"
+            new_ragmem_name = str(relative_parent / f"{stem}.ragmem")
+            new_meta_name = str(relative_parent / f"{stem}.ragmeta.json")
             new_ragmem = self.memory_manager.files_root / new_ragmem_name
             new_meta = self.memory_manager.files_root / new_meta_name
 
@@ -303,8 +354,10 @@ class MemoryFileManager:
             conn.row_factory = sqlite3.Row
             row = conn.execute(
                 """
-                SELECT file_id, title, filename_ragmem, filename_meta,
-                       created_at_utc, updated_at_utc, record_count
+                SELECT file_id, title, memory_type, memory_description,
+                       actors_json, filename_ragmem, filename_meta,
+                       created_at_utc, updated_at_utc, record_count,
+                       owner_sub, expires_at_utc
                 FROM memory_files
                 WHERE file_id = ?
                 """,
@@ -322,30 +375,47 @@ class MemoryFileManager:
         filename_meta: str,
         created_at_utc: str,
         updated_at_utc: str,
+        memory_type: str,
+        memory_description: str,
+        actors: list[Any],
+        owner_sub: str,
+        expires_at_utc: str | None,
     ) -> None:
         with sqlite3.connect(self.memory_manager.sqlite_path) as conn:
             conn.execute(
                 """
                 INSERT INTO memory_files (
-                    file_id, title, filename_ragmem, filename_meta,
-                    created_at_utc, updated_at_utc, record_count
+                    file_id, title, memory_type, memory_description,
+                    actors_json, filename_ragmem, filename_meta,
+                    created_at_utc, updated_at_utc, record_count,
+                    owner_sub, expires_at_utc
                 )
-                VALUES (?, ?, ?, ?, ?, ?, 0)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
                 ON CONFLICT(file_id) DO UPDATE SET
                     title = excluded.title,
+                    memory_type = excluded.memory_type,
+                    memory_description = excluded.memory_description,
+                    actors_json = excluded.actors_json,
                     filename_ragmem = excluded.filename_ragmem,
                     filename_meta = excluded.filename_meta,
                     created_at_utc = excluded.created_at_utc,
                     updated_at_utc = excluded.updated_at_utc,
-                    record_count = excluded.record_count
+                    record_count = excluded.record_count,
+                    owner_sub = excluded.owner_sub,
+                    expires_at_utc = excluded.expires_at_utc
                 """,
                 (
                     file_id,
                     title,
+                    memory_type,
+                    memory_description,
+                    json.dumps(actors, ensure_ascii=False),
                     filename_ragmem,
                     filename_meta,
                     created_at_utc,
                     updated_at_utc,
+                    owner_sub,
+                    expires_at_utc,
                 ),
             )
             conn.commit()
@@ -423,6 +493,13 @@ class MemoryFileManager:
     def _reset_active_memory_manager(self) -> None:
         self.memory_manager.file_id = uuid.uuid4().hex
         self.memory_manager.title = ""
+        self.memory_manager.memory_type = ""
+        self.memory_manager.memory_description = ""
+        self.memory_manager.actors = []
+        self.memory_manager.owner_sub = ""
+        self.memory_manager.expires_at_utc = None
+        self.memory_manager.created_at_utc = ""
+        self.memory_manager.updated_at_utc = ""
         self.memory_manager.filename_ragmem = ""
         self.memory_manager.filename_meta = ""
         self.memory_manager.records = []
@@ -431,7 +508,7 @@ class MemoryFileManager:
 
     @staticmethod
     def _extract_timestamp_prefix(filename_ragmem: str) -> str:
-        text = str(filename_ragmem or "").strip()
+        text = Path(str(filename_ragmem or "").strip()).name
         match = re.match(r"^(\d{4}-\d{2}-\d{2}-\d{2}-\d{2})-", text)
         if match:
             return match.group(1)

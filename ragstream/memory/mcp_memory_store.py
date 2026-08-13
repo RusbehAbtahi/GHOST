@@ -62,6 +62,18 @@ def _unique(values: list[str]) -> list[str]:
     return result
 
 
+def _optional_str(value: Any) -> str | None:
+    if value is None:
+        return None
+
+    text = str(value).strip()
+    return text if text else None
+
+
+def _list_or_empty(value: Any) -> list[Any]:
+    return list(value) if isinstance(value, list) else []
+
+
 class McpMemoryStore:
     """Own MCP memory persistence, lookup, listing, and deletion."""
 
@@ -125,11 +137,15 @@ class McpMemoryStore:
             ragmem_path, meta_path, filename_ragmem, filename_meta = (
                 self._resolve_daily_history(owner, utc_date)
             )
-            file_id, records = self._load_daily_history(
+            file_id, records, existing_metainfo = self._load_daily_history(
                 owner,
                 ragmem_path,
                 meta_path,
             )
+            record.sequence_number = max(
+                len(records),
+                max((item.sequence_number for item in records), default=0),
+            ) + 1
             records.append(record)
 
             with ragmem_path.open("a", encoding="utf-8") as file:
@@ -143,6 +159,7 @@ class McpMemoryStore:
                 filename_ragmem=filename_ragmem,
                 filename_meta=filename_meta,
                 records=records,
+                existing_metainfo=existing_metainfo,
             )
             with meta_path.open("w", encoding="utf-8") as file:
                 json.dump(metainfo, file, ensure_ascii=False, indent=2)
@@ -290,9 +307,9 @@ class McpMemoryStore:
         target_ids: set[str],
     ) -> None:
         ragmem_path, meta_path, filename_ragmem, filename_meta = (
-            self._resolve_daily_history(owner_sub, utc_date)
+            self._resolve_indexed_history(owner_sub, file_id)
         )
-        loaded_file_id, records = self._load_daily_history(
+        loaded_file_id, records, existing_metainfo = self._load_daily_history(
             owner_sub, ragmem_path, meta_path
         )
         if loaded_file_id != file_id:
@@ -321,6 +338,7 @@ class McpMemoryStore:
             filename_ragmem=filename_ragmem,
             filename_meta=filename_meta,
             records=remaining,
+            existing_metainfo=existing_metainfo,
         )
         meta_path.write_text(
             json.dumps(metainfo, ensure_ascii=False, indent=2),
@@ -333,12 +351,40 @@ class McpMemoryStore:
         owner_sub: str,
         utc_date: str,
     ) -> tuple[Path, Path, str, str]:
-        owner_root = self.files_root / owner_sub
+        owner_root = self.files_root / owner_sub / "direct_recall"
         owner_root.mkdir(parents=True, exist_ok=True)
 
         stem = f"MCP_MEM_{utc_date}"
-        filename_ragmem = f"{owner_sub}/{stem}.ragmem"
-        filename_meta = f"{owner_sub}/{stem}.ragmeta.json"
+        filename_ragmem = f"{owner_sub}/direct_recall/{stem}.ragmem"
+        filename_meta = f"{owner_sub}/direct_recall/{stem}.ragmeta.json"
+        return (
+            self.files_root / filename_ragmem,
+            self.files_root / filename_meta,
+            filename_ragmem,
+            filename_meta,
+        )
+
+    def _resolve_indexed_history(
+        self,
+        owner_sub: str,
+        file_id: str,
+    ) -> tuple[Path, Path, str, str]:
+        with sqlite3.connect(self.sqlite_path) as conn:
+            row = conn.execute(
+                """
+                SELECT filename_ragmem, filename_meta
+                FROM memory_files
+                WHERE file_id = ?
+                  AND owner_sub = ?
+                """,
+                [file_id, owner_sub],
+            ).fetchone()
+
+        if row is None:
+            raise ValueError("MCP memory index entry was not found.")
+
+        filename_ragmem = str(row[0])
+        filename_meta = str(row[1])
         return (
             self.files_root / filename_ragmem,
             self.files_root / filename_meta,
@@ -351,9 +397,9 @@ class McpMemoryStore:
         owner_sub: str,
         ragmem_path: Path,
         meta_path: Path,
-    ) -> tuple[str, list[MemoryRecord]]:
+    ) -> tuple[str, list[MemoryRecord], dict[str, Any]]:
         if not ragmem_path.exists() and not meta_path.exists():
-            return uuid.uuid4().hex, []
+            return uuid.uuid4().hex, [], {}
 
         if not ragmem_path.exists() or not meta_path.exists():
             raise ValueError("MCP memory file pair is incomplete.")
@@ -402,7 +448,7 @@ class McpMemoryStore:
                 loaded_record.update_metadata_overlay(metadata)
             records.append(loaded_record)
 
-        return file_id, records
+        return file_id, records, metainfo
 
     def _build_metainfo(
         self,
@@ -412,6 +458,7 @@ class McpMemoryStore:
         filename_ragmem: str,
         filename_meta: str,
         records: list[MemoryRecord],
+        existing_metainfo: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         tag_summary: dict[str, int] = {}
         auto_keywords: list[str] = []
@@ -422,24 +469,37 @@ class McpMemoryStore:
             auto_keywords.extend(record.auto_keywords)
             user_keywords.extend(record.user_keywords)
 
-        return {
-            "file_id": file_id,
-            "title": title,
-            "filename_ragmem": filename_ragmem,
-            "filename_meta": filename_meta,
-            "created_at_utc": records[0].created_at_utc if records else "",
-            "updated_at_utc": _utc_now() if records else "",
-            "record_count": len(records),
-            "record_ids": [record.record_id for record in records],
-            "parent_ids": _unique(
-                [record.parent_id for record in records if record.parent_id]
-            ),
-            "tag_summary": tag_summary,
-            "auto_keywords": _unique(auto_keywords),
-            "user_keywords": _unique(user_keywords),
-            "records": [record.to_index_dict() for record in records],
-            "owner_sub": owner_sub,
-        }
+        metainfo = dict(existing_metainfo or {})
+        metainfo.update(
+            {
+                "file_id": file_id,
+                "title": title,
+                "memory_type": str(metainfo.get("memory_type", "") or "").strip(),
+                "memory_description": str(
+                    metainfo.get("memory_description", "") or ""
+                ).strip(),
+                "actors": _list_or_empty(metainfo.get("actors")),
+                "filename_ragmem": filename_ragmem,
+                "filename_meta": filename_meta,
+                "created_at_utc": (
+                    str(metainfo.get("created_at_utc") or "")
+                    or (records[0].created_at_utc if records else "")
+                ),
+                "updated_at_utc": _utc_now() if records else "",
+                "record_count": len(records),
+                "record_ids": [record.record_id for record in records],
+                "parent_ids": _unique(
+                    [record.parent_id for record in records if record.parent_id]
+                ),
+                "tag_summary": tag_summary,
+                "auto_keywords": _unique(auto_keywords),
+                "user_keywords": _unique(user_keywords),
+                "records": [record.to_index_dict() for record in records],
+                "owner_sub": owner_sub,
+                "expires_at_utc": _optional_str(metainfo.get("expires_at_utc")),
+            }
+        )
+        return metainfo
 
     def _refresh_sqlite_index(
         self,
@@ -452,28 +512,38 @@ class McpMemoryStore:
             conn.execute(
                 """
                 INSERT INTO memory_files (
-                    file_id, title, filename_ragmem, filename_meta,
-                    created_at_utc, updated_at_utc, record_count, owner_sub
+                    file_id, title, memory_type, memory_description,
+                    actors_json, filename_ragmem, filename_meta,
+                    created_at_utc, updated_at_utc, record_count,
+                    owner_sub, expires_at_utc
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(file_id) DO UPDATE SET
                     title = excluded.title,
+                    memory_type = excluded.memory_type,
+                    memory_description = excluded.memory_description,
+                    actors_json = excluded.actors_json,
                     filename_ragmem = excluded.filename_ragmem,
                     filename_meta = excluded.filename_meta,
                     created_at_utc = excluded.created_at_utc,
                     updated_at_utc = excluded.updated_at_utc,
                     record_count = excluded.record_count,
-                    owner_sub = excluded.owner_sub
+                    owner_sub = excluded.owner_sub,
+                    expires_at_utc = excluded.expires_at_utc
                 """,
                 (
                     file_id,
                     metainfo["title"],
+                    metainfo["memory_type"],
+                    metainfo["memory_description"],
+                    json.dumps(metainfo["actors"], ensure_ascii=False),
                     metainfo["filename_ragmem"],
                     metainfo["filename_meta"],
                     metainfo["created_at_utc"],
                     metainfo["updated_at_utc"],
                     metainfo["record_count"],
                     metainfo["owner_sub"],
+                    metainfo["expires_at_utc"],
                 ),
             )
 
@@ -482,25 +552,32 @@ class McpMemoryStore:
                 conn.execute(
                     """
                     INSERT INTO memory_records (
-                        file_id, record_id, parent_id, created_at_utc,
-                        source, tag, retrieval_source_mode, direct_recall_key,
-                        episode_title, auto_keywords_json, user_keywords_json,
-                        active_project_name, embedded_files_snapshot_json,
+                        file_id, record_id, parent_id, sequence_number,
+                        created_at_utc, actor_id, chat_stream_id, source, tag,
+                        retrieval_source_mode, direct_recall_key, episode_title,
+                        episode_description, auto_keywords_json,
+                        user_keywords_json, active_project_name,
+                        embedded_files_snapshot_json, expires_at_utc,
                         input_hash, output_hash
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(file_id, record_id) DO UPDATE SET
                         parent_id = excluded.parent_id,
+                        sequence_number = excluded.sequence_number,
                         created_at_utc = excluded.created_at_utc,
+                        actor_id = excluded.actor_id,
+                        chat_stream_id = excluded.chat_stream_id,
                         source = excluded.source,
                         tag = excluded.tag,
                         retrieval_source_mode = excluded.retrieval_source_mode,
                         direct_recall_key = excluded.direct_recall_key,
                         episode_title = excluded.episode_title,
+                        episode_description = excluded.episode_description,
                         auto_keywords_json = excluded.auto_keywords_json,
                         user_keywords_json = excluded.user_keywords_json,
                         active_project_name = excluded.active_project_name,
                         embedded_files_snapshot_json = excluded.embedded_files_snapshot_json,
+                        expires_at_utc = excluded.expires_at_utc,
                         input_hash = excluded.input_hash,
                         output_hash = excluded.output_hash
                     """,
@@ -508,12 +585,16 @@ class McpMemoryStore:
                         file_id,
                         index_data["record_id"],
                         index_data["parent_id"],
+                        index_data["sequence_number"],
                         index_data["created_at_utc"],
+                        index_data["actor_id"],
+                        index_data["chat_stream_id"],
                         index_data["source"],
                         index_data["tag"],
                         index_data["retrieval_source_mode"],
                         index_data["direct_recall_key"],
                         index_data["episode_title"],
+                        index_data["episode_description"],
                         json.dumps(index_data["auto_keywords"], ensure_ascii=False),
                         json.dumps(index_data["user_keywords"], ensure_ascii=False),
                         index_data["active_project_name"],
@@ -521,6 +602,7 @@ class McpMemoryStore:
                             index_data["embedded_files_snapshot"],
                             ensure_ascii=False,
                         ),
+                        index_data["expires_at_utc"],
                         index_data["input_hash"],
                         index_data["output_hash"],
                     ),
@@ -547,27 +629,36 @@ class McpMemoryStore:
                 CREATE TABLE IF NOT EXISTS memory_files (
                     file_id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
+                    memory_type TEXT NOT NULL DEFAULT '',
+                    memory_description TEXT NOT NULL DEFAULT '',
+                    actors_json TEXT NOT NULL DEFAULT '[]',
                     filename_ragmem TEXT NOT NULL,
                     filename_meta TEXT NOT NULL,
                     created_at_utc TEXT NOT NULL,
                     updated_at_utc TEXT NOT NULL,
                     record_count INTEGER NOT NULL,
-                    owner_sub TEXT NOT NULL
+                    owner_sub TEXT NOT NULL DEFAULT '',
+                    expires_at_utc TEXT
                 );
                 CREATE TABLE IF NOT EXISTS memory_records (
                     file_id TEXT NOT NULL,
                     record_id TEXT NOT NULL,
                     parent_id TEXT,
+                    sequence_number INTEGER NOT NULL DEFAULT 0,
                     created_at_utc TEXT NOT NULL,
+                    actor_id TEXT NOT NULL DEFAULT '',
+                    chat_stream_id TEXT NOT NULL DEFAULT '',
                     source TEXT NOT NULL,
                     tag TEXT NOT NULL,
                     retrieval_source_mode TEXT NOT NULL DEFAULT 'QA',
                     direct_recall_key TEXT NOT NULL DEFAULT '',
                     episode_title TEXT NOT NULL DEFAULT '',
+                    episode_description TEXT NOT NULL DEFAULT '',
                     auto_keywords_json TEXT NOT NULL,
                     user_keywords_json TEXT NOT NULL,
                     active_project_name TEXT,
                     embedded_files_snapshot_json TEXT NOT NULL,
+                    expires_at_utc TEXT,
                     input_hash TEXT NOT NULL,
                     output_hash TEXT NOT NULL,
                     PRIMARY KEY (file_id, record_id)
@@ -579,29 +670,63 @@ class McpMemoryStore:
                 str(row[1])
                 for row in conn.execute("PRAGMA table_info(memory_files)").fetchall()
             }
-            if "owner_sub" not in file_columns:
-                conn.execute(
-                    "ALTER TABLE memory_files "
-                    "ADD COLUMN owner_sub TEXT NOT NULL DEFAULT ''"
-                )
+            file_additions = {
+                "memory_type": "TEXT NOT NULL DEFAULT ''",
+                "memory_description": "TEXT NOT NULL DEFAULT ''",
+                "actors_json": "TEXT NOT NULL DEFAULT '[]'",
+                "owner_sub": "TEXT NOT NULL DEFAULT ''",
+                "expires_at_utc": "TEXT",
+            }
+            for column_name, declaration in file_additions.items():
+                if column_name not in file_columns:
+                    conn.execute(
+                        f"ALTER TABLE memory_files "
+                        f"ADD COLUMN {column_name} {declaration}"
+                    )
 
             record_columns = {
                 str(row[1])
                 for row in conn.execute("PRAGMA table_info(memory_records)").fetchall()
             }
-            if "episode_title" not in record_columns:
-                conn.execute(
-                    "ALTER TABLE memory_records "
-                    "ADD COLUMN episode_title TEXT NOT NULL DEFAULT ''"
-                )
+            record_additions = {
+                "sequence_number": "INTEGER NOT NULL DEFAULT 0",
+                "actor_id": "TEXT NOT NULL DEFAULT ''",
+                "chat_stream_id": "TEXT NOT NULL DEFAULT ''",
+                "retrieval_source_mode": "TEXT NOT NULL DEFAULT 'QA'",
+                "direct_recall_key": "TEXT NOT NULL DEFAULT ''",
+                "episode_title": "TEXT NOT NULL DEFAULT ''",
+                "episode_description": "TEXT NOT NULL DEFAULT ''",
+                "expires_at_utc": "TEXT",
+            }
+            for column_name, declaration in record_additions.items():
+                if column_name not in record_columns:
+                    conn.execute(
+                        f"ALTER TABLE memory_records "
+                        f"ADD COLUMN {column_name} {declaration}"
+                    )
 
             conn.executescript(
                 """
-                CREATE INDEX IF NOT EXISTS idx_memory_files_owner_sub ON memory_files(owner_sub);
-                CREATE INDEX IF NOT EXISTS idx_memory_records_tag ON memory_records(tag);
-                CREATE INDEX IF NOT EXISTS idx_memory_records_project ON memory_records(active_project_name);
+                CREATE INDEX IF NOT EXISTS idx_memory_files_owner_sub
+                ON memory_files(owner_sub);
+
+                CREATE INDEX IF NOT EXISTS idx_memory_files_memory_type
+                ON memory_files(memory_type);
+
+                CREATE INDEX IF NOT EXISTS idx_memory_records_tag
+                ON memory_records(tag);
+
+                CREATE INDEX IF NOT EXISTS idx_memory_records_project
+                ON memory_records(active_project_name);
+
                 CREATE INDEX IF NOT EXISTS idx_memory_records_direct_recall_key
                 ON memory_records(direct_recall_key);
+
+                CREATE INDEX IF NOT EXISTS idx_memory_records_record_id
+                ON memory_records(record_id);
+
+                CREATE INDEX IF NOT EXISTS idx_memory_records_file_sequence
+                ON memory_records(file_id, sequence_number);
                 """
             )
             conn.commit()
