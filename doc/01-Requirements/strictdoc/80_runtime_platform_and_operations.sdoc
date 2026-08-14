@@ -14,7 +14,7 @@ TITLE: 1. Purpose, Scope, and Status Boundary
 STATEMENT: >>>
 This document is the parent requirement specification for the GHOST AWS runtime and operations branch.
 
-It intentionally contains only the deployment-level capability boundaries needed by the documented current AWS system and the approved initial remote MCP extension. Detailed realization belongs in 81_aws_deployment_and_operations.sdoc. Exact environment values belong in 81_aws_deployment_profile.local.md.
+It intentionally contains only the deployment-level capability boundaries needed by the documented current AWS system and the approved remote MCP deployment. Detailed realization belongs in 81_aws_deployment_and_operations.sdoc. Exact environment values belong in 81_aws_deployment_profile.local.md.
 <<<
 
 [REQUIREMENT]
@@ -22,7 +22,7 @@ UID: GHOST-RUN-OPS-CAPABILITY
 STATUS: Draft
 TITLE: AWS Runtime Platform and Operations Capability
 STATEMENT: >>>
-GHOST shall provide the runtime-platform and operations capability required to reproduce the documented current AWS deployment and to add the approved initial remote MCP endpoint.
+GHOST shall provide the runtime-platform and operations capability required to reproduce the documented current AWS deployment and to realize the approved remote MCP endpoint.
 
 This capability shall be limited to AWS hosting, container execution, image delivery, HTTPS routing, DNS, runtime secrets, persistent AWS runtime data, deployment activation, operational verification, and the MCP deployment boundary.
 <<<
@@ -63,7 +63,7 @@ TITLE: Current Deployment and Target MCP Separation
 STATEMENT: >>>
 The documented Streamlit deployment shall be treated as CURRENT.
 
-The MCP extension shall be treated as TARGET until its server code, deployment artifacts, HTTPS route, OAuth interoperability, and client acceptance tests have been implemented and passed.
+MCP deployment requirements that remain marked TARGET shall remain TARGET until their required deployment artifacts, HTTPS route, OAuth interoperability, and client acceptance tests have been implemented and passed.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -163,7 +163,7 @@ TITLE: 3. Target Remote MCP Extension
 
 [TEXT]
 STATEMENT: >>>
-The TARGET requirements define only the approved deployment boundary for a remote MCP server on the existing EC2/nginx deployment. Functional prompt behavior remains owned by the preprocessing and prompt-functions requirements.
+The TARGET requirements define only the approved deployment boundary for the remote MCP server on the existing EC2/nginx deployment. Common MCP behavior is owned by 110_mcp.sdoc, non-ActiveBlackboard MCP capabilities are owned by 111_mcp_capabilities.sdoc, and ActiveBlackboard behavior is owned by 112_mcp_activeblackboard.sdoc.
 <<<
 
 [REQUIREMENT]
@@ -182,7 +182,7 @@ UID: GHOST-RUN-TGT-MCP-HTTPS-ENTRY
 STATUS: Draft
 TITLE: Target MCP HTTPS Entry
 STATEMENT: >>>
-The remote MCP server shall be exposed externally only as https://ragstream.rusbehabtahi.com/mcp through the existing nginx HTTPS entry point.
+The remote MCP server shall be exposed externally only as https://ghost.rusbehabtahi.com/mcp through nginx HTTPS termination.
 
 The MCP backend port shall not be exposed as a public Security Group port.
 <<<
@@ -204,13 +204,13 @@ RELATIONS:
 [REQUIREMENT]
 UID: GHOST-RUN-TGT-MCP-TOOL-SCOPE
 STATUS: Draft
-TITLE: Target MCP Tool Scope
+TITLE: Target MCP Functional Scope Boundary
 STATEMENT: >>>
-The initial MCP server shall expose only the single ghost_engineer_prompt tool defined by 73_mcp_interface.sdoc.
+The MCP deployment shall expose the tool inventory approved by the MCP requirement family.
 
-That tool shall reuse the existing deterministic prompt-construction function and then the existing A2 PromptShaper on the same request-isolated SuperPrompt. PreProcessing and A2 shall not be advertised as separate MCP tools.
+Common MCP protocol and interface behavior shall remain owned by 110_mcp.sdoc. Prompt Engineering, Episodic Memory, Clipboard Memory, and Collection Memory shall remain owned by 111_mcp_capabilities.sdoc. All current and future ActiveBlackboard behavior shall remain owned by 112_mcp_activeblackboard.sdoc.
 
-The MCP server shall not expose document ingestion, document retrieval, reranking, A3, A4, memory, file management, Streamlit control, answer generation, or the full GHOST pipeline.
+This runtime-platform requirement shall not independently restrict MCP to a single tool or redefine the functional behavior of those capabilities. PreProcessing and A2 remain internal stages of ghost_engineer_prompt unless separately approved as tools.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -221,9 +221,9 @@ UID: GHOST-RUN-TGT-MCP-OAUTH-INTEROPERABILITY
 STATUS: Draft
 TITLE: Target Claude and ChatGPT OAuth Interoperability
 STATEMENT: >>>
-The remote MCP endpoint shall use the MCP authorization model for HTTP transports and shall complete authenticated connection and invocation of ghost_engineer_prompt from:
+The remote MCP endpoint shall use the MCP authorization model for HTTP transports and shall complete authenticated connection, tool discovery, and invocation of approved GHOST MCP tools from:
 
-- the owner's ChatGPT web client through its custom MCP plugin capability; and
+- the owner's ChatGPT web client through its supported MCP connection capability; and
 - Claude through its remote custom connector capability.
 
 Acceptance shall be demonstrated against both real clients rather than inferred only from a local test client or MCP Inspector.

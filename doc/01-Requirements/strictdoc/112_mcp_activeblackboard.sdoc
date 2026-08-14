@@ -1,0 +1,737 @@
+[DOCUMENT]
+TITLE: GHOST MCP ActiveBlackboard Requirements
+UID: GHOST-MCP-ACTIVEBLACKBOARD
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document owns all GHOST MCP requirements concerning ActiveBlackboard.
+
+It deliberately contains two different maturity levels:
+
+1. Current implemented Persistent Chat prototype behavior.
+2. Future ActiveBlackboard vision.
+
+The Persistent Chat implementation is the first executable stage toward ActiveBlackboard and shall be documented as implementation fact.
+
+The final multi-chat and multi-actor ActiveBlackboard architecture is not yet fully designed. Future requirements therefore remain high-level and shall not invent unresolved coordination semantics.
+
+No ActiveBlackboard behavior belongs in 111_mcp_capabilities.sdoc.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-ROOT
+STATUS: Draft
+TITLE: ActiveBlackboard Scope
+STATEMENT: >>>
+GHOST shall maintain a dedicated MCP requirement area for ActiveBlackboard.
+
+The requirement area shall distinguish:
+
+- current Persistent Chat behavior that already exists; and
+- future shared ActiveBlackboard behavior that remains under design.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Current Persistent Chat Prototype
+
+[TEXT]
+STATEMENT: >>>
+The current implementation provides Persistent Chat Memory as a single-stream prototype of ActiveBlackboard.
+
+It uses the common GHOST memory infrastructure while applying a dedicated MCP persistence policy.
+
+The implementation is currently centered on three tools:
+
+- ghost_persistent_chat_init
+- ghost_persistent_chat_append
+- ghost_persistent_chat_resume
+
+These names describe current executable behavior and shall not be replaced in the requirements by hypothetical future tool names.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE
+STATUS: Draft
+TITLE: Persistent Chat as ActiveBlackboard Prototype
+STATEMENT: >>>
+The current Persistent Chat implementation shall be treated as the first executable ActiveBlackboard prototype.
+
+It validates:
+
+- explicit activation of persistent conversation recording;
+- one persistent history across multiple conversation turns;
+- append-only visible Q/A recording;
+- cumulative ActiveBrief continuity;
+- deterministic resume; and
+- owner-scoped persistent state.
+
+It shall not be represented as the final multi-actor ActiveBlackboard architecture.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-CURRENT-SINGLE-STREAM
+STATUS: Draft
+TITLE: Current Single-Stream Boundary
+STATEMENT: >>>
+The current Persistent Chat implementation shall be treated as a single continuing chat stream.
+
+Its use of ActiveBlackboard-related storage naming shall not by itself establish implemented multi-chat, multi-actor, shared-board, or agent-coordination behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Persistent Chat Initialization
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-INIT-TOOL
+STATUS: Draft
+TITLE: Persistent Chat Initialize Tool
+STATEMENT: >>>
+The current MCP server shall expose:
+
+ghost_persistent_chat_init
+
+Initialization shall explicitly create one new persistent chat memory for the authenticated owner.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-INIT-EXPLICIT
+STATUS: Draft
+TITLE: Persistent Recording Requires Explicit Activation
+STATEMENT: >>>
+Persistent Chat recording shall begin only after an explicit successful initialization or resume operation.
+
+Ordinary conversation before activation shall not be represented as automatically persisted by this capability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-INIT-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-INIT-INPUT
+STATUS: Draft
+TITLE: Initialization Identity
+STATEMENT: >>>
+Initialization shall require a user-provided title.
+
+A general memory description may also be supplied.
+
+The implementation shall not invent unsupported project facts merely to populate an optional description.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-INIT-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-STABLE-ID
+STATUS: Draft
+TITLE: Stable Persistent Memory Identity
+STATEMENT: >>>
+Initialization shall create one stable persistent memory identity.
+
+The current implementation exposes this identity as file_id.
+
+The same persistent memory shall continue across dates and later resume operations rather than being split into a new daily conversation memory.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-INIT-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-INIT-NO-EPISODE
+STATUS: Draft
+TITLE: Initialization Does Not Save a Conversation Episode
+STATEMENT: >>>
+Initialization shall create the persistent memory history but shall not fabricate or save a conversation episode.
+
+The first episode shall be created only by a subsequent successful append.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-INIT-TOOL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Persistent Chat Append
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-APPEND-TOOL
+STATUS: Draft
+TITLE: Persistent Chat Append Tool
+STATEMENT: >>>
+The current MCP server shall expose:
+
+ghost_persistent_chat_append
+
+The operation shall append one normal visible user/assistant exchange to an already initialized persistent chat memory.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-VISIBLE-QA
+STATUS: Draft
+TITLE: Persist Complete Visible Q/A
+STATEMENT: >>>
+Each appended episode shall contain:
+
+- the complete visible user message; and
+- the substantive visible assistant answer produced for that user message.
+
+The persistence path shall not intentionally replace the visible exchange with a summary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-APPEND-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-NO-HIDDEN-CONTENT
+STATUS: Draft
+TITLE: Hidden Processing Is Not Conversation Content
+STATEMENT: >>>
+Persistent Chat shall not save as conversation content:
+
+- hidden chain-of-thought;
+- internal model reasoning;
+- MCP protocol traffic;
+- internal tool results;
+- hidden tool arguments;
+- internal application diagnostics; or
+- the GHOST persistence receipt itself.
+
+Only the visible conversation content selected by the approved append behavior shall form the saved Q/A episode.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-VISIBLE-QA
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-PRESENTATION-AUTHORITY
+STATUS: Draft
+TITLE: Client Remains Answer Presentation Authority
+STATEMENT: >>>
+The invoking AI client shall compose the normal complete answer for the user before that answer is persisted.
+
+GHOST Persistent Chat shall store the supplied answer and shall not become a replacement answer renderer.
+
+Normal Markdown, code blocks, tables, and other visible answer formatting may remain part of the persisted assistant response.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-VISIBLE-QA
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-ANSWER-BEFORE-APPEND
+STATUS: Draft
+TITLE: Answer Then Persist
+STATEMENT: >>>
+The intended visible interaction order shall be:
+
+1. compose the normal assistant answer;
+2. append the same substantive visible Q/A to Persistent Chat;
+3. receive the GHOST save result; and
+4. present the normal answer followed by the short persistence receipt when appropriate.
+
+The persistence receipt shall not become part of the saved assistant answer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-PRESENTATION-AUTHORITY
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-APPEND-EXISTING-ONLY
+STATUS: Draft
+TITLE: Append Does Not Create Missing Persistent Memory
+STATEMENT: >>>
+ghost_persistent_chat_append shall operate only on an existing owner-scoped Persistent Chat memory.
+
+Append failure shall not silently initialize a new persistent memory.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-APPEND-TOOL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. ActiveBrief Continuity
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-ACTIVEBRIEF
+STATUS: Draft
+TITLE: Cumulative ActiveBrief
+STATEMENT: >>>
+Each successfully appended Persistent Chat episode shall contain the current cumulative ActiveBrief.
+
+The ActiveBrief shall represent the useful cumulative conversation state required to continue the persistent chat.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-APPEND-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-FIRST-BRIEF
+STATUS: Draft
+TITLE: Initial ActiveBrief
+STATEMENT: >>>
+For the first persisted episode, the invoking AI client shall compose the initial ActiveBrief from that first visible Q/A.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-ACTIVEBRIEF
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-BRIEF-UPDATE
+STATUS: Draft
+TITLE: ActiveBrief Update
+STATEMENT: >>>
+For each later episode, the invoking AI client shall construct the updated cumulative ActiveBrief from:
+
+- the previous latest ActiveBrief; and
+- the current visible user/assistant exchange.
+
+The resulting ActiveBrief shall represent the updated cumulative state after the new episode.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-ACTIVEBRIEF
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-CLIENT-BRIEF-AUTHORITY
+STATUS: Draft
+TITLE: Client-Composed ActiveBrief
+STATEMENT: >>>
+The current Persistent Chat prototype shall rely on the invoking AI client to compose the updated ActiveBrief.
+
+GHOST persistence code shall store the supplied ActiveBrief and shall not require a separate GHOST LLM call merely to recreate the same cumulative summary.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-ACTIVEBRIEF
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Episode Ordering and Persistence Integrity
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-SEQUENCE
+STATUS: Draft
+TITLE: Persistent Episode Sequence
+STATEMENT: >>>
+Each appended Persistent Chat episode shall have deterministic sequence ordering within its persistent memory.
+
+The current implementation stores sequence_number and links a new episode to the preceding episode through parent_id.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-APPEND-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-STREAM-ID
+STATUS: Draft
+TITLE: Persistent Chat Stream Identity
+STATEMENT: >>>
+Current Persistent Chat episodes shall remain traceable to their persistent stream.
+
+The current implementation stores the stable persistent file_id as the chat_stream_id for appended episodes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-SEQUENCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-RECORD-ID
+STATUS: Draft
+TITLE: Stable Episode Record ID
+STATEMENT: >>>
+Each persisted episode shall have a stable Record ID.
+
+The Record ID shall be returned in the successful persistence receipt and shall remain usable as an exact handle for deterministic resume.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-APPEND-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-COMMON-PERSISTENCE
+STATUS: Draft
+TITLE: Common GHOST Persistence Infrastructure
+STATEMENT: >>>
+The current Persistent Chat implementation shall use the established GHOST durable memory infrastructure:
+
+- MemoryRecord;
+- .ragmem;
+- .ragmeta.json;
+- shared SQLite indexing; and
+- stable file_id / record_id identities.
+
+Persistent Chat shall not require a parallel unrelated persistence format.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-COHERENCE
+STATUS: Draft
+TITLE: Body Metadata and Index Coherence
+STATEMENT: >>>
+Before continuing or resuming an existing Persistent Chat memory, the current implementation shall validate coherence among the durable memory body, metadata file, and SQLite index sufficiently to avoid continuing from an inconsistent identity or episode set.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-COMMON-PERSISTENCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-PARTIAL-SAVE
+STATUS: Draft
+TITLE: Partial Save Shall Not Be Reported as Success
+STATEMENT: >>>
+If durable episode body data has been written but a later metadata or SQLite update fails, GHOST shall not claim that the episode was coherently saved.
+
+The failure result may identify the durable Record ID so recovery or repair remains possible.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-COMMON-PERSISTENCE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Persistent Chat Resume
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-RESUME-TOOL
+STATUS: Draft
+TITLE: Persistent Chat Resume Tool
+STATEMENT: >>>
+The current MCP server shall expose:
+
+ghost_persistent_chat_resume
+
+Resume shall locate an existing owner-scoped Persistent Chat memory through an exact previously persisted episode Record ID.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-RESUME-NO-CREATE
+STATUS: Draft
+TITLE: Resume Never Creates a Memory
+STATEMENT: >>>
+A failed resume request shall not initialize or fabricate a new Persistent Chat memory.
+
+Resume is a deterministic recovery operation over already existing persistent state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-RESUME-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-RESUME-OWNER
+STATUS: Draft
+TITLE: Owner-Scoped Resume
+STATEMENT: >>>
+A Record ID used for resume shall resolve only within the authenticated owner's Persistent Chat memories.
+
+A Record ID belonging to another owner shall not expose or resume that owner's persistent memory.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-RESUME-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-RESUME-LATEST
+STATUS: Draft
+TITLE: Resume From Latest Coherent State
+STATEMENT: >>>
+The supplied Record ID shall identify the Persistent Chat history.
+
+After that history is identified, continuation shall use the latest coherent episode and latest cumulative ActiveBrief belonging to that history, even when newer episodes exist after the supplied resume handle.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-RESUME-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PCHAT-RESUME-STATE
+STATUS: Draft
+TITLE: Resume State
+STATEMENT: >>>
+A successful resume shall provide sufficient state for continued persistence, including:
+
+- stable persistent file_id;
+- title;
+- description where present;
+- latest Record ID;
+- latest sequence number;
+- latest episode time; and
+- latest cumulative ActiveBrief.
+
+The exact current response schema may additionally expose related metadata already present in the implementation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PCHAT-RESUME-LATEST
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. List and Delete Integration
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-LIST-TARGET
+STATUS: Draft
+TITLE: ActiveBlackboard Participation in Generic List
+STATEMENT: >>>
+ActiveBlackboard memories shall participate in the shared generic memory List capability when that capability is extended to the final memory model.
+
+List shall expose metadata and navigation information rather than automatically returning complete persistent-chat histories.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-EPISODE-DELETE
+STATUS: Draft
+TITLE: Individual ActiveBlackboard Episode Delete
+STATEMENT: >>>
+An individual ActiveBlackboard/Persistent Chat episode may be deleted through the shared deterministic memory Delete capability using an exact Record ID or other approved exact selector.
+
+Semantic or descriptive deletion shall not be used.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-DELETE-BRIEF-TRACE
+STATUS: Draft
+TITLE: ActiveBrief Residual Trace After Episode Delete
+STATEMENT: >>>
+Deleting an individual historical ActiveBlackboard episode does not require rewriting all later cumulative ActiveBriefs.
+
+A later ActiveBrief may therefore preserve a summarized trace of information that originated in the deleted episode.
+
+This residual cumulative-summary effect is accepted for individual episode deletion.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-EPISODE-DELETE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 9. Current Prototype Boundary
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-NO-CURRENT-MULTIACTOR
+STATUS: Draft
+TITLE: No Current Multi-Actor Blackboard Claim
+STATEMENT: >>>
+The current Persistent Chat prototype shall not be represented as implementing:
+
+- several cooperating actor streams;
+- autonomous Blackboard agents;
+- Programmer/Auditor/Architect/Requirements coordination;
+- shared multi-chat routing;
+- background Blackboard orchestration; or
+- a completed shared-board GUI.
+
+Those capabilities belong to the future ActiveBlackboard vision.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-NO-INVENTED-CURRENT-TOOLS
+STATUS: Draft
+TITLE: No Invented Current Lifecycle Tools
+STATEMENT: >>>
+Current implementation documentation shall identify the executable Persistent Chat tools as Init, Append, and Resume.
+
+Verify, Close, actor-routing, board-synchronization, or other hypothetical lifecycle tools shall not be claimed as implemented unless corresponding code and requirements are later approved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 10. Future ActiveBlackboard Vision
+
+[TEXT]
+STATEMENT: >>>
+The following requirements deliberately preserve only the approved future direction.
+
+They do not define the final ActiveBlackboard protocol.
+
+Detailed coordination semantics remain open until explicitly designed and approved.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-FUTURE-SHARED
+STATUS: Draft
+TITLE: Shared Ongoing Blackboard
+STATEMENT: >>>
+A future ActiveBlackboard shall support ongoing shared work context spanning more than one participating chat or specialist actor.
+
+The Blackboard shall provide durable continuity so participating actors can work from shared project state rather than depending solely on one native client conversation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-FUTURE-ACTORS
+STATUS: Draft
+TITLE: Multiple Specialist Actors
+STATEMENT: >>>
+Future ActiveBlackboard participants may include specialist roles such as:
+
+- Programmer;
+- Auditor;
+- Architect;
+- Requirements; and
+- other explicitly defined actors.
+
+Actor roles shall remain identifiable so their contributions can be inspected and traced.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-FUTURE-SHARED
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-FUTURE-BRIEFS
+STATUS: Draft
+TITLE: Future Actor or Stream ActiveBriefs
+STATEMENT: >>>
+A future ActiveBlackboard may maintain cumulative ActiveBrief state for individual actors, chat streams, or another explicitly designed Blackboard scope.
+
+The final rule for shared versus per-actor versus per-stream ActiveBriefs is not yet approved and shall not be invented by this requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-FUTURE-SHARED
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-FUTURE-PULL
+STATUS: Draft
+TITLE: Pull-Based Shared Context Direction
+STATEMENT: >>>
+The approved future direction favors actors retrieving relevant shared Blackboard state when needed rather than assuming uncontrolled automatic broadcast of all state to all actors.
+
+The exact retrieval and routing algorithm remains unresolved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-FUTURE-SHARED
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-FUTURE-GUI
+STATUS: Draft
+TITLE: Future Blackboard Workbench
+STATEMENT: >>>
+A future GHOST workbench may provide a Blackboard-oriented view of:
+
+- sessions;
+- streams;
+- actors;
+- titles;
+- timestamps;
+- saved episodes; and
+- relevant cumulative state.
+
+The workbench direction may support human-controlled filtering, searching, editing, tagging, archiving, and movement of information between appropriate contexts.
+
+Detailed GUI implementation remains outside the current MCP protocol contract.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-FUTURE-SHARED
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-FUTURE-HUMAN-CONTROL
+STATUS: Draft
+TITLE: Human-Controlled Blackboard
+STATEMENT: >>>
+The future ActiveBlackboard shall remain inspectable and under human control.
+
+Shared state, actor participation, persistence, and future coordination shall not become an opaque autonomous source of authority over the user's current request.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-FUTURE-SHARED
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. Intentionally Unresolved Future Design
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-UNRESOLVED
+STATUS: Draft
+TITLE: ActiveBlackboard Detailed Architecture Is Open
+STATEMENT: >>>
+The following future ActiveBlackboard decisions are intentionally unresolved:
+
+- exact actor coordination protocol;
+- exact actor-routing algorithm;
+- shared versus per-actor versus per-stream ActiveBrief ownership;
+- final Blackboard lifecycle operations;
+- automatic versus user-triggered synchronization;
+- exact shared-state selection semantics;
+- exact conflict-handling behavior;
+- final future MCP tool schemas; and
+- final future GUI interaction model.
+
+These details shall not be invented in requirements until explicitly designed and approved.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-BLACKBOARD-NO-FUTURE-IMPLEMENTATION-CLAIM
+STATUS: Draft
+TITLE: Future Vision Is Not Current Implementation
+STATEMENT: >>>
+The existence of the working Persistent Chat prototype shall not be used as evidence that the unresolved multi-chat or multi-actor ActiveBlackboard vision has already been implemented.
+
+Current implementation claims shall remain limited to verified Persistent Chat behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-BLACKBOARD-UNRESOLVED
+
+[[/SECTION]]

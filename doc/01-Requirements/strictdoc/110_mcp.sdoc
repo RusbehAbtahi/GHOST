@@ -1,0 +1,607 @@
+[DOCUMENT]
+TITLE: GHOST Model Context Protocol Requirements
+UID: GHOST-MCP
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines the parent requirements for the GHOST Model Context Protocol capability.
+
+MCP is a first-class GHOST interface family. It is not part of the graphical/human-interface requirement family.
+
+This document owns the common MCP contract shared by all GHOST MCP capabilities:
+- protocol and transport;
+- client interoperability;
+- authentication and authorization;
+- authenticated owner identity;
+- tool discovery and invocation;
+- request isolation;
+- rate limiting;
+- common error and security behavior;
+- deployment ownership boundaries; and
+- capability-extension governance.
+
+Detailed functional behavior is owned by the MCP child requirement files:
+
+- 111_mcp_capabilities.sdoc:
+  Prompt Engineering, Episodic Memory, Clipboard Memory, and Collection Memory.
+
+- 112_mcp_activeblackboard.sdoc:
+  all current and future ActiveBlackboard behavior, including the current Persistent Chat prototype.
+
+Runtime, container, local-hosting, AWS, reverse-proxy, HTTPS, Cognito, and deployment realization remain owned by the Runtime Platform and Operations requirement family.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-ROOT
+STATUS: Draft
+TITLE: GHOST MCP Capability Scope
+STATEMENT: >>>
+GHOST shall provide a Model Context Protocol interface through which approved external AI clients can invoke explicitly exposed GHOST capabilities.
+
+The MCP capability shall provide a controlled external boundary around approved GHOST functions without transferring ownership of those functions to the MCP transport layer.
+
+MCP shall be represented as its own capability family in the GHOST requirement hierarchy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-SRS-FILE-TREE
+
+[REQUIREMENT]
+UID: GHOST-MCP-CHILD-DOCUMENTS
+STATUS: Draft
+TITLE: MCP Child Requirement Documents
+STATEMENT: >>>
+The MCP capability shall be decomposed into:
+
+1. 111_mcp_capabilities.sdoc for all approved MCP capabilities except ActiveBlackboard.
+2. 112_mcp_activeblackboard.sdoc for all current and future ActiveBlackboard behavior.
+
+The child files shall inherit from GHOST-MCP-ROOT and shall not duplicate the common protocol, authorization, transport, deployment-boundary, or client-interoperability requirements owned by this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-INTERFACE-OWNERSHIP
+STATUS: Draft
+TITLE: MCP Interface Ownership
+STATEMENT: >>>
+The MCP parent capability shall own:
+
+- external MCP protocol behavior;
+- MCP transport requirements;
+- MCP capability negotiation;
+- tool discovery and invocation rules;
+- authenticated caller identity;
+- authorization enforcement;
+- common tool-call rate limiting;
+- interface-visible errors;
+- cross-client interoperability;
+- shared MCP security boundaries; and
+- the boundary between MCP functionality and runtime/deployment realization.
+
+The MCP parent capability shall not duplicate the internal algorithms of Prompt Engineering, Memory Management, ActiveBlackboard, or other GHOST functional subsystems.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-PRODUCT-PACKAGE-BOUNDARY
+STATUS: Draft
+TITLE: Product and Python Package Naming Boundary
+STATEMENT: >>>
+The product exposed through MCP shall be named GHOST.
+
+The existing Python package namespace may remain ragstream in implementation paths.
+
+MCP tool descriptions and client-facing metadata shall not present RAGstream as the product identity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. MCP Communication Contract
+
+[REQUIREMENT]
+UID: GHOST-MCP-REMOTE-TOOL-PROVIDER
+STATUS: Draft
+TITLE: MCP Tool Provider Role
+STATEMENT: >>>
+The GHOST MCP server shall act as a tool provider.
+
+An external AI client shall explicitly invoke an exposed GHOST MCP operation.
+
+The MCP server shall not claim to passively receive, monitor, intercept, or persist ordinary client conversation traffic for which no applicable GHOST tool invocation occurs.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIENT-COMPATIBILITY
+STATUS: Draft
+TITLE: ChatGPT and Claude Compatibility
+STATEMENT: >>>
+The same GHOST MCP service contract shall be usable by approved ChatGPT and Claude MCP client integrations.
+
+Core GHOST semantics shall not change merely because the invoking client is ChatGPT rather than Claude.
+
+Client-specific user-interface behavior, connector configuration, or authentication setup may differ without creating different GHOST functional contracts.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-EXPLICIT-CLIENT-INVOCATION
+STATUS: Draft
+TITLE: Explicit Client Invocation Boundary
+STATEMENT: >>>
+A GHOST MCP operation shall execute only when the client issues the corresponding MCP request.
+
+Enabling a GHOST connector or plugin shall not by itself authorize GHOST to treat every ordinary client message as an MCP operation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIENT-COMPATIBILITY
+
+[REQUIREMENT]
+UID: GHOST-MCP-REMOTE-STREAMABLE-HTTP
+STATUS: Draft
+TITLE: Streamable HTTP Transport
+STATEMENT: >>>
+The remote GHOST MCP service shall support MCP through Streamable HTTP.
+
+The server shall provide a logical MCP endpoint supporting the protocol operations required by the selected MCP implementation.
+
+Concrete hostnames, ports, reverse-proxy rules, container topology, and AWS network realization shall remain owned by the Runtime Platform and Operations requirement family.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-EXTERNAL-HTTPS
+STATUS: Draft
+TITLE: Protected External HTTPS
+STATEMENT: >>>
+Remote MCP clients shall communicate with the deployed GHOST MCP endpoint through HTTPS.
+
+External clients shall not be required to connect directly to an unencrypted public application port or directly to an internal container port.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-REMOTE-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROTOCOL-INITIALIZATION
+STATUS: Draft
+TITLE: MCP Initialization and Capability Negotiation
+STATEMENT: >>>
+The GHOST MCP server shall support the MCP initialization exchange and shall advertise only protocol capabilities supported by the active server implementation.
+
+The server shall advertise tool capability when GHOST tools are available.
+
+Additional MCP protocol capabilities shall not be claimed merely because they exist in the MCP specification or client implementation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-REMOTE-STREAMABLE-HTTP
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOOLS-LIST
+STATUS: Draft
+TITLE: Tool Discovery
+STATEMENT: >>>
+tools/list shall return the GHOST MCP tools currently approved and exposed by the active server implementation.
+
+Tool discovery shall be the authoritative client-visible inventory of callable GHOST MCP operations.
+
+An implementation experiment shall not automatically become a permanent GHOST requirement merely because it temporarily appears in tool metadata or code.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTOCOL-INITIALIZATION
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOOLS-CALL
+STATUS: Draft
+TITLE: Tool Invocation
+STATEMENT: >>>
+The server shall accept tools/call only for an advertised and authorized GHOST tool.
+
+Before application behavior executes, the request shall pass applicable:
+- protocol validation;
+- authentication;
+- authorization;
+- rate limiting; and
+- tool-input validation.
+
+An unknown or undeclared tool shall not invoke GHOST application logic.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-TOOLS-LIST
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Authentication, Authorization, and Owner Isolation
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROTECTED-ACCESS
+STATUS: Draft
+TITLE: Protected MCP Access
+STATEMENT: >>>
+The deployed remote MCP service shall require authenticated access through the approved MCP-compatible OAuth authorization flow.
+
+An unauthenticated or invalidly authenticated remote request shall not execute a protected GHOST tool.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-OAUTH-PROTECTED-RESOURCE-METADATA
+STATUS: Draft
+TITLE: OAuth Protected Resource Metadata
+STATEMENT: >>>
+The protected remote GHOST MCP endpoint shall expose the OAuth Protected Resource Metadata required by the supported client connection flow.
+
+The metadata shall identify the canonical GHOST MCP resource and the approved authorization server.
+
+Concrete authorization-provider deployment details remain owned by the deployment requirements.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-BEARER-TOKEN-TRANSPORT
+STATUS: Draft
+TITLE: Bearer Token Transport
+STATEMENT: >>>
+An authenticated MCP client shall present its access token through the HTTP Authorization header using the Bearer scheme.
+
+Access tokens shall not be accepted through URI query parameters.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOKEN-RESOURCE-VALIDATION
+STATUS: Draft
+TITLE: Token Validation
+STATEMENT: >>>
+Before executing a protected MCP operation, GHOST shall validate the presented token according to the active authorization configuration, including expiration and resource/scope requirements where applicable.
+
+A token that does not authorize the GHOST MCP resource shall not authorize a GHOST tool call.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-OWNER-ISOLATION
+STATUS: Draft
+TITLE: Authenticated Owner Isolation
+STATEMENT: >>>
+Where an MCP capability accesses persistent user-owned state, the authenticated identity shall define the owner scope for that operation.
+
+The current MCP memory implementation uses the authenticated Cognito subject as owner_sub.
+
+A memory lookup, list, append, resume, or deletion operation shall not expose or mutate another authenticated owner's persistent data.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-AUTHENTICATION-FAILURE
+STATUS: Draft
+TITLE: Authentication Failure Response
+STATEMENT: >>>
+A protected request without valid authentication shall fail before application-tool execution.
+
+The failure response shall not reveal access tokens, secrets, internal stack traces, stored memory bodies, prompt contents, or other protected GHOST state.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-AUTHORIZATION-FAILURE
+STATUS: Draft
+TITLE: Authorization Failure Response
+STATEMENT: >>>
+An authenticated request that lacks authorization for the requested MCP operation shall be rejected without executing the tool.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTECTED-ACCESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-ORIGIN-VALIDATION
+STATUS: Draft
+TITLE: Streamable HTTP Origin Validation
+STATEMENT: >>>
+The remote MCP runtime shall apply the configured transport-security policy, including Origin validation where required by the selected MCP transport implementation.
+
+Accepted hosts and origins are deployment values and shall remain outside the functional MCP capability requirements.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-REMOTE-STREAMABLE-HTTP
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Shared Runtime and Safety Behavior
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOOL-RATE-LIMITING
+STATUS: Draft
+TITLE: Authenticated Tool Rate Limiting
+STATEMENT: >>>
+Authenticated GHOST MCP tool invocations shall be subject to configurable rate limiting before the protected application operation executes.
+
+The current runtime identifies callers by authenticated owner identity.
+
+Concrete quotas, time windows, and deployment values shall remain deployment configuration rather than fixed functional requirements.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-TOOLS-CALL
+
+[REQUIREMENT]
+UID: GHOST-MCP-REQUEST-ISOLATION
+STATUS: Draft
+TITLE: Request Isolation
+STATEMENT: >>>
+Concurrent MCP calls shall not accidentally exchange request-specific mutable state or tool results.
+
+Persistent state may be shared only through an explicitly defined persistent capability such as memory or ActiveBlackboard and only according to its owning requirements.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-TOOLS-CALL
+
+[REQUIREMENT]
+UID: GHOST-MCP-MALFORMED-REQUEST-ERROR
+STATUS: Draft
+TITLE: Malformed MCP Request Error
+STATEMENT: >>>
+Malformed MCP or JSON-RPC requests, unsupported protocol operations, and unknown tool identifiers shall be rejected through the applicable MCP error path before GHOST application functionality executes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-ERROR-SANITIZATION
+STATUS: Draft
+TITLE: Error Information Sanitization
+STATEMENT: >>>
+Client-visible MCP failures shall provide sufficient information to identify the failed operation without exposing:
+
+- secrets;
+- bearer tokens;
+- provider credentials;
+- hidden reasoning;
+- internal prompts not intended for output;
+- raw internal model responses;
+- stack traces;
+- protected filesystem details; or
+- another owner's persistent data.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MALFORMED-REQUEST-ERROR
+
+[REQUIREMENT]
+UID: GHOST-MCP-TOOL-METADATA-TRUTH
+STATUS: Draft
+TITLE: Tool Metadata Shall Match Behavior
+STATEMENT: >>>
+MCP tool metadata, including read-only, destructive, persistence, and idempotency indications, shall reflect the actual approved behavior of the corresponding operation.
+
+A destructive or persistent operation shall not be presented to the client as harmless or read-only.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-TOOLS-LIST
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Functional Ownership Boundaries
+
+[REQUIREMENT]
+UID: GHOST-MCP-PREPROCESSING-OWNERSHIP-REFERENCE
+STATUS: Draft
+TITLE: Prompt Processing Ownership Boundary
+STATEMENT: >>>
+The existing GHOST Prompt Engineering capability shall reuse the owning PreProcessing, PromptShaper, Agent Stack, SuperPrompt, and projection behavior rather than implementing duplicate prompt-processing algorithms inside the MCP transport layer.
+
+Detailed Prompt Engineering MCP behavior is owned by 111_mcp_capabilities.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-INTERFACE-OWNERSHIP
+
+[REQUIREMENT]
+UID: GHOST-MCP-AWS-OWNERSHIP-REFERENCE
+STATUS: Draft
+TITLE: Runtime and Deployment Ownership Boundary
+STATEMENT: >>>
+Runtime Platform and Operations requirements shall remain responsible for:
+
+- local runtime realization;
+- AWS runtime realization;
+- container execution;
+- image delivery;
+- public endpoint realization;
+- HTTPS termination;
+- reverse proxy;
+- DNS;
+- authorization-provider deployment;
+- secrets delivery;
+- process startup and restart;
+- persistent deployment paths; and
+- operational verification.
+
+This MCP requirement family shall define what the MCP capability must do, while the 80-series requirement family shall define how the supported runtime environments deploy and operate it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-INTERFACE-OWNERSHIP
+
+[REQUIREMENT]
+UID: GHOST-MCP-UI-OWNERSHIP-BOUNDARY
+STATUS: Draft
+TITLE: Human Interface Boundary
+STATEMENT: >>>
+The MCP service shall not own the native ChatGPT or Claude user interface.
+
+The Streamlit and future React/FastAPI interfaces remain separate GHOST interface capabilities.
+
+An MCP result may be rendered by the invoking client without transferring ownership of the native client UI to GHOST.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-INTERFACE-OWNERSHIP
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-OWNERSHIP-BOUNDARY
+STATUS: Draft
+TITLE: Memory Infrastructure Ownership Boundary
+STATEMENT: >>>
+MCP memory capabilities may use the common GHOST MemoryRecord, .ragmem, .ragmeta.json, SQLite, vector, and memory-management infrastructure.
+
+The MCP capability requirements shall define MCP-specific memory semantics without redefining unrelated GUI memory-pipeline behavior.
+
+Where existing Memory Management requirements remain applicable, they shall remain authoritative for their existing scope.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-INTERFACE-OWNERSHIP
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Client and Protocol Acceptance
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROTOCOL-ACCEPTANCE
+STATUS: Draft
+TITLE: MCP Protocol Acceptance
+STATEMENT: >>>
+The MCP runtime shall be testable through a complete protocol sequence including:
+
+1. initialize;
+2. initialized notification where required;
+3. tools/list; and
+4. tools/call for an advertised tool.
+
+The result shall conform to the declared MCP contract of the selected tool.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CHATGPT-ACCEPTANCE
+STATUS: Draft
+TITLE: ChatGPT End-to-End Acceptance
+STATEMENT: >>>
+A deployed GHOST MCP capability intended for ChatGPT shall be verified with the real supported ChatGPT client connection flow.
+
+Successful local unit testing alone shall not be treated as proof of ChatGPT interoperability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTOCOL-ACCEPTANCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLAUDE-ACCEPTANCE
+STATUS: Draft
+TITLE: Claude End-to-End Acceptance
+STATEMENT: >>>
+A deployed GHOST MCP capability intended for Claude shall be verified with the real supported Claude client connection flow.
+
+Successful local unit testing alone shall not be treated as proof of Claude interoperability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PROTOCOL-ACCEPTANCE
+
+[REQUIREMENT]
+UID: GHOST-MCP-CROSS-CLIENT-CONSISTENCY
+STATUS: Draft
+TITLE: Cross-Client Functional Consistency
+STATEMENT: >>>
+ChatGPT and Claude shall invoke the same underlying GHOST capability semantics when they call the same MCP tool.
+
+Client-specific presentation or connection details shall not create different persistence, retrieval, deletion, or prompt-engineering semantics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIENT-COMPATIBILITY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Controlled Extension and Requirement Stability
+
+[TEXT]
+STATEMENT: >>>
+The former 73_mcp_interface.sdoc described an earlier, prompt-engineering-only MCP scope.
+
+Requirements from that document whose engineering meaning remains valid retain their established GHOST-MCP requirement UIDs in this new MCP family.
+
+Obsolete single-tool exclusions are not reused for a different meaning.
+
+New MCP functionality receives new UIDs rather than silently redefining unrelated existing requirements.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-EXTENSION-APPROVAL
+STATUS: Draft
+TITLE: Explicit Approval for MCP Scope Extension
+STATEMENT: >>>
+A new MCP capability shall be added only through explicitly approved requirements defining the behavior necessary for that capability.
+
+The presence of experimental implementation code shall not by itself promote that experiment to a permanent product requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CONTRACT-CHANGE-CONTROL
+STATUS: Draft
+TITLE: MCP Contract Change Control
+STATEMENT: >>>
+A material change to an approved MCP tool identifier, required input, output semantics, persistence effects, destructive behavior, authorization boundary, or retrieval behavior shall be treated as an MCP interface-contract change.
+
+The change shall be reflected in approved requirements and corresponding verification before it is treated as the new stable contract.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EXTENSION-APPROVAL
+
+[[/SECTION]]

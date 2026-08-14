@@ -1,0 +1,1031 @@
+[DOCUMENT]
+TITLE: GHOST MCP Capabilities and Memory Requirements
+UID: GHOST-MCP-CAPABILITIES
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document defines the approved GHOST MCP functional capabilities other than ActiveBlackboard.
+
+It owns:
+
+1. Prompt Engineering.
+2. Episodic Memory.
+3. Clipboard Memory.
+4. Collection Memory.
+5. Shared memory Save, Recall, List, and Delete semantics applicable to these modes.
+
+All current implementation and future requirements concerning ActiveBlackboard or Persistent Chat belong exclusively to 112_mcp_activeblackboard.sdoc.
+
+The memory requirements in this document extend GHOST through MCP without requiring a broad rewrite of the established 50-series Memory Management baseline.
+
+Where the existing core Memory Management infrastructure is reused, its existing requirements remain valid for their original scope.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-CAP-ROOT
+STATUS: Draft
+TITLE: MCP Capability Scope
+STATEMENT: >>>
+GHOST MCP shall support the approved Prompt Engineering capability and three non-ActiveBlackboard memory modes:
+
+- Episodic Memory;
+- Clipboard Memory; and
+- Collection Memory.
+
+ActiveBlackboard shall remain separately owned by 112_mcp_activeblackboard.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Prompt Engineering
+
+[TEXT]
+STATEMENT: >>>
+Prompt Engineering is an already implemented GHOST MCP capability.
+
+Temporary experimental client-routing forms, including current Prompt:, MEM:, or plain-request mode experiments, are not stabilized as requirements by this document.
+
+The durable requirement is the GHOST prompt-engineering capability itself.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-ENGINEER-PROMPT-TOOL
+STATUS: Draft
+TITLE: GHOST Prompt Engineering Tool
+STATEMENT: >>>
+The MCP server shall expose the GHOST Prompt Engineering capability through the tool identifier:
+
+ghost_engineer_prompt
+
+The tool shall use the established GHOST prompt-processing path rather than implement an independent MCP-specific prompt-engineering algorithm.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CAP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-APPROVED-FLOW
+STATUS: Draft
+TITLE: Prompt Engineering Processing Flow
+STATEMENT: >>>
+The stable Prompt Engineering processing path shall:
+
+1. accept the current prompt text;
+2. create isolated request state;
+3. execute existing deterministic PreProcessing;
+4. execute existing A2 PromptShaper on the resulting SuperPrompt;
+5. rebuild the authoritative prompt-ready representation; and
+6. return the engineered prompt.
+
+Prompt Engineering shall not independently duplicate PreProcessing or A2 algorithms inside the MCP adapter.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEER-PROMPT-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-FRESH-SUPERPROMPT
+STATUS: Draft
+TITLE: Fresh Prompt State Per Prompt-Engineering Call
+STATEMENT: >>>
+Each Prompt Engineering call shall operate on request-isolated SuperPrompt state.
+
+Mutable prompt state from another user, request, or earlier tool call shall not be reused as the active processing state for the new call.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-APPROVED-FLOW
+
+[REQUIREMENT]
+UID: GHOST-MCP-PREPROCESS-CALL
+STATUS: Draft
+TITLE: Existing PreProcessing Reuse
+STATEMENT: >>>
+The Prompt Engineering adapter shall invoke the existing GHOST deterministic PreProcessing behavior.
+
+It shall not implement a second MCP-specific parser, canonical-header model, default system, alias model, or prompt normalization algorithm.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-APPROVED-FLOW
+
+[REQUIREMENT]
+UID: GHOST-MCP-PREPROCESS-STAGE-GATE
+STATUS: Draft
+TITLE: PreProcessing Completion Gate
+STATEMENT: >>>
+A2 PromptShaper shall execute only after successful completion of the required PreProcessing operation for the same request.
+
+A failed PreProcessing operation shall not be represented as a successful engineered prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PREPROCESS-CALL
+
+[REQUIREMENT]
+UID: GHOST-MCP-A2-CALL
+STATUS: Draft
+TITLE: Existing A2 PromptShaper Reuse
+STATEMENT: >>>
+The Prompt Engineering capability shall invoke the established A2 PromptShaper behavior and its existing Agent Stack infrastructure.
+
+The MCP adapter shall not create a second independent A2 prompt, selector implementation, field-write-back algorithm, or provider-specific A2 pipeline.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-PREPROCESS-STAGE-GATE
+
+[REQUIREMENT]
+UID: GHOST-MCP-A2-COMPLETION-GATE
+STATUS: Draft
+TITLE: A2 Completion Gate
+STATEMENT: >>>
+A successful engineered-prompt result shall be produced only after the required A2 processing and final prompt projection have completed successfully.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-A2-CALL
+
+[REQUIREMENT]
+UID: GHOST-MCP-ENGINEERED-PROMPT-SOURCE
+STATUS: Draft
+TITLE: Authoritative Engineered Prompt Source
+STATEMENT: >>>
+The engineered prompt returned through MCP shall originate from the authoritative GHOST prompt-ready projection.
+
+The MCP adapter shall not independently regenerate or paraphrase that engineered prompt.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-A2-COMPLETION-GATE
+
+[REQUIREMENT]
+UID: GHOST-MCP-NO-ANSWER-GENERATION
+STATUS: Draft
+TITLE: Prompt Engineering Is Not Answer Generation
+STATEMENT: >>>
+The ghost_engineer_prompt operation itself shall remain a prompt-engineering capability.
+
+Its core GHOST operation shall not be redefined as the application's general final-answer generator.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEER-PROMPT-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-PROMPT-EXPERIMENT-BOUNDARY
+STATUS: Draft
+TITLE: Experimental Prompt Modes Are Not Stable Requirements
+STATEMENT: >>>
+Temporary implementation experiments that alter client behavior around ghost_engineer_prompt, including experimental Prompt:, MEM:, plain-request mode switching or supportive-context routing, shall not become stable product requirements unless separately approved.
+
+Their temporary presence in source code shall not require preservation in future MCP implementations.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ENGINEER-PROMPT-TOOL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. MCP Memory Model
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-MODEL
+STATUS: Draft
+TITLE: Four-Mode MCP Memory Model
+STATEMENT: >>>
+The approved GHOST MCP memory model shall consist of four conceptual memory modes:
+
+1. Episodic Memory.
+2. Clipboard Memory.
+3. Collection Memory.
+4. ActiveBlackboard Memory.
+
+This document owns the first three modes.
+
+ActiveBlackboard is owned exclusively by 112_mcp_activeblackboard.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CAP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-COMMON-TRUTH
+STATUS: Draft
+TITLE: Common Durable Memory Infrastructure
+STATEMENT: >>>
+MCP memory modes may reuse the established GHOST durable-memory infrastructure, including:
+
+- MemoryRecord;
+- .ragmem durable episode bodies;
+- .ragmeta.json metadata;
+- SQLite indexing; and
+- vector storage where required by the owning memory mode.
+
+MCP-specific semantics shall not require creation of a second unrelated memory truth model when the common GHOST infrastructure can represent the approved behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-OWNER-SCOPE
+STATUS: Draft
+TITLE: Owner-Scoped Memory
+STATEMENT: >>>
+Every persistent MCP memory operation shall be scoped to the authenticated owner.
+
+An exact key, record ID, Collection ID, Collection Name, Clipboard slot, or other selector shall never bypass owner isolation.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-COMMON-TRUTH
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Shared Memory Operations
+
+[[SECTION]]
+TITLE: 4.1. Save
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-SAVE
+STATUS: Draft
+TITLE: Shared Save Concept
+STATEMENT: >>>
+GHOST shall expose one clear Save concept for ordinary memory episodes.
+
+The current executable tool identifier ghost_memory_tag represents the existing implementation of this save concept.
+
+A future rename of that tool is not approved by this requirement and shall require a separate interface-contract decision.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-SAVE-VISIBLE-CONTENT
+STATUS: Draft
+TITLE: Save Visible Conversation Content
+STATEMENT: >>>
+When saving a visible conversation episode, the selected visible user content and corresponding visible assistant content shall be stored without substitution by hidden reasoning, internal tool traffic, or an internal model/tool result.
+
+When exact visible content is required by the selected Save operation, ChatGPT shall pass that content without summarizing it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-SAVE
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-SAVE-TITLE-DESCRIPTION
+STATUS: Draft
+TITLE: Episode Title and Description
+STATEMENT: >>>
+A newly saved ordinary memory episode shall have:
+
+- an Episode Title; and
+- an Episode Description.
+
+ChatGPT shall generate both from the selected visible episode unless a more specific mode requirement states otherwise.
+
+Episode Title is primarily human-facing metadata.
+
+Episode Description is the compact semantic description used by intelligent Episodic retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-SAVE
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-SAVE-RECALL-KEY
+STATUS: Draft
+TITLE: Recall Key Handling
+STATEMENT: >>>
+When the user explicitly provides a Recall Key, ChatGPT shall pass that key.
+
+When the user requests an Episodic save without providing a Recall Key, ChatGPT shall generate an appropriate Recall Key rather than forcing the user to invent one.
+
+The final duplicate-key collision policy is not fixed by this requirement and shall not be invented here.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-SAVE
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4.2. Recall
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-RECALL
+STATUS: Draft
+TITLE: Shared Recall Concept
+STATEMENT: >>>
+GHOST shall expose one Recall concept capable of selecting the appropriate retrieval path from the user's request.
+
+For Episodic Memory, Recall shall support:
+
+- deterministic exact retrieval when an exact Recall Key or exact Record ID is known; and
+- intelligent semantic retrieval when the user describes a memory without knowing its exact identifier.
+
+The two paths access the same Episodic Memory domain.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-EXACT-RECALL
+STATUS: Draft
+TITLE: Exact Recall
+STATEMENT: >>>
+An exact Recall Key or exact Record ID shall be handled deterministically.
+
+Exact identifiers shall directly select stored records within the authenticated owner's scope.
+
+Exact Recall shall not require semantic vector ranking.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-RECALL
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-NO-FAKE-EXACT-FILTER
+STATUS: Draft
+TITLE: Exact Identifiers Are Not Intelligent-Retrieval Filters
+STATEMENT: >>>
+Recall Key and Record ID shall not be treated as approximate SQL narrowing filters for intelligent semantic retrieval.
+
+When an exact identifier is supplied, GHOST shall use the deterministic exact path.
+
+When the identifier is unknown, GHOST shall use the intelligent Episodic retrieval path defined in this document.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-RECALL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4.3. List
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-LIST
+STATUS: Draft
+TITLE: Shared Memory List
+STATEMENT: >>>
+ghost_memory_list shall provide metadata discovery and navigation rather than full episode retrieval.
+
+The shared list capability shall be available for memory modes where listing is meaningful, except Clipboard Memory.
+
+The list capability may return identifying and descriptive metadata such as:
+
+- memory or conversation name;
+- memory type;
+- Recall Key;
+- Record ID;
+- Episode Title;
+- Episode Description; and
+- creation time.
+
+Stored full input/output bodies shall remain Recall content rather than List content.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-LIST-FILTERS
+STATUS: Draft
+TITLE: Deterministic List Filters
+STATEMENT: >>>
+The shared memory list operation shall support deterministic metadata filtering sufficient for practical discovery.
+
+Approved filter dimensions include:
+
+- memory or conversation name;
+- memory type;
+- date range; and
+- deterministic description matching.
+
+List shall not silently become semantic full-memory retrieval.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-LIST
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4.4. Delete
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-DELETE
+STATUS: Draft
+TITLE: Deterministic Memory Delete
+STATEMENT: >>>
+ghost_memory_delete shall delete individual memory episodes only through an exact selector:
+
+- exact Recall Key; or
+- exact Record ID.
+
+Delete shall never use semantic similarity, a natural-language description, Episode Description similarity, vector retrieval, fuzzy matching, or an LLM decision to choose what data to destroy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-DELETE-DUPLICATE-SAFETY
+STATUS: Draft
+TITLE: Duplicate Recall-Key Safety
+STATEMENT: >>>
+If an exact Recall Key resolves to multiple owner-scoped records, GHOST shall not silently choose an arbitrary record for deletion.
+
+The user shall be given deterministic identifiers sufficient to select the intended episode, or shall explicitly request deletion of all exact matches where that behavior is supported.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-DELETE
+
+[REQUIREMENT]
+UID: GHOST-MCP-MEMORY-DELETE-NO-CLIPBOARD
+STATUS: Draft
+TITLE: Clipboard Excluded from Generic Delete
+STATEMENT: >>>
+Clipboard Memory shall not participate in the generic ghost_memory_delete operation.
+
+Clipboard lifecycle shall be controlled by its dedicated short-retention policy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-DELETE
+
+[[/SECTION]]
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Episodic Memory
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-ROOT
+STATUS: Draft
+TITLE: Episodic Memory Scope
+STATEMENT: >>>
+Episodic Memory shall store ordinary persistent memory episodes that can later be recovered either:
+
+- directly through an exact Recall Key or Record ID; or
+- intelligently from a natural-language description.
+
+Direct Recall and intelligent retrieval shall be two access paths to the same Episodic Memory rather than separate memory types.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-DESCRIPTION-REQUIRED
+STATUS: Draft
+TITLE: Episode Description Required for Episodic Save
+STATEMENT: >>>
+Each newly saved Episodic Memory episode shall contain a non-empty Episode Description.
+
+The description shall summarize the semantic content or useful meaning of that individual episode sufficiently to support later intelligent retrieval.
+
+The Episode Description shall not be replaced by the Episode Title.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EPISODIC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-DESCRIPTION-VECTOR
+STATUS: Draft
+TITLE: Episode Description Embedding
+STATEMENT: >>>
+The Episode Description shall have a precomputed vector representation available for intelligent Episodic retrieval.
+
+The description embedding shall be created from the stored Episode Description rather than generated dynamically from the complete episode during every recall.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EPISODIC-DESCRIPTION-REQUIRED
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-INTELLIGENT-QUERY
+STATUS: Draft
+TITLE: Intelligent Recall Query Description
+STATEMENT: >>>
+When the user requests a memory without knowing an exact identifier, ChatGPT shall formulate the semantic description of the memory being sought.
+
+That query description shall be embedded at recall time and compared against stored Episode Description embeddings.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EPISODIC-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-DATE-NARROWING
+STATUS: Draft
+TITLE: Optional Date Narrowing
+STATEMENT: >>>
+Intelligent Episodic retrieval may first apply a deterministic SQL date-range filter when the user's request provides a relevant date or date interval.
+
+Date range is the approved deterministic narrowing dimension for the intelligent Episodic retrieval path.
+
+The intelligent path shall not invent key-prefix, title-prefix, or approximate Recall Key filtering as additional narrowing mechanisms.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EPISODIC-INTELLIGENT-QUERY
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-COSINE-RANKING
+STATUS: Draft
+TITLE: Episode Description Similarity Ranking
+STATEMENT: >>>
+After any optional date narrowing, intelligent Episodic retrieval shall compare the query-description vector with stored Episode Description vectors using cosine similarity or the equivalent cosine-ranking behavior of the selected vector implementation.
+
+Ranking shall be based primarily on Episode Description semantics.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EPISODIC-INTELLIGENT-QUERY
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-CANDIDATE-RETURN
+STATUS: Draft
+TITLE: Compact Intelligent Recall Candidates
+STATEMENT: >>>
+The intelligent retrieval stage shall return only a small ranked candidate set to the client model.
+
+The target candidate set shall normally contain approximately five to ten candidates.
+
+Each candidate shall provide sufficient metadata for selection, including at least:
+
+- Record ID; and
+- Episode Description.
+
+The candidate stage shall not return the complete stored Q/A bodies for every candidate.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EPISODIC-COSINE-RANKING
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-CLIENT-SELECTION
+STATUS: Draft
+TITLE: Client Model Candidate Selection
+STATEMENT: >>>
+After receiving the compact ranked candidate descriptions, the invoking AI client may use the user's request and candidate descriptions to select the intended episode.
+
+The selection result shall resolve to an exact Record ID before the full episode is fetched.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EPISODIC-CANDIDATE-RETURN
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-EXACT-FINAL-FETCH
+STATUS: Draft
+TITLE: Exact Final Episode Fetch
+STATEMENT: >>>
+After intelligent candidate selection, GHOST shall fetch the chosen full episode deterministically by exact Record ID.
+
+Full episode content shall be loaded only after the candidate-selection step has resolved the exact stored record.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EPISODIC-CLIENT-SELECTION
+
+[REQUIREMENT]
+UID: GHOST-MCP-EPISODIC-NO-TITLE-FIRST-FUNNEL
+STATUS: Draft
+TITLE: No Mandatory Title-First Semantic Funnel
+STATEMENT: >>>
+Episode Title shall remain useful human-facing metadata but shall not be a mandatory first semantic-ranking stage before Episode Description similarity.
+
+The approved intelligent-retrieval path shall rank Episode Descriptions directly.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-EPISODIC-COSINE-RANKING
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Clipboard Memory
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-ROOT
+STATUS: Draft
+TITLE: Clipboard Memory Scope
+STATEMENT: >>>
+Clipboard Memory shall provide short-lived, deterministic temporary memory slots for lightweight save-and-recall workflows.
+
+Clipboard Memory shall use the reserved slot identifiers:
+
+M1 through M100.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-RESERVED-KEYS
+STATUS: Draft
+TITLE: Reserved Clipboard Routing
+STATEMENT: >>>
+M1 through M100 shall be reserved for Clipboard Memory.
+
+A normal Episodic save shall not silently store an M1-M100 key as an ordinary Episodic Recall Key.
+
+When a user explicitly requests saving to or recalling from M1-M100, the request shall be routed to Clipboard Memory behavior.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIPBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-DAILY-FILE
+STATUS: Draft
+TITLE: One Clipboard File Per Day
+STATEMENT: >>>
+For each authenticated owner, Clipboard Memory shall use at most one Clipboard memory history file for a UTC day in which Clipboard content is saved.
+
+Clipboard storage shall not perform intra-day file rollover merely because several Clipboard episodes are appended.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIPBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-APPEND-ONLY
+STATUS: Draft
+TITLE: Append-Only Clipboard Storage
+STATEMENT: >>>
+Clipboard writes shall be append-only.
+
+Saving to an already used slot shall append a new episode with the same slot identifier rather than physically overwriting the older episode.
+
+For example, repeated saves to M7 may produce several historical M7 episodes in durable storage.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIPBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-LATEST-RECALL
+STATUS: Draft
+TITLE: Newest Matching Clipboard Recall
+STATEMENT: >>>
+Recall of a Clipboard slot shall return the newest owner-scoped episode with that exact slot identifier.
+
+Creation timestamps and deterministic ordering metadata shall be sufficient to identify the newest matching episode.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIPBOARD-APPEND-ONLY
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-CONTENT
+STATUS: Draft
+TITLE: Clipboard Episode Content
+STATEMENT: >>>
+A Clipboard episode shall store the visible saved content required by the operation and shall also contain an Episode Description.
+
+Clipboard episodes shall not maintain an ActiveBrief.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIPBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-NO-SEMANTIC-RETRIEVAL
+STATUS: Draft
+TITLE: Clipboard Uses Exact Slot Recall Only
+STATEMENT: >>>
+Clipboard Memory shall not provide intelligent semantic retrieval.
+
+Clipboard Recall shall use the exact M1-M100 slot identifier and return the newest exact match.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIPBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-NO-GENERIC-LIST-DELETE
+STATUS: Draft
+TITLE: Clipboard Outside Generic List and Delete
+STATEMENT: >>>
+Clipboard Memory shall not participate in the shared generic memory List or Delete operations.
+
+The user-facing model shall treat Clipboard as a temporary slot mechanism rather than as a manually administered long-term memory archive.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIPBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-RETENTION
+STATUS: Draft
+TITLE: Short Clipboard Retention
+STATEMENT: >>>
+Clipboard Memory shall be short-lived.
+
+The approved default retention window shall be approximately ten days, represented through explicit expiration metadata rather than inferred from a filename.
+
+Expired Clipboard histories shall be eligible for physical deletion together with their corresponding SQLite index rows.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIPBOARD-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-CLIPBOARD-STARTUP-CLEANUP
+STATUS: Draft
+TITLE: Asynchronous Expired Clipboard Cleanup
+STATEMENT: >>>
+Expired Clipboard memory cleanup shall run asynchronously during MCP/server startup.
+
+Startup cleanup shall use authoritative expiration metadata and shall remove expired durable Clipboard files and corresponding index records coherently.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CLIPBOARD-RETENTION
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Collection Memory
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-ROOT
+STATUS: Draft
+TITLE: Collection Memory Scope
+STATEMENT: >>>
+Collection Memory shall provide a persistent topic-oriented container into which explicitly requested memory episodes can be appended over time.
+
+A Collection is not an automatically recorded conversation.
+
+A Collection groups intentionally saved episodes around a user-defined subject or purpose.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-MEMORY-MODEL
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-INIT
+STATUS: Draft
+TITLE: Collection Initialization
+STATEMENT: >>>
+Creating a Collection shall require:
+
+- Collection Name; and
+- Collection Description or Purpose.
+
+Initialization shall create a stable Collection identity and shall record its creation time.
+
+The underlying stable file_id shall serve as the Collection ID.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-IDENTITY
+STATUS: Draft
+TITLE: Stable Collection Identity
+STATEMENT: >>>
+Collection ID shall remain stable independently of later episode appends.
+
+A Collection may be targeted for an append by:
+
+- exact Collection ID; or
+- exact Collection Name where that name resolves safely within the authenticated owner's scope.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-INIT
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-EXPLICIT-APPEND
+STATUS: Draft
+TITLE: Collection Append Is Explicit
+STATEMENT: >>>
+A Collection shall receive a new episode only when the user explicitly asks GHOST to save or add content to that Collection.
+
+Normal conversation turns shall not be appended automatically merely because a Collection exists.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-EPISODE-METADATA
+STATUS: Draft
+TITLE: Collection Episode Description
+STATEMENT: >>>
+Every appended Collection episode shall contain an Episode Description describing that episode's local contribution to the Collection.
+
+A Recall Key may be explicitly supplied or generated according to the shared Save policy.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-EXPLICIT-APPEND
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-ACTIVEBRIEF
+STATUS: Draft
+TITLE: Collection Cumulative ActiveBrief
+STATEMENT: >>>
+Every appended Collection episode shall also carry the current cumulative Collection ActiveBrief.
+
+The Collection ActiveBrief shall summarize the accumulated knowledge or state of the Collection's fixed topic after incorporating the new episode.
+
+The Collection ActiveBrief is not a conversation-summary mechanism and shall not be confused with ActiveBlackboard merely because both use an ActiveBrief concept.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-EXPLICIT-APPEND
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-LIST
+STATUS: Draft
+TITLE: List Collections
+STATEMENT: >>>
+GHOST shall support listing Collections for the authenticated owner.
+
+The Collection list shall provide sufficient metadata for deterministic identification, including at least:
+
+- Collection ID;
+- Collection Name;
+- Collection Description or Purpose; and
+- creation date.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-LIST-EPISODES
+STATUS: Draft
+TITLE: List Episodes in a Collection
+STATEMENT: >>>
+Given an exact Collection ID, GHOST shall support listing the episodes belonging to that Collection.
+
+The episode list shall return metadata for all Collection episodes, including:
+
+- Recall Key where present; and
+- Episode Description.
+
+This operation is metadata navigation and shall not automatically return the complete stored content of every episode.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-LIST
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-INDIVIDUAL-RECALL
+STATUS: Draft
+TITLE: Individual Collection Episode Recall
+STATEMENT: >>>
+An individual Collection episode shall not require a separate Collection-specific recall mechanism when it has an exact Recall Key or Record ID.
+
+The shared exact Recall capability shall be used for an individual episode.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-RANGE-RECALL
+STATUS: Draft
+TITLE: Collection Episode Range Recall
+STATEMENT: >>>
+GHOST shall support Collection-specific retrieval by episode number or episode range.
+
+Examples include:
+
+- one episode such as episode 3; or
+- a range such as episodes 2 through 7.
+
+Episode ordering shall be deterministic within the Collection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-RANGE-TOKEN-SAFETY
+STATUS: Draft
+TITLE: Token-Safe Collection Range Recall
+STATEMENT: >>>
+When a requested Collection range would produce more content than can be returned safely in the active client/model context, GHOST may return a deterministic prefix of the requested range.
+
+The response shall explicitly identify the unreturned remainder so that the client can request it subsequently.
+
+The exact token threshold or page size is intentionally not fixed by this requirement.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-RANGE-RECALL
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-DELETE-WHOLE
+STATUS: Draft
+TITLE: Whole Collection Delete
+STATEMENT: >>>
+Deleting an entire Collection shall be a separate destructive operation from deleting an individual memory episode.
+
+Whole-Collection deletion shall require the exact Collection ID.
+
+A Collection shall not be destroyed by semantic description, Collection Name similarity, or LLM selection.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-DELETE-CONFIRMATION
+STATUS: Draft
+TITLE: Two-Step Whole Collection Delete Safety
+STATEMENT: >>>
+The first exact request to delete an entire Collection shall not immediately execute the deletion.
+
+GHOST shall return a warning or refusal requiring confirmation.
+
+Only a repeated exact deletion request for the same Collection ID shall authorize the whole-Collection deletion.
+
+The exact implementation of confirmation state, token, timeout, or persistence is intentionally not defined until separately designed.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-DELETE-WHOLE
+
+[REQUIREMENT]
+UID: GHOST-MCP-COLLECTION-INDIVIDUAL-DELETE
+STATUS: Draft
+TITLE: Individual Collection Episode Delete
+STATEMENT: >>>
+Deleting an individual episode from a Collection shall use the shared deterministic memory Delete behavior.
+
+No separate Collection-specific single-episode deletion contract is required.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-COLLECTION-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Current Implementation and Target Boundary
+
+[TEXT]
+STATEMENT: >>>
+The current MCP implementation already provides:
+
+- ghost_engineer_prompt;
+- ghost_memory_tag;
+- ghost_memory_recall;
+- ghost_memory_list; and
+- ghost_memory_delete.
+
+The current memory implementation already uses authenticated owner scoping and shared GHOST MemoryRecord/.ragmem/.ragmeta.json/SQLite infrastructure.
+
+The current implementation does not yet constitute the complete approved Episodic intelligent-retrieval, Clipboard, or Collection behavior defined above.
+
+Those requirements describe the approved target behavior and shall not be falsely reported as already complete.
+
+Exact future public tool identifiers for newly implemented Clipboard- and Collection-specific operations are intentionally not invented in this requirement document.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-CAP-NO-IMPLEMENTATION-INVENTION
+STATUS: Draft
+TITLE: No False Implementation Claim
+STATEMENT: >>>
+A requirement in this document shall not be reported as currently implemented solely because underlying data fields or partial infrastructure already exist.
+
+Implementation status shall require corresponding executable behavior and verification.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-CAP-ROOT
+
+[[/SECTION]]

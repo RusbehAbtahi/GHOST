@@ -68,7 +68,7 @@ The GHOST product scope covered by this SRS includes:
 - GUI-based human control,
 - structured logging direction,
 - documented current AWS runtime deployment,
-- target remote MCP prompt-engineering interface for approved external AI clients,
+- MCP interface for approved external AI clients, including Prompt Engineering and approved memory capabilities,
 - future requirement-architecture-code-test traceability direction.
 
 The root SRS distinguishes current executable behavior from target architecture and future vision.
@@ -196,7 +196,7 @@ Ghost2:
 Future product vision for human-mediated multi-brain orchestration, shared board behavior, shared memory, and deterministic requirement-architecture-code-test traceability.
 
 MCP:
-Model Context Protocol. The protocol used by the target remote GHOST interface through which approved external AI clients invoke a bounded GHOST capability. Detailed MCP behavior belongs to 73_mcp_interface.sdoc.
+Model Context Protocol. The protocol used by the GHOST MCP interface through which approved external AI clients invoke explicitly exposed GHOST capabilities. Common MCP behavior belongs to 110_mcp.sdoc; Prompt Engineering and non-ActiveBlackboard memory capabilities belong to 111_mcp_capabilities.sdoc; all current and future ActiveBlackboard behavior belongs to 112_mcp_activeblackboard.sdoc.
 
 AWS:
 Amazon Web Services runtime environment used by the documented current deployment and the approved target MCP deployment extension.
@@ -266,7 +266,7 @@ At the highest level, GHOST contains:
 - structured logging direction,
 - local development execution,
 - current AWS deployment infrastructure,
-- target remote MCP interface infrastructure.
+- MCP interface infrastructure.
 
 The architecture separates document ingestion and retrieval, memory recording and retrieval, prompt shaping and context construction, customizable agents, hard-rule direction, logging and observability, deployment, runtime persistence, and future traceability synchronization.
 <<<
@@ -308,7 +308,7 @@ A5 is reserved/postponed and shall not be described as live behavior.
 
 Prompt Builder is a target final assembly/send-boundary concept. Current GUI-visible rendered prompt output is owned by SuperPromptProjector and SuperPrompt prompt-ready composition.
 
-The target MCP interface defines a separate bounded prompt-engineering path for approved external AI clients. It returns an engineered prompt and does not by itself execute the full GHOST retrieval, memory, evidence, or answer-generation pipeline. Detailed MCP behavior belongs to 73_mcp_interface.sdoc.
+The GHOST MCP interface provides a separate external tool boundary for approved AI clients. MCP may expose only capabilities explicitly approved in the 110-series requirement family. Common protocol behavior belongs to 110_mcp.sdoc, Prompt Engineering and Episodic/Clipboard/Collection Memory belong to 111_mcp_capabilities.sdoc, and all current and future ActiveBlackboard behavior belongs to 112_mcp_activeblackboard.sdoc.
 
 The UI may present a visual macro-flow such as User Prompt, Prompt Qualification, Prompt Shaping, Memory Context, Document Evidence, Context Synthesis, Hard Rule Integration, and LLM Ready Context. This visual flow shall not be confused with the current backend executable runner.
 <<<
@@ -367,8 +367,9 @@ GHOST is organized around the following approved capability ownership families:
 - PreProcessing and Prompt Functions
 - Knowledge Management
 - Memory Management
-- Human Workbench and Interfaces
+- Human Workbench and Graphical Interfaces
 - Runtime Platform and Operations
+- Model Context Protocol
 - Quality, Governance, and Observability
 - Future Vision and Lifecycle Synchronization
 
@@ -411,7 +412,8 @@ The current implementation baseline includes:
 - server-side memory files,
 - ChatGPT shared-link import,
 - ActiveBrief relation classification,
-- runtime MemoryMerge synthesis.
+- runtime MemoryMerge synthesis,
+- implemented MCP server/tool infrastructure for Prompt Engineering, owner-scoped Direct Recall memory operations, and the Persistent Chat ActiveBlackboard prototype.
 
 The following areas are incomplete, postponed, optional, placeholder, or future:
 
@@ -425,7 +427,7 @@ The following areas are incomplete, postponed, optional, placeholder, or future:
 - multi-user support,
 - Blackboard Actor persistence,
 - automatic requirement-architecture-code synchronization,
-- target remote MCP prompt-engineering interface and its AWS deployment extension,
+- remaining unimplemented MCP memory behavior defined as TARGET in 111/112, including full intelligent Episodic retrieval, Clipboard Memory, Collection Memory, and future multi-actor ActiveBlackboard behavior,
 - future React/TypeScript and FastAPI interface,
 - ColBERT/reranking improvement as evaluated future topic.
 
@@ -452,7 +454,7 @@ Local runtime dependency:
 GHOST currently depends on the local repository layout, project data directories, vector stores, and Python runtime environment during development execution.
 
 AWS runtime dependency:
-The documented current AWS deployment and the approved target MCP deployment extension depend on AWS infrastructure including EC2, ECR, Docker, nginx, HTTPS, Route53, SSM Parameter Store, and explicitly required persistent runtime data outside the Docker image.
+The documented AWS deployment, including the MCP deployment realization, depends on AWS infrastructure including EC2, ECR, Docker, nginx, HTTPS, Route53, SSM Parameter Store, and explicitly required persistent runtime data outside the Docker image.
 
 Vector-store dependency:
 Document and memory retrieval depend on ChromaDB and related vector-store assets where implemented.
@@ -516,8 +518,7 @@ Requirement File Tree::
   |
   |-- 70_human_workbench_and_interfaces.sdoc             [PARENT]
   |   |-- 71_streamlit_workbench_current.sdoc            [CHILD]
-  |   |-- 72_react_fastapi_interface_future.sdoc         [CHILD/FUTURE]
-  |   `-- 73_mcp_interface.sdoc                          [CHILD/TARGET]
+  |   `-- 72_react_fastapi_interface_future.sdoc         [CHILD/FUTURE]
   |
   |-- 80_runtime_platform_and_operations.sdoc            [PARENT]
   |   `-- 81_aws_deployment_and_operations.sdoc          [CHILD]
@@ -528,8 +529,12 @@ Requirement File Tree::
   |   |-- 92_metrics_evaluation_benchmarking.sdoc        [CHILD/FUTURE]
   |   `-- 93_quality_security_traceability_governance.sdoc [CHILD]
   |
-  `-- 100_future_vision_and_lifecycle_sync.sdoc           [FUTURE]
-      `-- Requirement-Architecture-Code Sync reserved capability, Ghost2 boundary, Blackboard architecture boundary, advanced orchestration, and future capabilities not yet architecturally fixed.
+  |-- 100_future_vision_and_lifecycle_sync.sdoc           [FUTURE]
+  |   `-- Requirement-Architecture-Code Sync reserved capability, Ghost2 boundary, advanced orchestration, and future capabilities not yet architecturally fixed.
+  |
+  `-- 110_mcp.sdoc                                      [PARENT]
+      |-- 111_mcp_capabilities.sdoc                     [CHILD]
+      `-- 112_mcp_activeblackboard.sdoc                 [CHILD/CURRENT+FUTURE]
 
 Non-normative local operations profile:
 
@@ -815,7 +820,7 @@ Deeper child file:
 
 doc/01-Requirements/strictdoc/81_aws_deployment_and_operations.sdoc
 
-The runtime-platform branch shall own the documented current AWS deployment and the target remote MCP deployment realization, including container execution, image delivery, HTTPS routing, DNS, runtime secrets, evidence-supported persistence, deployment activation, and operational verification.
+The runtime-platform branch shall own the documented AWS deployment realization, including MCP container execution, image delivery, HTTPS routing, DNS, runtime secrets, evidence-supported persistence, deployment activation, and operational verification. Functional MCP behavior shall remain owned by the 110-series MCP requirement family.
 
 Exact environment-specific values belong in the non-normative local profile doc-private/81_aws_deployment_profile.local.md.
 <<<
@@ -845,7 +850,7 @@ UID: GHOST-SRS-NFR-OPS-003
 STATUS: Draft
 TITLE: AWS Deployment Components
 STATEMENT: >>>
-The current Streamlit AWS deployment and the target MCP deployment extension shall remain compatible with the approved Docker, ECR, EC2, nginx, HTTPS, Route53, SSM Parameter Store, and evidence-bounded persistence architecture defined by the owning deployment requirements.
+The current Streamlit AWS deployment and the MCP deployment realization shall remain compatible with the approved Docker, ECR, EC2, nginx, HTTPS, Route53, SSM Parameter Store, and evidence-bounded persistence architecture defined by the owning deployment requirements.
 <<<
 
 [[/SECTION]]
@@ -1190,7 +1195,7 @@ GHOST shall preserve ActiveRetrievalBrief as part of the memory-management direc
 [[/SECTION]]
 
 [[SECTION]]
-TITLE: 3.2.6 Human Workbench and Interfaces -> 70_human_workbench_and_interfaces.sdoc
+TITLE: 3.2.6 Human Workbench and Graphical Interfaces -> 70_human_workbench_and_interfaces.sdoc
 
 [TEXT]
 STATEMENT: >>>
@@ -1202,9 +1207,8 @@ Deeper child files:
 
 - doc/01-Requirements/strictdoc/71_streamlit_workbench_current.sdoc
 - doc/01-Requirements/strictdoc/72_react_fastapi_interface_future.sdoc
-- doc/01-Requirements/strictdoc/73_mcp_interface.sdoc
 
-This area owns the interface family consisting of the current Streamlit workbench, the future React/TypeScript and FastAPI interface, and the target MCP interface for approved external AI clients. Detailed behavior remains in the corresponding child file.
+This area owns the human-facing graphical interface family consisting of the current Streamlit workbench and the future React/TypeScript and FastAPI interface. MCP is a separate 110-series capability family.
 <<<
 
 [REQUIREMENT]
@@ -1246,7 +1250,7 @@ TITLE: 3.2.7 External Interfaces and AI Tooling Boundary
 
 [TEXT]
 STATEMENT: >>>
-This section gives only root-level interface categories. Detailed MCP tools, schemas, transport behavior, authorization behavior, GUI behavior, React/FastAPI behavior, and deployment realization belong in the approved child files, particularly 73_mcp_interface.sdoc and 81_aws_deployment_and_operations.sdoc.
+This section gives only root-level external-interface categories. Detailed MCP protocol and common behavior belong to 110_mcp.sdoc; Prompt Engineering and Episodic/Clipboard/Collection Memory belong to 111_mcp_capabilities.sdoc; ActiveBlackboard belongs to 112_mcp_activeblackboard.sdoc; concrete AWS deployment realization remains owned by 81_aws_deployment_and_operations.sdoc.
 <<<
 
 [REQUIREMENT]
@@ -1260,11 +1264,11 @@ GHOST shall support workflows where engineered prompts and selected context can 
 [REQUIREMENT]
 UID: GHOST-SRS-FR-EXT-006
 STATUS: Draft
-TITLE: Target MCP Prompt-Engineering Interface
+TITLE: MCP External Interface Capability
 STATEMENT: >>>
-GHOST shall provide a target remote MCP interface through which the approved ChatGPT and Claude clients can invoke the bounded prompt-engineering capability defined in 73_mcp_interface.sdoc and receive the resulting engineered prompt.
+GHOST shall provide an MCP interface through which approved ChatGPT and Claude clients can invoke explicitly exposed GHOST capabilities.
 
-The detailed MCP tool contract, request and result schemas, transport, authorization, error behavior, and client acceptance criteria shall remain owned by 73_mcp_interface.sdoc. The concrete AWS deployment realization shall remain owned by 81_aws_deployment_and_operations.sdoc.
+Common MCP protocol, transport, authorization, owner-isolation, error, and interoperability requirements shall remain owned by 110_mcp.sdoc. Prompt Engineering and non-ActiveBlackboard memory requirements shall remain owned by 111_mcp_capabilities.sdoc. All current and future ActiveBlackboard requirements shall remain owned by 112_mcp_activeblackboard.sdoc. Concrete AWS deployment realization shall remain owned by 81_aws_deployment_and_operations.sdoc.
 <<<
 
 [REQUIREMENT]
@@ -1288,7 +1292,7 @@ UID: GHOST-SRS-FR-EXT-004
 STATUS: Draft
 TITLE: Runtime Network Boundary
 STATEMENT: >>>
-The deployed Streamlit GUI and the target remote MCP interface shall be exposed through their documented AWS reverse-proxy and HTTPS paths rather than treating internal application or container ports as public product interfaces.
+The deployed Streamlit GUI and the remote MCP interface shall be exposed through their documented AWS reverse-proxy and HTTPS paths rather than treating internal application or container ports as public product interfaces.
 <<<
 
 [REQUIREMENT]
@@ -1314,7 +1318,7 @@ Deeper child file:
 
 doc/01-Requirements/strictdoc/81_aws_deployment_and_operations.sdoc
 
-This branch shall contain the functional and non-functional requirements for the documented current AWS deployment and the target remote MCP deployment realization. Exact environment-specific values shall remain in the non-normative local profile doc-private/81_aws_deployment_profile.local.md.
+This branch shall contain the functional and non-functional runtime and deployment requirements for the documented AWS deployment, including the MCP deployment realization. Functional MCP tool behavior remains outside this branch in the 110-series requirements. Exact environment-specific values shall remain in the non-normative local profile doc-private/81_aws_deployment_profile.local.md.
 <<<
 
 [REQUIREMENT]
@@ -1322,7 +1326,7 @@ UID: GHOST-SRS-FR-RUN-001
 STATUS: Draft
 TITLE: Runtime Platform and Operations Capability
 STATEMENT: >>>
-GHOST shall support the documented current AWS Streamlit deployment and the approved target remote MCP deployment through the runtime and operations contracts defined by 80_runtime_platform_and_operations.sdoc and 81_aws_deployment_and_operations.sdoc.
+GHOST shall support the documented AWS Streamlit and MCP deployment realization through the runtime and operations contracts defined by 80_runtime_platform_and_operations.sdoc and 81_aws_deployment_and_operations.sdoc.
 <<<
 
 [REQUIREMENT]
@@ -1330,9 +1334,9 @@ UID: GHOST-SRS-FR-RUN-002
 STATUS: Draft
 TITLE: Runtime Persistence Capability
 STATEMENT: >>>
-The current AWS deployment shall preserve only the evidence-supported raw-document and Chroma-database data through external bind mounts across Streamlit container replacement.
+The Streamlit deployment shall preserve the evidence-supported raw-document and Chroma-database data through external bind mounts across Streamlit container replacement.
 
-Memory data, logs, other vector stores, and additional runtime artifacts shall not be claimed as currently persistent unless an owning current requirement and deployment artifact establish that behavior. Target persistence shall be specified explicitly before implementation.
+The MCP deployment shall additionally preserve MCP memory data when required by the approved 111/112 memory capabilities and the owning deployment requirements. Other runtime artifacts shall not be claimed as persistent without an owning requirement and deployment realization.
 <<<
 
 [REQUIREMENT]
@@ -1398,7 +1402,7 @@ Child file:
 
 doc/01-Requirements/strictdoc/100_future_vision_and_lifecycle_sync.sdoc
 
-This file shall contain Requirement-Architecture-Code Sync reserved capability, Ghost2 boundary, Blackboard architecture boundary, advanced orchestration, future model/backend expansion, and other future capabilities not yet architecturally fixed.
+This file shall contain Requirement-Architecture-Code Sync reserved capability, the broader Ghost2 future boundary, advanced orchestration, future model/backend expansion, and other future capabilities not yet architecturally fixed. Detailed MCP ActiveBlackboard requirements are owned by 112_mcp_activeblackboard.sdoc.
 <<<
 
 [REQUIREMENT]

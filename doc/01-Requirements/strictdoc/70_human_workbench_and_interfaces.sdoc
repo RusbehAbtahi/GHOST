@@ -1,5 +1,5 @@
 [DOCUMENT]
-TITLE: GHOST Human Workbench and External Interface Requirements
+TITLE: GHOST Human Workbench and Graphical Interface Requirements
 UID: GHOST-UI
 VERSION: 0.2-draft
 OPTIONS:
@@ -12,11 +12,11 @@ TITLE: 1. Purpose and Scope
 
 [TEXT]
 STATEMENT: >>>
-This document is the parent requirement file for GHOST human workbenches and external client interfaces.
+This document is the parent requirement file for GHOST human-facing workbenches and graphical interfaces.
 
-It defines the stable interface-family boundary, assigns detailed ownership to child requirement files, and prevents interface-specific requirements from being duplicated across the requirement tree.
+It defines the stable human-interface family boundary, assigns detailed ownership to child requirement files, and prevents interface-specific requirements from being duplicated across the requirement tree.
 
-Detailed Streamlit behavior, future React/FastAPI design, MCP protocol behavior, and deployment realization remain outside this parent file.
+Detailed Streamlit behavior, future React/FastAPI design, MCP behavior, and deployment realization remain outside this parent file. MCP is owned independently by the 110-series requirement family.
 <<<
 
 [REQUIREMENT]
@@ -24,11 +24,11 @@ UID: GHOST-UI-ROOT
 STATUS: Draft
 TITLE: GHOST Interface Family Scope
 STATEMENT: >>>
-GHOST shall organize its human workbenches and external client interfaces under one interface requirement family.
+GHOST shall organize its human-facing workbenches and graphical interfaces under one interface requirement family.
 
 This parent file shall define only shared scope, child-file ownership, separation rules, and status-governance rules.
 
-It shall not define detailed screens, controls, API schemas, MCP tools, transport settings, authentication infrastructure, deployment topology, or internal subsystem algorithms.
+It shall not define detailed screens, controls, API schemas, external protocol tools, transport settings, authentication infrastructure, deployment topology, or internal subsystem algorithms.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -42,14 +42,13 @@ TITLE: 2. Interface Family and Child-File Ownership
 [REQUIREMENT]
 UID: GHOST-UI-INTERFACE-FAMILY
 STATUS: Draft
-TITLE: Human and External Interface Family
+TITLE: Human and Graphical Interface Family
 STATEMENT: >>>
-The GHOST interface family shall include:
+The GHOST human-interface family shall include human-operated workbench and graphical interfaces used to configure, invoke, and inspect GHOST capabilities.
 
-1. human-operated workbench interfaces used to configure, invoke, and inspect GHOST capabilities; and
-2. external machine-consumable interfaces through which approved clients invoke bounded GHOST capabilities.
+The current Streamlit workbench and future React/TypeScript and FastAPI interface belong to this family.
 
-Membership in this interface family shall not imply that every interface uses the same technology, lifecycle status, transport, or presentation model.
+Machine-consumable MCP interfaces are owned separately by the 110-series MCP requirement family.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -60,13 +59,14 @@ UID: GHOST-UI-CHILD-OWNERSHIP
 STATUS: Draft
 TITLE: Interface Child-File Ownership
 STATEMENT: >>>
-Detailed interface requirements shall be owned by these child files:
+Detailed human-interface requirements shall be owned by these child files:
 
 - 71_streamlit_workbench_current.sdoc shall own the current Streamlit workbench requirements.
 - 72_react_fastapi_interface_future.sdoc shall own the future React/TypeScript and FastAPI interface requirements.
-- 73_mcp_interface.sdoc shall own the GHOST MCP interface requirements for approved external AI clients.
 
-Additional interface child files may be introduced later when a distinct interface capability requires independent ownership.
+MCP requirements shall not be owned by this family. They shall be owned by 110_mcp.sdoc and its 111/112 child requirement files.
+
+Additional human-interface child files may be introduced later when a distinct human-facing interface capability requires independent ownership.
 <<<
 RELATIONS:
 - TYPE: Parent

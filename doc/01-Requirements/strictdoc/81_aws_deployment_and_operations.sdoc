@@ -708,7 +708,7 @@ TITLE: 6. TARGET MCP Hosting and Network Topology
 
 [TEXT]
 STATEMENT: >>>
-The initial MCP service is additive: same EC2, separate container, same hostname and certificate, exact /mcp public route, and loopback-only backend publication.
+The MCP service is additive: same EC2, separate container, dedicated MCP hostname, exact /mcp public route, and loopback-only backend publication. The current Streamlit hostname and root route remain independently preserved.
 <<<
 
 [REQUIREMENT]
@@ -738,7 +738,7 @@ UID: GHOST-AWS-TGT-MCP-PUBLIC-URL
 STATUS: Draft
 TITLE: TARGET MCP Public URL
 STATEMENT: >>>
-The externally configured MCP server URL shall be exactly https://ragstream.rusbehabtahi.com/mcp.
+The externally configured MCP server URL shall be exactly https://ghost.rusbehabtahi.com/mcp.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -749,7 +749,7 @@ UID: GHOST-AWS-TGT-MCP-NGINX-ROUTE
 STATUS: Draft
 TITLE: TARGET Exact nginx MCP Route
 STATEMENT: >>>
-The Certbot-managed HTTPS server block for ragstream.rusbehabtahi.com shall contain an exact /mcp route that proxies to the local MCP backend without changing the existing Streamlit location / route.
+nginx shall provide an HTTPS server block for ghost.rusbehabtahi.com containing the exact /mcp route that proxies to the local MCP backend. The existing Streamlit server block and root route at ragstream.rusbehabtahi.com shall remain unchanged.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -826,9 +826,11 @@ RELATIONS:
 [REQUIREMENT]
 UID: GHOST-AWS-TGT-MCP-NO-PROJECT-MOUNTS
 STATUS: Draft
-TITLE: TARGET No Project or Memory Data Mounts
+TITLE: TARGET Controlled MCP Persistent Data Mounts
 STATEMENT: >>>
-The initial MCP container shall not mount the current doc_raw, chroma_db, memory, or other project-persistence directories because the approved initial ghost_engineer_prompt tool requires only prompt-processing code and configuration.
+The earlier prompt-engineering-only no-project-mount restriction shall not prohibit persistent data required by approved MCP memory capabilities.
+
+The MCP container shall mount only the persistent data paths required by the approved 111/112 MCP memory capabilities and their implementation. Unrelated doc_raw, Chroma, GUI, or project-data mounts shall not be added unless separately required by an approved capability.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -911,9 +913,11 @@ RELATIONS:
 [REQUIREMENT]
 UID: GHOST-AWS-TGT-MCP-DNS-REUSE
 STATUS: Draft
-TITLE: TARGET Existing DNS Record Reuse
+TITLE: TARGET MCP DNS Entry
 STATEMENT: >>>
-The MCP endpoint shall reuse the existing ragstream.rusbehabtahi.com Route53 A record and shall not require a second public DNS record because the MCP route is hosted under the existing application hostname.
+The MCP endpoint shall use the dedicated hostname ghost.rusbehabtahi.com and shall resolve that hostname to the EC2 public endpoint used by the MCP deployment.
+
+The existing ragstream.rusbehabtahi.com DNS entry for Streamlit shall remain independently preserved.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -922,9 +926,11 @@ RELATIONS:
 [REQUIREMENT]
 UID: GHOST-AWS-TGT-MCP-CERTIFICATE-REUSE
 STATUS: Draft
-TITLE: TARGET Existing TLS Certificate Reuse
+TITLE: TARGET MCP TLS Certificate Boundary
 STATEMENT: >>>
-The MCP endpoint shall use the existing Certbot-managed TLS certificate for ragstream.rusbehabtahi.com through the existing nginx HTTPS server block and shall not terminate public TLS inside the MCP container.
+The MCP endpoint shall use an nginx-managed TLS certificate valid for ghost.rusbehabtahi.com and shall not terminate public TLS inside the MCP container.
+
+Whether the deployment uses a shared certificate bundle or a separate certificate shall remain an environment-specific deployment detail recorded in the local profile.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -980,9 +986,9 @@ UID: GHOST-AWS-TGT-MCP-TOOL-PROTOCOL
 STATUS: Draft
 TITLE: TARGET MCP Tool Operations
 STATEMENT: >>>
-The endpoint shall support tools/list and tools/call for the single ghost_engineer_prompt tool defined by 73_mcp_interface.sdoc.
+The endpoint shall support tools/list and tools/call for the GHOST tool inventory approved by 110_mcp.sdoc, 111_mcp_capabilities.sdoc, and 112_mcp_activeblackboard.sdoc.
 
-The endpoint shall not advertise a standalone PreProcessing tool, a standalone A2 tool, or any additional GHOST capability under the initial requirement set.
+The deployment requirement shall not impose an independent single-tool restriction. PreProcessing and A2 shall remain internal stages of ghost_engineer_prompt unless separately approved as MCP tools.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1049,7 +1055,7 @@ UID: GHOST-AWS-TGT-MCP-RESOURCE-METADATA
 STATUS: Draft
 TITLE: TARGET Protected Resource Metadata
 STATEMENT: >>>
-The deployment shall publish OAuth Protected Resource Metadata at https://ragstream.rusbehabtahi.com/.well-known/oauth-protected-resource/mcp for the canonical MCP resource https://ragstream.rusbehabtahi.com/mcp and shall identify at least one authorization server used by the clients.
+The deployment shall publish OAuth Protected Resource Metadata at https://ghost.rusbehabtahi.com/.well-known/oauth-protected-resource/mcp for the canonical MCP resource https://ghost.rusbehabtahi.com/mcp and shall identify at least one authorization server used by the clients.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1196,21 +1202,19 @@ TITLE: 9. TARGET MCP Tool and Existing-Code Boundary
 
 [TEXT]
 STATEMENT: >>>
-This section defines only the deployment-facing realization of the single ghost_engineer_prompt tool. The external tool contract remains owned by 73_mcp_interface.sdoc. The internal functional semantics of deterministic prompt construction and A2 remain owned by 30_preprocessing_prompt_functions.sdoc and the existing Python implementation.
+This section defines only the deployment-facing boundary for MCP tools and their existing-code dependencies. Common MCP protocol behavior remains owned by 110_mcp.sdoc. Prompt Engineering and non-ActiveBlackboard memory capabilities remain owned by 111_mcp_capabilities.sdoc. ActiveBlackboard behavior remains owned by 112_mcp_activeblackboard.sdoc. Internal subsystem semantics remain owned by their corresponding requirement files and existing implementation.
 <<<
 
 [REQUIREMENT]
 UID: GHOST-AWS-TGT-MCP-PROMPT-ENGINEERING-TOOL
 STATUS: Draft
-TITLE: TARGET Single Prompt-Engineering MCP Tool
+TITLE: TARGET Prompt-Engineering MCP Tool
 STATEMENT: >>>
-The MCP server shall deploy exactly the single ghost_engineer_prompt tool defined by 73_mcp_interface.sdoc.
+The MCP server deployment shall include ghost_engineer_prompt as defined by 111_mcp_capabilities.sdoc.
 
-For each accepted invocation, the adapter shall create a fresh request-isolated SuperPrompt, invoke the existing deterministic preprocess(...) prompt-construction function, then invoke the existing A2PromptShaper LLM path on the same SuperPrompt, and return the post-A2 engineered prompt through the MCP result contract.
+For each accepted invocation of that tool, the adapter shall create fresh request-isolated prompt state, reuse the existing deterministic PreProcessing path, then invoke the existing A2 PromptShaper path and return the resulting engineered prompt through the MCP result contract.
 
-The adapter shall not invoke AppController.preprocess(), ActiveBrief discovery, ActiveBrief relation classification, retrieval, memory, or any other GHOST pipeline stage.
-
-Deterministic PreProcessing and A2 shall remain internal sequential stages of this one tool and shall not be advertised as separate MCP tools.
+This deployment requirement shall not redefine the functional scope of other MCP tools. Deterministic PreProcessing and A2 shall remain internal sequential stages of ghost_engineer_prompt and shall not be advertised as separate MCP tools unless separately approved.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1234,7 +1238,7 @@ UID: GHOST-AWS-TGT-MCP-CONFIG-PACKAGING
 STATUS: Draft
 TITLE: TARGET MCP Prompt Configuration Packaging
 STATEMENT: >>>
-The MCP runtime image shall contain the existing prompt schema, A2 agent configuration, option catalogs, and Python modules required by the single approved ghost_engineer_prompt execution path.
+The MCP runtime image shall contain the existing prompt schema, A2 agent configuration, option catalogs, and Python modules required by the approved ghost_engineer_prompt execution path.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1243,9 +1247,11 @@ RELATIONS:
 [REQUIREMENT]
 UID: GHOST-AWS-TGT-MCP-NO-EXTRA-TOOLS
 STATUS: Draft
-TITLE: TARGET No Additional MCP Tools
+TITLE: TARGET MCP Tool Inventory Ownership Boundary
 STATEMENT: >>>
-The initial tools/list result shall contain exactly ghost_engineer_prompt and shall contain no standalone PreProcessing tool, standalone A2 tool, or additional GHOST tool.
+The tools/list result shall match the approved GHOST MCP tool inventory defined by the 110/111/112 MCP requirement family.
+
+This deployment requirement shall not impose a prompt-engineering-only tool inventory. Standalone PreProcessing or standalone A2 tools shall remain excluded unless separately approved.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1323,7 +1329,7 @@ UID: GHOST-AWS-TGT-MCP-CLAUDE-ACCEPTANCE
 STATUS: Draft
 TITLE: TARGET Claude Client Acceptance
 STATEMENT: >>>
-The target shall not be promoted to CURRENT until Claude can add the remote MCP server, complete OAuth authorization, discover ghost_engineer_prompt as the sole GHOST tool, invoke it successfully, receive the post-A2 engineered prompt, and continue after an access-token refresh.
+The target shall not be promoted to CURRENT until Claude can add the remote MCP server, complete OAuth authorization, discover the approved GHOST tool inventory, invoke ghost_engineer_prompt successfully as the deployment smoke test, receive the post-A2 engineered prompt, and continue after an access-token refresh. Capability-specific acceptance beyond this deployment smoke test remains owned by 111_mcp_capabilities.sdoc and 112_mcp_activeblackboard.sdoc.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1334,7 +1340,7 @@ UID: GHOST-AWS-TGT-MCP-CHATGPT-ACCEPTANCE
 STATUS: Draft
 TITLE: TARGET ChatGPT Client Acceptance
 STATEMENT: >>>
-The target shall not be promoted to CURRENT until the owner's ChatGPT web account can create and enable the custom MCP plugin, complete OAuth authorization, discover ghost_engineer_prompt as the sole GHOST tool, invoke it successfully, receive the post-A2 engineered prompt in the same conversation, and continue after an access-token refresh.
+The target shall not be promoted to CURRENT until the owner's ChatGPT web account can create and enable the supported MCP connection, complete OAuth authorization, discover the approved GHOST tool inventory, invoke ghost_engineer_prompt successfully as the deployment smoke test, receive the post-A2 engineered prompt in the same conversation, and continue after an access-token refresh. Capability-specific acceptance beyond this deployment smoke test remains owned by 111_mcp_capabilities.sdoc and 112_mcp_activeblackboard.sdoc.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1345,9 +1351,9 @@ UID: GHOST-AWS-TGT-MCP-PROTOCOL-ACCEPTANCE
 STATUS: Draft
 TITLE: TARGET MCP Protocol Acceptance
 STATEMENT: >>>
-MCP protocol acceptance shall complete initialize, notifications/initialized, tools/list, and one successful tools/call for ghost_engineer_prompt through the public HTTPS URL.
+MCP protocol acceptance shall complete initialize, notifications/initialized, tools/list, and at least one successful tools/call for an approved GHOST MCP tool through the public HTTPS URL.
 
-The returned result shall contain the engineered prompt produced only after the internal deterministic prompt-construction step and A2 execution have completed.
+ghost_engineer_prompt shall remain a valid deployment smoke-test tool, and its successful result shall contain the engineered prompt produced only after the required internal PreProcessing and A2 execution have completed.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1358,7 +1364,9 @@ UID: GHOST-AWS-TGT-MCP-SCOPE-ACCEPTANCE
 STATUS: Draft
 TITLE: TARGET MCP Scope Acceptance
 STATEMENT: >>>
-MCP acceptance shall verify that no document, Chroma, memory, GUI, or other project data mount is attached to the initial MCP container and that no additional GHOST tool is advertised.
+MCP acceptance shall verify that the MCP container has only the persistent data mounts required by approved MCP capabilities and that tools/list matches the approved inventory owned by the 110/111/112 MCP requirement family.
+
+Unrelated document, Chroma, GUI, or project-data mounts shall remain absent unless separately required by an approved capability.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1369,7 +1377,7 @@ UID: GHOST-AWS-TGT-MCP-PROMOTION-GATE
 STATUS: Draft
 TITLE: TARGET MCP Status Promotion Gate
 STATEMENT: >>>
-The MCP requirements shall remain TARGET until the implementation exists on the EC2 instance and all network, OAuth discovery, Claude, ChatGPT, protocol, tool-scope, and Streamlit-regression acceptance requirements pass.
+The MCP deployment requirements shall remain TARGET until the implementation exists on the EC2 instance and all applicable network, OAuth discovery, Claude, ChatGPT, protocol, tool-inventory, persistence-mount, and Streamlit-regression acceptance requirements pass.
 <<<
 RELATIONS:
 - TYPE: Parent
