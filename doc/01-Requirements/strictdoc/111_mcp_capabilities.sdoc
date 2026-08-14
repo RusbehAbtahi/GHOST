@@ -313,13 +313,27 @@ RELATIONS:
 [REQUIREMENT]
 UID: GHOST-MCP-MEMORY-SAVE-RECALL-KEY
 STATUS: Draft
-TITLE: Recall Key Handling
+TITLE: Recall Key Handling and Episodic Uniqueness
 STATEMENT: >>>
 When the user explicitly provides a Recall Key, ChatGPT shall pass that key.
 
 When the user requests an Episodic save without providing a Recall Key, ChatGPT shall generate an appropriate Recall Key rather than forcing the user to invent one.
 
-The final duplicate-key collision policy is not fixed by this requirement and shall not be invented here.
+Within an authenticated owner's Episodic Memory, the effective Recall Key shall be unique.
+
+Before saving a new Episodic episode, GHOST shall check the owner-scoped Episodic Recall Keys recorded in the SQLite/index layer.
+
+If the requested or generated base key is already used by an Episodic episode, GHOST shall deterministically allocate the next available numeric suffix using the form:
+
+base_key_1
+base_key_2
+base_key_3
+
+and so on.
+
+The originally supplied key shall remain the base key; GHOST shall not overwrite the existing episode.
+
+The successful save result shall return the actual effective Recall Key that was stored.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -707,7 +721,9 @@ UID: GHOST-MCP-CLIPBOARD-CONTENT
 STATUS: Draft
 TITLE: Clipboard Episode Content
 STATEMENT: >>>
-A Clipboard episode shall store the visible saved content required by the operation and shall also contain an Episode Description.
+A Clipboard episode shall store only the visible saved content and metadata required for deterministic slot storage and recall.
+
+Clipboard episodes shall not require or generate an Episode Description.
 
 Clipboard episodes shall not maintain an ActiveBrief.
 <<<
@@ -966,13 +982,17 @@ UID: GHOST-MCP-COLLECTION-DELETE-CONFIRMATION
 STATUS: Draft
 TITLE: Two-Step Whole Collection Delete Safety
 STATEMENT: >>>
-The first exact request to delete an entire Collection shall not immediately execute the deletion.
+Whole-Collection deletion shall use a temporary server-side confirmation state.
 
-GHOST shall return a warning or refusal requiring confirmation.
+For an authenticated owner and exact Collection ID, the first exact whole-Collection delete request shall not execute the deletion.
 
-Only a repeated exact deletion request for the same Collection ID shall authorize the whole-Collection deletion.
+The first request shall set the corresponding server-side delete-pending state to true and shall return a warning or refusal asking the client/user to repeat the same exact Collection deletion request.
 
-The exact implementation of confirmation state, token, timeout, or persistence is intentionally not defined until separately designed.
+If the same owner repeats the exact whole-Collection delete request for the same Collection ID while that delete-pending state is true, GHOST shall execute the deletion and confirm the result.
+
+The delete-pending state shall be volatile server state and shall reset to false when the MCP server restarts.
+
+A future timeout or asynchronous reset policy may be added later, but no timeout duration or additional reset mechanism is fixed by this requirement.
 <<<
 RELATIONS:
 - TYPE: Parent
