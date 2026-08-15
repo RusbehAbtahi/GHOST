@@ -1,25 +1,31 @@
-"""Expose the MCP contract for saving one GHOST memory pair.
+"""Expose the MCP contract for saving one GHOST Episodic Memory.
+
+This module validates the authenticated Save request and delegates durable
+storage and description indexing to McpMemoryStore. Model-facing instructions
+are loaded from custom_memory_save.json rather than embedded in Python.
 
 Main classes:
     GhostMemoryTagTool:
-        Validates one tag request and passes it to the MCP memory store.
+        Adapts one MCP Save call to the owner-scoped Episodic backend.
 
 Main methods and functions:
-    needs_recall_key():
-        Reports whether a tag call still needs the user's recall key.
     call_sanitized():
-        Saves the authenticated user's selected visible input/output pair.
+        Validates, saves, and returns the actual stored Recall Key and Record ID.
     tool_metadata():
         Builds the OAuth-protected MCP tool descriptor.
 """
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from ragstream.mcp.ghost_engineer_prompt import (
     DEFAULT_REQUIRED_SCOPE,
     GhostToolResult,
+)
+from ragstream.mcp.memory_tool_instructions import (
+    load_memory_tool_instructions,
 )
 from ragstream.memory.mcp_memory_store import (
     MAX_EPISODE_TITLE_LENGTH,
@@ -28,42 +34,12 @@ from ragstream.memory.mcp_memory_store import (
 
 
 TOOL_NAME = "ghost_memory_tag"
-TOOL_TITLE = "GHOST Memory Tag"
+TOOL_TITLE = "GHOST Memory Save"
+WORKFLOW_COMPLETE = "complete"
 
-RECALL_KEY_ELICITATION_MESSAGE = (
-    "GHOST needs a recall key before saving this memory. "
-    "What recall key would you like to use?"
-)
-
-RECALL_KEY_ELICITATION_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "recall_key": {
-            "type": "string",
-            "title": "Recall key",
-            "description": "Exact key to use later with ghost_memory_recall.",
-            "minLength": 1,
-        }
-    },
-    "required": ["recall_key"],
-}
-
-TOOL_DESCRIPTION = (
-    "Saves one visible user/assistant pair from the current conversation under "
-    "an exact recall key. If the user supplied a recall key, pass it exactly. Never "
-    "invent or generate a recall key. If the user did not supply one, omit recall_key; "
-    "GHOST may request it through MCP Elicitation when the client supports that flow. "
-    "By default, use the immediately preceding pair. If the user identifies an older "
-    "pair by its text or position, use that pair instead. "
-    "Generate episode_title yourself as a short descriptive title for the selected "
-    f"pair, preferably 3-10 words and no more than {MAX_EPISODE_TITLE_LENGTH} "
-    "characters; do not ask the "
-    "user to provide the title. Base the title only on the selected visible pair. "
-    "Copy the selected user message into input_text and its complete assistant "
-    "response into output_text, both verbatim. One call saves one pair; call the "
-    "tool separately for each pair when the user requests several. Do not use a "
-    "summary, hidden reasoning, or an internal tool result."
-)
+_INSTRUCTIONS = load_memory_tool_instructions("custom_memory_save.json")
+TOOL_DESCRIPTION = _INSTRUCTIONS.tool_description
+SERVER_INSTRUCTIONS = _INSTRUCTIONS.server_instruction
 
 INPUT_SCHEMA = {
     "type": "object",
@@ -71,38 +47,55 @@ INPUT_SCHEMA = {
         "recall_key": {
             "type": "string",
             "minLength": 1,
-            "description": (
-                "Exact user-selected key for later recall. Do not invent one. "
-                "Omit it when the user did not provide one."
-            ),
+            "description": _INSTRUCTIONS.field_descriptions["recall_key"],
         },
         "episode_title": {
             "type": "string",
             "minLength": 1,
             "maxLength": MAX_EPISODE_TITLE_LENGTH,
-            "description": (
-                "Generate a short descriptive title for the selected visible "
-                "user/assistant pair, preferably 3-10 words."
-            ),
+            "description": _INSTRUCTIONS.field_descriptions[
+                "episode_title"
+            ],
+        },
+        "episode_description": {
+            "type": "string",
+            "minLength": 1,
+            "description": _INSTRUCTIONS.field_descriptions[
+                "episode_description"
+            ],
         },
         "input_text": {
             "type": "string",
             "minLength": 1,
+            "description": _INSTRUCTIONS.field_descriptions["input_text"],
         },
         "output_text": {
             "type": "string",
             "minLength": 1,
+            "description": _INSTRUCTIONS.field_descriptions["output_text"],
         },
     },
-    "required": ["episode_title", "input_text", "output_text"],
+    "required": [
+        "recall_key",
+        "episode_title",
+        "episode_description",
+        "input_text",
+        "output_text",
+    ],
     "additionalProperties": False,
 }
 
 OUTPUT_SCHEMA = {
     "type": "object",
     "properties": {
-        "saved": {
-            "type": "boolean",
+        "saved": {"type": "boolean"},
+        "workflow_state": {
+            "type": "string",
+            "enum": [WORKFLOW_COMPLETE],
+        },
+        "requested_recall_key": {
+            "type": "string",
+            "minLength": 1,
         },
         "recall_key": {
             "type": "string",
@@ -113,114 +106,118 @@ OUTPUT_SCHEMA = {
             "minLength": 1,
             "maxLength": MAX_EPISODE_TITLE_LENGTH,
         },
+        "episode_description": {
+            "type": "string",
+            "minLength": 1,
+        },
         "record_id": {
             "type": "string",
             "minLength": 1,
         },
+        "reason": {"type": "string"},
     },
-    "required": ["saved"],
+    "required": ["saved", "workflow_state"],
     "additionalProperties": False,
 }
 
 
 class GhostMemoryTagTool:
-    """Thin MCP adapter for saving one authenticated memory pair."""
+    """Adapt one authenticated MCP Save call to Episodic persistence."""
 
     def __init__(self, memory_store: McpMemoryStore) -> None:
         self._memory_store = memory_store
-
-    @staticmethod
-    def needs_recall_key(
-        arguments: Mapping[str, Any] | None,
-    ) -> bool:
-        """Return True when a tag call still needs a non-empty recall key."""
-        if not isinstance(arguments, Mapping):
-            return False
-
-        recall_key = arguments.get("recall_key")
-        return not isinstance(recall_key, str) or not recall_key.strip()
 
     def call_sanitized(
         self,
         owner_sub: str,
         arguments: Mapping[str, Any] | None,
     ) -> GhostToolResult:
-        """Validate the request, save the pair, and return a clear receipt."""
+        """Validate the request, save the episode, and return its receipt."""
         if not isinstance(owner_sub, str) or not owner_sub.strip():
             return self._failure("authenticated user is required")
-
         if not isinstance(arguments, Mapping):
-            return self._failure("memory tag input is required")
+            return self._failure("memory save input is required")
 
-        if set(arguments).difference(
-            {"recall_key", "episode_title", "input_text", "output_text"}
-        ):
+        allowed_properties = {
+            "recall_key",
+            "episode_title",
+            "episode_description",
+            "input_text",
+            "output_text",
+        }
+        if set(arguments).difference(allowed_properties):
             return self._failure("unsupported input property")
 
         recall_key = arguments.get("recall_key")
         episode_title = arguments.get("episode_title")
+        episode_description = arguments.get("episode_description")
         input_text = arguments.get("input_text")
         output_text = arguments.get("output_text")
 
-        if not isinstance(recall_key, str) or not recall_key.strip():
-            return self._failure(
-                "recall_key is required and must be a non-empty string"
-            )
+        text_fields = {
+            "recall_key": recall_key,
+            "episode_title": episode_title,
+            "episode_description": episode_description,
+            "input_text": input_text,
+            "output_text": output_text,
+        }
+        for field_name, value in text_fields.items():
+            if not isinstance(value, str) or not value.strip():
+                return self._failure(
+                    f"{field_name} is required and must be a non-empty string"
+                )
 
-        if not isinstance(episode_title, str) or not episode_title.strip():
-            return self._failure(
-                "episode_title is required and must be a non-empty string"
-            )
-
+        clean_recall_key = recall_key.strip()
         clean_episode_title = episode_title.strip()
+        clean_description = episode_description.strip()
+
         if len(clean_episode_title) > MAX_EPISODE_TITLE_LENGTH:
             return self._failure(
                 f"episode_title must be at most "
-                f"{MAX_EPISODE_TITLE_LENGTH} characters"
+                f"{MAX_EPISODE_TITLE_LENGTH} characters",
+                requested_recall_key=clean_recall_key,
             )
-
-        if not isinstance(input_text, str) or not input_text.strip():
-            return self._failure(
-                "input_text is required and must be a non-empty string"
-            )
-
-        if not isinstance(output_text, str) or not output_text.strip():
-            return self._failure(
-                "output_text is required and must be a non-empty string"
-            )
-
-        clean_recall_key = recall_key.strip()
 
         try:
-            record = self._memory_store.tag_memory(
+            record = self._memory_store.save_episodic_memory(
                 owner_sub=owner_sub,
                 recall_key=clean_recall_key,
                 episode_title=clean_episode_title,
+                episode_description=clean_description,
                 input_text=input_text,
                 output_text=output_text,
+            )
+        except ValueError as error:
+            return self._failure(
+                str(error),
+                requested_recall_key=clean_recall_key,
             )
         except Exception:  # noqa: BLE001
             return self._failure(
                 "GHOST memory storage failed",
-                recall_key=clean_recall_key,
+                requested_recall_key=clean_recall_key,
             )
 
+        effective_key = record.direct_recall_key
         return GhostToolResult(
             content=[
                 {
                     "type": "text",
                     "text": (
                         "Memory saved successfully.\n"
-                        f"Episode title: {clean_episode_title}\n"
-                        f"Recall key: {clean_recall_key}\n"
+                        f"Episode title: {record.episode_title}\n"
+                        f"Recall key: {effective_key}\n"
                         f"Record ID: {record.record_id}"
                     ),
                 }
             ],
             structuredContent={
                 "saved": True,
-                "recall_key": clean_recall_key,
-                "episode_title": clean_episode_title,
+                "workflow_state": WORKFLOW_COMPLETE,
+                "requested_recall_key": clean_recall_key,
+                "recall_key": effective_key,
+                "episode_title": record.episode_title,
+                "episode_description": record.episode_description,
                 "record_id": record.record_id,
             },
         )
@@ -228,11 +225,17 @@ class GhostMemoryTagTool:
     @staticmethod
     def _failure(
         reason: str,
-        recall_key: str | None = None,
+        requested_recall_key: str | None = None,
     ) -> GhostToolResult:
-        structured_content: dict[str, Any] = {"saved": False}
-        if recall_key is not None:
-            structured_content["recall_key"] = recall_key
+        structured_content: dict[str, Any] = {
+            "saved": False,
+            "workflow_state": WORKFLOW_COMPLETE,
+            "reason": reason,
+        }
+        if requested_recall_key is not None:
+            structured_content["requested_recall_key"] = (
+                requested_recall_key
+            )
 
         return GhostToolResult(
             content=[
@@ -247,7 +250,7 @@ class GhostMemoryTagTool:
 
 
 def tool_metadata(required_scope: str | None = None) -> dict[str, Any]:
-    """Build the OAuth-protected MCP tool descriptor."""
+    """Build the OAuth-protected MCP Save tool descriptor."""
     scope = (
         required_scope
         if required_scope is not None
@@ -265,9 +268,7 @@ def tool_metadata(required_scope: str | None = None) -> dict[str, Any]:
         "inputSchema": INPUT_SCHEMA,
         "outputSchema": OUTPUT_SCHEMA,
         "securitySchemes": security_schemes,
-        "_meta": {
-            "securitySchemes": security_schemes.copy(),
-        },
+        "_meta": {"securitySchemes": security_schemes.copy()},
         "annotations": {
             "destructiveHint": False,
             "readOnlyHint": False,

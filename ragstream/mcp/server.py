@@ -15,7 +15,7 @@ Main functions:
 
 Important notes:
     All advertised GHOST tools are rate-limited by authenticated Cognito subject.
-    Form Elicitation uses the active MCP session when the client advertises it.
+    Multi-call Recall progression is communicated by structured workflow state.
     Requires mcp>=1.27,<2 and PyJWT[crypto]>=2.10,<3.
 """
 
@@ -59,7 +59,7 @@ from ragstream.textforge.RagLog import LogNoGUI
 
 
 SERVER_NAME = "GHOST"
-SERVER_VERSION = "0.3.0"
+SERVER_VERSION = "0.4.0"
 
 MCP_PATH = "/mcp"
 OAUTH_METADATA_PATH = "/.well-known/oauth-protected-resource/mcp"
@@ -238,14 +238,6 @@ class GhostMcpRuntime:
                     isError=True,
                 )
                 return types.ServerResult(result)
-
-        if request_context is not None:
-            arguments = await self.ghost_application.resolve_tool_arguments(
-                request.params.name,
-                arguments,
-                request_context.session,
-                request_context.request_id,
-            )
 
         result = await anyio.to_thread.run_sync(
             self.ghost_application.call_tool,

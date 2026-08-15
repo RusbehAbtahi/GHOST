@@ -1,0 +1,22 @@
+{
+  "tool_description": [
+    "Recall one Episodic Memory through either an exact identifier or a natural-language description. Use the same tool for both stages of intelligent recall.",
+    "When an exact Recall Key or exact Record ID is known, supply exactly one of them. GHOST then performs a deterministic exact fetch without vector search.",
+    "When no exact identifier is known, formulate query_description from the user's request. If the user mentions a relevant date or date interval, infer and normalize it into date_from and/or date_to as ISO values. GHOST returns up to ten compact Episode Description candidates with workflow_state selection_required.",
+    "When workflow_state is selection_required, compare the candidate descriptions with the user's request, select the best matching Record ID, and call ghost_memory_recall again with that exact record_id. When workflow_state is complete, do not call the tool again for this request.",
+    "The default result_mode is episode and returns the complete stored user and assistant pair. Use result_mode description only when the user explicitly asks for only the Episode Description."
+  ],
+  "server_instruction": [
+    "For ghost_memory_recall, use exact recall whenever the user supplies a Recall Key or Record ID. Otherwise create query_description. When the user's request contains a relevant date or interval, infer its concrete ISO value and pass it as date_from, date_to, or both; otherwise omit both date fields.",
+    "A result with workflow_state selection_required is not the final episode: inspect the returned candidates, choose the best matching Record ID, and call ghost_memory_recall again with that exact ID and the same requested result_mode. A result with workflow_state complete is final and must not trigger another recall call.",
+    "Use result_mode episode by default. Use result_mode description only when the user explicitly requests only the stored Episode Description."
+  ],
+  "field_descriptions": {
+    "recall_key": "An exact stored Recall Key. Supply it only when the user knows or explicitly provides the key.",
+    "record_id": "An exact stored Record ID. Use it for deterministic direct recall or for the second call after selecting a semantic candidate.",
+    "query_description": "The semantic description of the sought memory formulated from the user's request. Use it only when no exact Recall Key or Record ID is known.",
+    "date_from": "Optional inclusive UTC lower bound for intelligent recall, expressed as an ISO date or ISO datetime.",
+    "date_to": "Optional inclusive UTC upper bound for intelligent recall, expressed as an ISO date or ISO datetime.",
+    "result_mode": "Select episode for the complete stored user and assistant pair, or description when the user explicitly wants only the Episode Description."
+  }
+}

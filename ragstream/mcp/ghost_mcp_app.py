@@ -12,14 +12,12 @@ Main classes:
 Main methods:
     list_tools():
         Returns the OAuth-protected MCP tool definitions.
-    resolve_tool_arguments():
-        Resolves supported client-input needs before tool execution.
     call_tool():
         Executes one named GHOST tool and converts its result to MCP.
 
 Important notes:
     Prompt engineering keeps its strict internal-result validation. Memory tools
-    share one McpMemoryStore so Tag, Recall, List, and Delete see the same state.
+    share one McpMemoryStore so Save, Recall, List, and Delete see the same state.
     Persistent Chat uses its dedicated MCP policy store over the same backend.
 """
 
@@ -30,7 +28,6 @@ from dataclasses import asdict
 from typing import Any
 
 import mcp.types as types
-from mcp.server.session import ServerSession
 from mcp.shared.exceptions import McpError
 
 from ragstream.mcp.ghost_engineer_prompt import (
@@ -54,13 +51,13 @@ from ragstream.mcp.ghost_memory_list import (
     tool_metadata as memory_list_tool_metadata,
 )
 from ragstream.mcp.ghost_memory_recall import (
+    SERVER_INSTRUCTIONS as MEMORY_RECALL_SERVER_INSTRUCTIONS,
     GhostMemoryRecallTool,
     TOOL_NAME as MEMORY_RECALL_TOOL_NAME,
     tool_metadata as memory_recall_tool_metadata,
 )
 from ragstream.mcp.ghost_memory_tag import (
-    RECALL_KEY_ELICITATION_MESSAGE,
-    RECALL_KEY_ELICITATION_SCHEMA,
+    SERVER_INSTRUCTIONS as MEMORY_SAVE_SERVER_INSTRUCTIONS,
     GhostMemoryTagTool,
     TOOL_NAME as MEMORY_TAG_TOOL_NAME,
     tool_metadata as memory_tag_tool_metadata,
@@ -82,10 +79,10 @@ from ragstream.textforge.RagLog import LogNoGUI
 
 
 SERVER_INSTRUCTIONS = (
-    "After every ghost_memory_tag call, report its receipt. Claim success only "
-    "when saved is true, and include the returned episode title, recall key, "
-    "and record ID. If the call fails, state that the memory was not saved and "
-    "give its returned sanitized reason. "
+    MEMORY_SAVE_SERVER_INSTRUCTIONS
+    + " "
+    + MEMORY_RECALL_SERVER_INSTRUCTIONS
+    + " "
     + PERSISTENT_CHAT_SERVER_INSTRUCTIONS
     + " "
     + PROMPT_SERVER_INSTRUCTIONS
@@ -152,60 +149,6 @@ class GhostMcpApplication:
             persistent_chat_resume_tool_metadata(self.required_scope),
         )
         return [types.Tool.model_validate(item) for item in definitions]
-
-    async def resolve_tool_arguments(
-        self,
-        name: str,
-        arguments: Mapping[str, Any] | None,
-        session: ServerSession,
-        request_id: types.RequestId,
-    ) -> dict[str, Any]:
-        """Resolve supported missing tool input through MCP client interaction."""
-        resolved = dict(arguments or {})
-        if (
-            name != MEMORY_TAG_TOOL_NAME
-            or not self.memory_tag_tool.needs_recall_key(resolved)
-        ):
-            return resolved
-
-        client_params = session.client_params
-        if client_params is None:
-            return resolved
-
-        elicitation = client_params.capabilities.elicitation
-        if elicitation is None:
-            return resolved
-
-        supports_form = (
-            elicitation.form is not None
-            or (elicitation.form is None and elicitation.url is None)
-        )
-        if not supports_form:
-            return resolved
-
-        try:
-            result = await session.elicit_form(
-                message=RECALL_KEY_ELICITATION_MESSAGE,
-                requestedSchema=RECALL_KEY_ELICITATION_SCHEMA,
-                related_request_id=request_id,
-            )
-        except Exception:  # noqa: BLE001
-            LogNoGUI(
-                "GHOST MCP form elicitation failed; using normal validation.",
-                "WARN",
-                "INTERNAL",
-            )
-            return resolved
-
-        if result.action != "accept" or not isinstance(result.content, Mapping):
-            return resolved
-
-        recall_key = result.content.get("recall_key")
-        if not isinstance(recall_key, str) or not recall_key.strip():
-            return resolved
-
-        resolved["recall_key"] = recall_key.strip()
-        return resolved
 
     def call_tool(
         self,
