@@ -95,13 +95,30 @@ class McpEpisodicRetriever:
             record_id=str(row["record_id"]),
         )
         return {
+            "file_id": str(row["file_id"]),
+            "memory_type": str(row["memory_type"]),
             "recall_key": str(row["recall_key"]),
             "record_id": str(row["record_id"]),
+            "sequence_number": int(row["sequence_number"]),
             "episode_title": str(row["episode_title"]),
             "episode_description": str(row["episode_description"]),
             "created_at_utc": str(row["created_at_utc"]),
             "input_text": str(body.get("input_text", "")),
             "output_text": str(body.get("output_text", "")),
+            "active_retrieval_brief_title": str(
+                body.get("active_retrieval_brief_title", "")
+            ),
+            "active_retrieval_brief": str(
+                body.get("active_retrieval_brief", "")
+            ),
+            "active_retrieval_brief_contributor_ids": list(
+                body.get("active_retrieval_brief_contributor_ids", [])
+                if isinstance(
+                    body.get("active_retrieval_brief_contributor_ids"),
+                    list,
+                )
+                else []
+            ),
         }
 
     def search(
@@ -177,6 +194,7 @@ class McpEpisodicRetriever:
                     "cosine_similarity": hit.get("cosine_similarity"),
                 }
             )
+
         return candidates
 
     def _lookup_exact_record(
@@ -197,7 +215,10 @@ class McpEpisodicRetriever:
             conn.row_factory = sqlite3.Row
             return conn.execute(
                 f"""
-                SELECT mr.record_id,
+                SELECT mf.file_id,
+                       mf.memory_type,
+                       mr.record_id,
+                       mr.sequence_number,
                        mr.direct_recall_key AS recall_key,
                        mr.episode_title,
                        mr.episode_description,
@@ -233,12 +254,14 @@ class McpEpisodicRetriever:
               AND mr.episode_description <> ''
         """
         parameters: list[Any] = [owner_sub, EPISODIC_MEMORY_TYPE]
+
         if date_from_utc is not None:
             query += " AND mr.created_at_utc >= ?"
             parameters.append(date_from_utc)
         if date_to_utc is not None:
             query += " AND mr.created_at_utc <= ?"
             parameters.append(date_to_utc)
+
         query += " ORDER BY mr.created_at_utc DESC, mr.record_id DESC"
 
         with sqlite3.connect(self.sqlite_path) as conn:
@@ -269,6 +292,7 @@ class McpEpisodicRetriever:
                 data = json.loads(match.group(1))
             except json.JSONDecodeError:
                 continue
+
             if (
                 isinstance(data, dict)
                 and str(data.get("record_id", "")) == record_id

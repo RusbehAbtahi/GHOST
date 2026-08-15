@@ -16,9 +16,9 @@ Main methods:
         Executes one named GHOST tool and converts its result to MCP.
 
 Important notes:
-    Prompt engineering keeps its strict internal-result validation. Memory tools
-    share one McpMemoryStore so Save, Recall, List, and Delete see the same state.
-    Persistent Chat uses its dedicated MCP policy store over the same backend.
+    Prompt engineering keeps its strict internal-result validation. Shared
+    memory and Collection tools use one storage root and SQLite index.
+    Persistent Chat uses its dedicated MCP policy store over that backend.
 """
 
 from __future__ import annotations
@@ -40,12 +40,20 @@ from ragstream.mcp.ghost_engineer_prompt import (
     TOOL_NAME as PROMPT_TOOL_NAME,
     tool_metadata as prompt_tool_metadata,
 )
+from ragstream.mcp.ghost_memory_collection_init import (
+    SERVER_INSTRUCTIONS as COLLECTION_INIT_SERVER_INSTRUCTIONS,
+    GhostMemoryCollectionInitTool,
+    TOOL_NAME as COLLECTION_INIT_TOOL_NAME,
+    tool_metadata as collection_init_tool_metadata,
+)
 from ragstream.mcp.ghost_memory_delete import (
+    SERVER_INSTRUCTIONS as MEMORY_DELETE_SERVER_INSTRUCTIONS,
     GhostMemoryDeleteTool,
     TOOL_NAME as MEMORY_DELETE_TOOL_NAME,
     tool_metadata as memory_delete_tool_metadata,
 )
 from ragstream.mcp.ghost_memory_list import (
+    SERVER_INSTRUCTIONS as MEMORY_LIST_SERVER_INSTRUCTIONS,
     GhostMemoryListTool,
     TOOL_NAME as MEMORY_LIST_TOOL_NAME,
     tool_metadata as memory_list_tool_metadata,
@@ -72,16 +80,32 @@ from ragstream.mcp.ghost_persistent_chat import (
     init_tool_metadata as persistent_chat_init_tool_metadata,
     resume_tool_metadata as persistent_chat_resume_tool_metadata,
 )
-from ragstream.mcp.prompt_engineering_runner import PromptEngineeringRunner
+from ragstream.mcp.prompt_engineering_runner import (
+    PromptEngineeringRunner,
+)
+from ragstream.memory.mcp_memory_collection_retriever import (
+    McpMemoryCollectionRetriever,
+)
+from ragstream.memory.mcp_memory_collection_store import (
+    McpMemoryCollectionStore,
+)
 from ragstream.memory.mcp_memory_store import McpMemoryStore
-from ragstream.memory.mcp_persistent_chat_store import McpPersistentChatStore
+from ragstream.memory.mcp_persistent_chat_store import (
+    McpPersistentChatStore,
+)
 from ragstream.textforge.RagLog import LogNoGUI
 
 
 SERVER_INSTRUCTIONS = (
-    MEMORY_SAVE_SERVER_INSTRUCTIONS
+    COLLECTION_INIT_SERVER_INSTRUCTIONS
+    + " "
+    + MEMORY_SAVE_SERVER_INSTRUCTIONS
     + " "
     + MEMORY_RECALL_SERVER_INSTRUCTIONS
+    + " "
+    + MEMORY_LIST_SERVER_INSTRUCTIONS
+    + " "
+    + MEMORY_DELETE_SERVER_INSTRUCTIONS
     + " "
     + PERSISTENT_CHAT_SERVER_INSTRUCTIONS
     + " "
@@ -91,6 +115,7 @@ SERVER_INSTRUCTIONS = (
 GHOST_TOOL_NAMES = frozenset(
     {
         PROMPT_TOOL_NAME,
+        COLLECTION_INIT_TOOL_NAME,
         MEMORY_TAG_TOOL_NAME,
         MEMORY_RECALL_TOOL_NAME,
         MEMORY_LIST_TOOL_NAME,
@@ -111,23 +136,62 @@ class GhostMcpApplication:
         required_scope: str | None = None,
         memory_store: McpMemoryStore | None = None,
         persistent_chat_store: McpPersistentChatStore | None = None,
+        collection_store: McpMemoryCollectionStore | None = None,
+        collection_retriever: (
+            McpMemoryCollectionRetriever | None
+        ) = None,
     ) -> None:
         """Create production tools or accept injected test dependencies."""
         if tool is None:
-            tool = GhostEngineerPromptTool(PromptEngineeringRunner())
+            tool = GhostEngineerPromptTool(
+                PromptEngineeringRunner()
+            )
         if memory_store is None:
             memory_store = McpMemoryStore()
+
         if persistent_chat_store is None:
             persistent_chat_store = McpPersistentChatStore(
                 memory_root=memory_store.memory_root,
                 sqlite_path=memory_store.sqlite_path,
             )
 
+        if collection_store is None:
+            collection_store = McpMemoryCollectionStore(
+                memory_root=memory_store.memory_root,
+                sqlite_path=memory_store.sqlite_path,
+            )
+
+        if collection_retriever is None:
+            collection_retriever = (
+                McpMemoryCollectionRetriever(
+                    memory_root=memory_store.memory_root,
+                    sqlite_path=memory_store.sqlite_path,
+                )
+            )
+
         self.tool = tool
-        self.memory_tag_tool = GhostMemoryTagTool(memory_store)
-        self.memory_recall_tool = GhostMemoryRecallTool(memory_store)
-        self.memory_list_tool = GhostMemoryListTool(memory_store)
-        self.memory_delete_tool = GhostMemoryDeleteTool(memory_store)
+
+        self.collection_init_tool = (
+            GhostMemoryCollectionInitTool(
+                collection_store
+            )
+        )
+        self.memory_tag_tool = GhostMemoryTagTool(
+            memory_store,
+            collection_store,
+        )
+        self.memory_recall_tool = GhostMemoryRecallTool(
+            memory_store,
+            collection_retriever,
+        )
+        self.memory_list_tool = GhostMemoryListTool(
+            memory_store,
+            collection_retriever,
+        )
+        self.memory_delete_tool = GhostMemoryDeleteTool(
+            memory_store,
+            collection_store,
+        )
         self.persistent_chat_tool = GhostPersistentChatTool(
             persistent_chat_store
         )
@@ -135,20 +199,43 @@ class GhostMcpApplication:
 
     def list_tools(self) -> list[types.Tool]:
         """Return the OAuth-protected tools advertised to MCP clients."""
-        prompt = prompt_tool_metadata(self.required_scope)
+        prompt = prompt_tool_metadata(
+            self.required_scope
+        )
         prompt["annotations"]["openWorldHint"] = True
 
         definitions = (
             prompt,
-            memory_tag_tool_metadata(self.required_scope),
-            memory_recall_tool_metadata(self.required_scope),
-            memory_list_tool_metadata(self.required_scope),
-            memory_delete_tool_metadata(self.required_scope),
-            persistent_chat_init_tool_metadata(self.required_scope),
-            persistent_chat_append_tool_metadata(self.required_scope),
-            persistent_chat_resume_tool_metadata(self.required_scope),
+            collection_init_tool_metadata(
+                self.required_scope
+            ),
+            memory_tag_tool_metadata(
+                self.required_scope
+            ),
+            memory_recall_tool_metadata(
+                self.required_scope
+            ),
+            memory_list_tool_metadata(
+                self.required_scope
+            ),
+            memory_delete_tool_metadata(
+                self.required_scope
+            ),
+            persistent_chat_init_tool_metadata(
+                self.required_scope
+            ),
+            persistent_chat_append_tool_metadata(
+                self.required_scope
+            ),
+            persistent_chat_resume_tool_metadata(
+                self.required_scope
+            ),
         )
-        return [types.Tool.model_validate(item) for item in definitions]
+
+        return [
+            types.Tool.model_validate(item)
+            for item in definitions
+        ]
 
     def call_tool(
         self,
@@ -158,7 +245,18 @@ class GhostMcpApplication:
     ) -> types.CallToolResult:
         """Execute the requested tool and return a complete MCP result."""
         if name == PROMPT_TOOL_NAME:
-            return self._to_mcp_result(self.tool.call_sanitized(arguments))
+            return self._to_mcp_result(
+                self.tool.call_sanitized(arguments)
+            )
+
+        if name == COLLECTION_INIT_TOOL_NAME:
+            result = (
+                self.collection_init_tool.call_sanitized(
+                    owner_sub or "",
+                    arguments,
+                )
+            )
+            return self._to_memory_mcp_result(result)
 
         if name == MEMORY_TAG_TOOL_NAME:
             result = self.memory_tag_tool.call_sanitized(
@@ -189,23 +287,29 @@ class GhostMcpApplication:
             return self._to_memory_mcp_result(result)
 
         if name == PERSISTENT_CHAT_INIT_TOOL_NAME:
-            result = self.persistent_chat_tool.init_sanitized(
-                owner_sub or "",
-                arguments,
+            result = (
+                self.persistent_chat_tool.init_sanitized(
+                    owner_sub or "",
+                    arguments,
+                )
             )
             return self._to_memory_mcp_result(result)
 
         if name == PERSISTENT_CHAT_APPEND_TOOL_NAME:
-            result = self.persistent_chat_tool.append_sanitized(
-                owner_sub or "",
-                arguments,
+            result = (
+                self.persistent_chat_tool.append_sanitized(
+                    owner_sub or "",
+                    arguments,
+                )
             )
             return self._to_memory_mcp_result(result)
 
         if name == PERSISTENT_CHAT_RESUME_TOOL_NAME:
-            result = self.persistent_chat_tool.resume_sanitized(
-                owner_sub or "",
-                arguments,
+            result = (
+                self.persistent_chat_tool.resume_sanitized(
+                    owner_sub or "",
+                    arguments,
+                )
             )
             return self._to_memory_mcp_result(result)
 
@@ -217,14 +321,22 @@ class GhostMcpApplication:
         )
 
     @classmethod
-    def _to_mcp_result(cls, result: GhostToolResult) -> types.CallToolResult:
+    def _to_mcp_result(
+        cls,
+        result: GhostToolResult,
+    ) -> types.CallToolResult:
         """Validate and convert one prompt-engineering result to MCP."""
         text = cls._single_text(result.content)
+
         if result.isError:
-            return cls._error_result(text or "GHOST prompt engineering failed")
+            return cls._error_result(
+                text or "GHOST prompt engineering failed"
+            )
 
         structured_content = result.structuredContent
-        engineered_prompt = structured_content.get("engineered_prompt")
+        engineered_prompt = structured_content.get(
+            "engineered_prompt"
+        )
         mode = structured_content.get("mode")
 
         valid_result = (
@@ -233,12 +345,14 @@ class GhostMcpApplication:
             and bool(engineered_prompt.strip())
             and text == engineered_prompt
             and structured_content.get("stage") == "a2"
-            and mode in {
+            and mode
+            in {
                 SHOW_PROMPT_ONLY_MODE,
                 ANSWER_PROMPT_MODE,
                 ANSWER_PROMPT_WITH_MEMORY_MODE,
             }
-            and set(structured_content) == {
+            and set(structured_content)
+            == {
                 "engineered_prompt",
                 "stage",
                 "mode",
@@ -247,11 +361,14 @@ class GhostMcpApplication:
 
         if not valid_result:
             LogNoGUI(
-                "GHOST MCP rejected an invalid internal tool result.",
+                "GHOST MCP rejected an invalid internal "
+                "tool result.",
                 "ERROR",
                 "INTERNAL",
             )
-            return cls._error_result("GHOST returned an invalid tool result")
+            return cls._error_result(
+                "GHOST returned an invalid tool result"
+            )
 
         return types.CallToolResult(
             content=[
@@ -272,12 +389,16 @@ class GhostMcpApplication:
     def _to_memory_mcp_result(
         result: GhostToolResult,
     ) -> types.CallToolResult:
-        """Convert one sanitized memory-tool result to the MCP result model."""
-        return types.CallToolResult.model_validate(asdict(result))
+        """Convert a sanitized memory result to the MCP model."""
+        return types.CallToolResult.model_validate(
+            asdict(result)
+        )
 
     @staticmethod
-    def _single_text(content: object) -> str | None:
-        """Return text only when content contains one exact text item."""
+    def _single_text(
+        content: object,
+    ) -> str | None:
+        """Return text only for one exact text item."""
         if not isinstance(content, list) or len(content) != 1:
             return None
 
@@ -291,10 +412,13 @@ class GhostMcpApplication:
             and item.get("type") == "text"
             and isinstance(text, str)
         )
+
         return text if valid_item else None
 
     @staticmethod
-    def _error_result(message: str) -> types.CallToolResult:
+    def _error_result(
+        message: str,
+    ) -> types.CallToolResult:
         """Create one sanitized MCP tool-error response."""
         return types.CallToolResult(
             content=[

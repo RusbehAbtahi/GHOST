@@ -1,0 +1,14 @@
+{
+  "tool_description": [
+    "List owner-scoped GHOST memory metadata without returning complete stored episode bodies.",
+    "Use list_mode memories for the existing general saved-memory list, collections to discover Collection IDs and descriptions, or collection_episodes with an exact Collection ID to list that Collection's numbered episode metadata, Recall Keys, descriptions, and permanent number gaps."
+  ],
+  "server_instruction": [
+    "Use ghost_memory_list only for metadata discovery. Use list_mode collections when the user wants to discover Collection identities. Use list_mode collection_episodes with the exact Collection ID when the user wants the contents index of one Collection. Use list_mode memories for the general saved-memory index.",
+    "Do not present List results as complete recalled Q/A content. Use ghost_memory_recall when the user asks for complete episodes."
+  ],
+  "field_descriptions": {
+    "list_mode": "Select memories for the general memory index, collections for Collection containers, or collection_episodes for one Collection's numbered metadata index.",
+    "collection_id": "The exact stable Collection ID required by list_mode collection_episodes."
+  }
+}

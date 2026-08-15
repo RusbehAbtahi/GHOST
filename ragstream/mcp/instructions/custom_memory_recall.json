@@ -1,22 +1,32 @@
 {
   "tool_description": [
-    "Recall one Episodic Memory through either an exact identifier or a natural-language description. Use the same tool for both stages of intelligent recall.",
-    "When an exact Recall Key or exact Record ID is known, supply exactly one of them. GHOST then performs a deterministic exact fetch without vector search.",
-    "When no exact identifier is known, formulate query_description from the user's request. If the user mentions a relevant date or date interval, infer and normalize it into date_from and/or date_to as ISO values. GHOST returns up to ten compact Episode Description candidates with workflow_state selection_required.",
-    "When workflow_state is selection_required, compare the candidate descriptions with the user's request, select the best matching Record ID, and call ghost_memory_recall again with that exact record_id. When workflow_state is complete, do not call the tool again for this request.",
-    "The default result_mode is episode and returns the complete stored user and assistant pair. Use result_mode description only when the user explicitly asks for only the Episode Description."
+    "Recall memory through one shared tool. It supports exact Recall Key or Record ID fetches, semantic Episodic search, and deterministic numbered Collection retrieval.",
+    "For exact recall, supply exactly one Recall Key or Record ID. GHOST directly returns that owner-scoped episode without vector search. Exact Collection episodes use this same path.",
+    "For semantic Episodic recall, formulate query_description and optional ISO date bounds. GHOST returns up to ten descriptions with workflow_state selection_required; select the best Record ID and call the same tool again for the final exact episode.",
+    "For numbered Collection recall, set memory_type to collection, target exactly one Collection ID or exact Collection Name, and select one mode: episode_number, episode_numbers, range, first, last, or all. GHOST returns a deterministic token-safe result and explicitly reports unavailable and omitted episode numbers.",
+    "The default result_mode is episode. Use description only when the user explicitly asks for descriptions without complete stored Q/A content. A workflow_state of complete is final."
   ],
   "server_instruction": [
-    "For ghost_memory_recall, use exact recall whenever the user supplies a Recall Key or Record ID. Otherwise create query_description. When the user's request contains a relevant date or interval, infer its concrete ISO value and pass it as date_from, date_to, or both; otherwise omit both date fields.",
-    "A result with workflow_state selection_required is not the final episode: inspect the returned candidates, choose the best matching Record ID, and call ghost_memory_recall again with that exact ID and the same requested result_mode. A result with workflow_state complete is final and must not trigger another recall call.",
-    "Use result_mode episode by default. Use result_mode description only when the user explicitly requests only the stored Episode Description."
+    "Use exact recall whenever the user supplies a Recall Key or Record ID. Do not add semantic or Collection-number selectors to an exact request.",
+    "When no exact identifier is known and the user is describing an ordinary Episodic Memory, use memory_type episodic with query_description and infer concrete ISO date_from/date_to values only when relevant. If workflow_state is selection_required, choose the best candidate Record ID and make exactly one second exact call with the same result_mode. Stop when workflow_state is complete.",
+    "For Collection numbered retrieval, set memory_type collection, supply exactly one exact Collection ID or exact Collection Name, and translate the user's request into selection_mode and its matching fields. Preserve the user's order for an explicit episode_numbers list. A Collection response with workflow_state complete is final; report unavailable/deleted and token-omitted numbers clearly.",
+    "Use result_mode episode by default. Use result_mode description only when the user explicitly requests only descriptions."
   ],
   "field_descriptions": {
-    "recall_key": "An exact stored Recall Key. Supply it only when the user knows or explicitly provides the key.",
-    "record_id": "An exact stored Record ID. Use it for deterministic direct recall or for the second call after selecting a semantic candidate.",
-    "query_description": "The semantic description of the sought memory formulated from the user's request. Use it only when no exact Recall Key or Record ID is known.",
-    "date_from": "Optional inclusive UTC lower bound for intelligent recall, expressed as an ISO date or ISO datetime.",
-    "date_to": "Optional inclusive UTC upper bound for intelligent recall, expressed as an ISO date or ISO datetime.",
-    "result_mode": "Select episode for the complete stored user and assistant pair, or description when the user explicitly wants only the Episode Description."
+    "memory_type": "Use collection for numbered Collection retrieval. Use episodic for semantic Episodic retrieval. It may be omitted for shared exact recall.",
+    "recall_key": "An exact stored Recall Key used for deterministic direct recall.",
+    "record_id": "An exact stored Record ID used for deterministic direct recall or the second call after semantic candidate selection.",
+    "query_description": "The semantic description of the sought Episodic Memory. Use only when no exact identifier is known and memory_type is episodic.",
+    "date_from": "Optional inclusive UTC lower bound for semantic Episodic recall, expressed as an ISO date or datetime.",
+    "date_to": "Optional inclusive UTC upper bound for semantic Episodic recall, expressed as an ISO date or datetime.",
+    "collection_id": "The exact stable Collection ID for numbered Collection retrieval. Supply it instead of Collection Name when known.",
+    "collection_name": "The exact Collection Name for numbered retrieval when the stable ID is not supplied.",
+    "selection_mode": "Collection selector: episode_number, episode_numbers, range, first, last, or all.",
+    "episode_number": "One positive permanent episode number; valid only with selection_mode episode_number.",
+    "episode_numbers": "An ordered list of positive permanent episode numbers; valid only with selection_mode episode_numbers.",
+    "range_start": "Inclusive positive range start; valid only with selection_mode range.",
+    "range_end": "Inclusive positive range end; valid only with selection_mode range.",
+    "count": "Positive number of available episodes requested by selection_mode first or last.",
+    "result_mode": "Select episode for complete stored content, or description only when the user explicitly requests descriptions."
   }
 }

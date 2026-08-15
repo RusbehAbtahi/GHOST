@@ -1,0 +1,18 @@
+{
+  "tool_description": [
+    "Delete owner-scoped GHOST memory only through deterministic exact identifiers. Individual episodes use an exact Recall Key or exact Record ID; whole-Collection deletion uses an exact Collection ID.",
+    "Whole-Collection deletion is protected by volatile two-step confirmation. The first exact request refuses deletion and sets delete_pending. Only a later repeated user request for the same owner and exact Collection ID performs deletion.",
+    "Never use semantic descriptions, similarity, fuzzy matching, Collection Name, or model selection to choose data for deletion."
+  ],
+  "server_instruction": [
+    "For one episode, call ghost_memory_delete with exactly one exact Recall Key or exact Record ID. If an exact Recall Key has multiple matches, ask the user to choose a returned Record ID or explicitly request all exact matches where supported.",
+    "For an entire Collection, call ghost_memory_delete with only the exact Collection ID. When confirmation_required is true, report the refusal and ask the user to repeat the same exact deletion request. Do not automatically make the second destructive call. When the user later repeats it, call again with the same exact Collection ID.",
+    "Never infer a deletion target through semantic or descriptive matching."
+  ],
+  "field_descriptions": {
+    "recall_key": "The exact Recall Key of an individual memory episode.",
+    "record_id": "The exact Record ID of one individual memory episode.",
+    "collection_id": "The exact stable Collection ID for whole-Collection deletion. This activates two-step confirmation.",
+    "delete_all_matches": "Use only with an exact Recall Key when the user explicitly requests deletion of all exact matches."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "tool_description": [
+    "Initialize one persistent owner-scoped Collection Memory container. A Collection groups episodes intentionally saved around one fixed topic or purpose.",
+    "Provide a Collection Name and Collection Description or Purpose. GHOST creates a stable Collection ID and an empty Collection with its permanent episode-number counter starting at one.",
+    "Initialization does not append the current conversation automatically. Use ghost_memory_tag with memory_type collection later when the user explicitly asks to add an episode."
+  ],
+  "server_instruction": [
+    "When the user explicitly asks to create or initialize Collection Memory, call ghost_memory_collection_init with the exact user-approved Collection Name and a clear Collection Description or Purpose.",
+    "After a successful call, report the returned stable Collection ID, Collection Name, and creation time. Do not claim that an episode was saved during initialization."
+  ],
+  "field_descriptions": {
+    "collection_name": "The user-defined exact name of the new Collection within the authenticated owner's scope.",
+    "collection_description": "The fixed subject, purpose, or scope that the Collection will accumulate over time."
+  }
+}
