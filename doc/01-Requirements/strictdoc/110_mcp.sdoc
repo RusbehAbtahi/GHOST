@@ -36,6 +36,9 @@ Detailed functional behavior is owned by the MCP child requirement files:
 - 112_mcp_activeblackboard.sdoc:
   all current and future ActiveBlackboard behavior, including the current Persistent Chat prototype.
 
+- 113_mcp_runtime_control.sdoc:
+  MCP-visible GHOST runtime lifecycle control, including remote start, stop, status, readiness, and selectable EC2 runtime profile.
+
 Runtime, container, local-hosting, AWS, reverse-proxy, HTTPS, Cognito, and deployment realization remain owned by the Runtime Platform and Operations requirement family.
 <<<
 
@@ -63,6 +66,7 @@ The MCP capability shall be decomposed into:
 
 1. 111_mcp_capabilities.sdoc for all approved MCP capabilities except ActiveBlackboard.
 2. 112_mcp_activeblackboard.sdoc for all current and future ActiveBlackboard behavior.
+3. 113_mcp_runtime_control.sdoc for MCP-visible GHOST runtime life
 
 The child files shall inherit from GHOST-MCP-ROOT and shall not duplicate the common protocol, authorization, transport, deployment-boundary, or client-interoperability requirements owned by this document.
 <<<

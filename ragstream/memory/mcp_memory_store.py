@@ -40,6 +40,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ragstream.memory.mcp_clipboard_store import (
+    CLIPBOARD_MEMORY_TYPE,
+)
 from ragstream.memory.mcp_episodic_description_vector_store import (
     McpEpisodicDescriptionVectorStore,
 )
@@ -288,27 +291,38 @@ class McpMemoryStore:
         self,
         owner_sub: str,
     ) -> list[dict[str, str]]:
-        """List one owner's episodes in deterministic newest-first order."""
+        """List one owner's non-Clipboard episodes newest-first."""
         owner = self._validate_owner_sub(owner_sub)
 
-        with self._lock, sqlite3.connect(self.sqlite_path) as conn:
-            conn.row_factory = sqlite3.Row
-            rows = conn.execute(
+        with self._lock, sqlite3.connect(
+            self.sqlite_path
+        ) as connection:
+            connection.row_factory = sqlite3.Row
+            rows = connection.execute(
                 """
                 SELECT mr.direct_recall_key AS recall_key,
                        mr.episode_title,
                        mr.record_id,
                        mr.created_at_utc
                 FROM memory_records AS mr
-                JOIN memory_files AS mf ON mf.file_id = mr.file_id
+                JOIN memory_files AS mf
+                  ON mf.file_id = mr.file_id
                 WHERE mf.owner_sub = ?
+                  AND mf.memory_type <> ?
                   AND mr.direct_recall_key <> ''
-                ORDER BY mr.created_at_utc DESC, mr.record_id DESC
+                ORDER BY mr.created_at_utc DESC,
+                         mr.record_id DESC
                 """,
-                [owner],
+                [
+                    owner,
+                    CLIPBOARD_MEMORY_TYPE,
+                ],
             ).fetchall()
 
-        return [dict(row) for row in rows]
+        return [
+            dict(row)
+            for row in rows
+        ]
 
     def delete_memory(
         self,
@@ -318,24 +332,35 @@ class McpMemoryStore:
         record_id: str | None = None,
         delete_all_matches: bool = False,
     ) -> dict[str, Any]:
-        """Delete an episode while keeping files and SQLite synchronized."""
+        """Delete a non-Clipboard episode and synchronize durable storage."""
         owner = self._validate_owner_sub(owner_sub)
         key = (
-            self._require_text(recall_key, "recall_key", trim=True)
+            self._require_text(
+                recall_key,
+                "recall_key",
+                trim=True,
+            )
             if recall_key is not None
             else None
         )
         identifier = (
-            self._require_text(record_id, "record_id", trim=True)
+            self._require_text(
+                record_id,
+                "record_id",
+                trim=True,
+            )
             if record_id is not None
             else None
         )
+
         if (key is None) == (identifier is None):
             raise ValueError(
                 "exactly one of recall_key or record_id is required."
             )
         if not isinstance(delete_all_matches, bool):
-            raise ValueError("delete_all_matches must be a boolean.")
+            raise ValueError(
+                "delete_all_matches must be a boolean."
+            )
         if identifier is not None and delete_all_matches:
             raise ValueError(
                 "delete_all_matches is allowed only with recall_key."
@@ -347,30 +372,49 @@ class McpMemoryStore:
                 if key is not None
                 else "mr.record_id = ?"
             )
-            selector_value = key if key is not None else identifier
+            selector_value = (
+                key
+                if key is not None
+                else identifier
+            )
 
-            with sqlite3.connect(self.sqlite_path) as conn:
-                conn.row_factory = sqlite3.Row
-                rows = conn.execute(
+            with sqlite3.connect(
+                self.sqlite_path
+            ) as connection:
+                connection.row_factory = sqlite3.Row
+                rows = connection.execute(
                     f"""
                     SELECT mr.file_id,
                            mr.record_id,
                            mr.direct_recall_key AS recall_key,
                            mr.created_at_utc
                     FROM memory_records AS mr
-                    JOIN memory_files AS mf ON mf.file_id = mr.file_id
+                    JOIN memory_files AS mf
+                      ON mf.file_id = mr.file_id
                     WHERE mf.owner_sub = ?
+                      AND mf.memory_type <> ?
                       AND {selector}
-                    ORDER BY mr.created_at_utc DESC, mr.record_id DESC
+                    ORDER BY mr.created_at_utc DESC,
+                             mr.record_id DESC
                     """,
-                    [owner, selector_value],
+                    [
+                        owner,
+                        CLIPBOARD_MEMORY_TYPE,
+                        selector_value,
+                    ],
                 ).fetchall()
 
             matches = [
                 {
-                    "recall_key": str(row["recall_key"]),
-                    "record_id": str(row["record_id"]),
-                    "created_at_utc": str(row["created_at_utc"]),
+                    "recall_key": str(
+                        row["recall_key"]
+                    ),
+                    "record_id": str(
+                        row["record_id"]
+                    ),
+                    "created_at_utc": str(
+                        row["created_at_utc"]
+                    ),
                 }
                 for row in rows
             ]
@@ -380,23 +424,46 @@ class McpMemoryStore:
                 "requires_selection": False,
                 "matches": matches,
             }
+
             if not rows:
                 return result
-            if key is not None and len(rows) > 1 and not delete_all_matches:
+
+            if (
+                key is not None
+                and len(rows) > 1
+                and not delete_all_matches
+            ):
                 result["requires_selection"] = True
                 return result
-            if identifier is not None and len(rows) > 1:
+
+            if (
+                identifier is not None
+                and len(rows) > 1
+            ):
                 raise ValueError(
                     "MCP memory index contains a duplicate record_id."
                 )
 
-            selected_rows = rows if delete_all_matches else rows[:1]
-            rows_by_file: dict[str, list[sqlite3.Row]] = {}
+            selected_rows = (
+                rows
+                if delete_all_matches
+                else rows[:1]
+            )
+            rows_by_file: dict[
+                str,
+                list[sqlite3.Row],
+            ] = {}
+
             for row in selected_rows:
-                rows_by_file.setdefault(str(row["file_id"]), []).append(row)
+                rows_by_file.setdefault(
+                    str(row["file_id"]),
+                    [],
+                ).append(row)
 
             for file_id, file_rows in rows_by_file.items():
-                utc_date = str(file_rows[0]["created_at_utc"])[:10]
+                utc_date = str(
+                    file_rows[0]["created_at_utc"]
+                )[:10]
                 target_ids = {
                     str(row["record_id"])
                     for row in file_rows
@@ -418,8 +485,12 @@ class McpMemoryStore:
                 for match in matches
                 if match["record_id"] in selected_ids
             ]
-            result["deleted_count"] = len(result["matches"])
-            self._delete_description_vectors(selected_ids)
+            result["deleted_count"] = len(
+                result["matches"]
+            )
+            self._delete_description_vectors(
+                selected_ids
+            )
             return result
 
     def _allocate_unique_recall_key(

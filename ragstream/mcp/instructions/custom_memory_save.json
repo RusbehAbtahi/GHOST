@@ -1,25 +1,28 @@
 {
   "tool_description": [
-    "Save one visible user and assistant conversation pair as either Episodic Memory or an explicit Collection Memory episode. The default memory_type is episodic.",
+    "Save one visible user and assistant conversation pair as Episodic Memory, an explicit Collection episode, or temporary Clipboard Memory. The default memory_type is episodic, while Recall Keys M1 through M100 always select Clipboard Memory.",
     "For Episodic Memory, generate Episode Title, Episode Description, and a Recall Key when the user did not supply one. For Collection Memory, target exactly one Collection ID or exact Collection Name, generate the local Episode Title and Description, and provide the cumulative Collection ActiveBrief after incorporating the new episode.",
+    "For Clipboard Memory, use an exact slot M1 through M100 and pass only recall_key, input_text, and output_text. Clipboard is append-only, has no Episode Title, Episode Description, ActiveBrief, semantic search, list, or manual delete, and expires automatically after ten days.",
     "Pass the complete selected visible user message as input_text and the complete corresponding visible assistant answer as output_text without summarizing, rewriting, or substituting hidden reasoning or internal tool traffic.",
-    "A Collection append happens only when the user explicitly asks to add or save content to a Collection. GHOST assigns its permanent episode number and can generate a human-readable Recall Key when recall_key is omitted.",
-    "Never use M1 through M100 because those names are reserved for Clipboard Memory. Treat the Recall Key returned in the successful receipt as the actual stored key."
+    "Use the immediately preceding visible user/assistant pair by default. If the user explicitly identifies an older visible pair by relative position, question prefix, or question content, save that exact visible pair instead. Ask for clarification when more than one visible pair matches.",
+    "A Collection append happens only when the user explicitly asks to add or save content to a Collection. GHOST assigns its permanent episode number and can generate a human-readable Recall Key when recall_key is omitted."
   ],
   "server_instruction": [
     "For an ordinary Episodic save, call ghost_memory_tag with memory_type episodic, the complete selected visible user and assistant pair, a generated Episode Title and Episode Description, and the exact user-provided or client-generated Recall Key.",
-    "When the user explicitly asks to append to Collection Memory, call the same ghost_memory_tag tool with memory_type collection, exactly one exact Collection ID or exact Collection Name, the complete selected visible pair, Episode Title, local Episode Description, and the updated cumulative Collection ActiveBrief. Omit recall_key when the user did not provide one so GHOST can generate it.",
-    "Do not append normal conversation turns merely because a Collection exists. After the call, claim success only when saved is true and workflow_state is complete, and report the actual Recall Key, Record ID, and Collection episode number when present."
+    "When the user explicitly asks to append to Collection Memory, call ghost_memory_tag with memory_type collection, exactly one exact Collection ID or exact Collection Name, the complete selected visible pair, Episode Title, local Episode Description, and the updated cumulative Collection ActiveBrief. Omit recall_key when the user did not provide one so GHOST can generate it.",
+    "When the requested Recall Key is M1 through M100, call ghost_memory_tag with memory_type clipboard and pass only recall_key plus the complete selected visible input_text and output_text. Never generate title, description, ActiveBrief, or semantic metadata for Clipboard Memory.",
+    "For Clipboard save, select the immediately preceding visible pair unless the user clearly identifies an older visible pair. Resolve a stated offset or unique question prefix against visible conversation only; if the target is ambiguous or unavailable, ask the user instead of guessing.",
+    "Do not append normal conversation turns merely because a Collection exists. After the call, claim success only when saved is true and workflow_state is complete, and report the actual Recall Key and Record ID plus the Collection episode number or Clipboard expiration when present."
   ],
   "field_descriptions": {
-    "memory_type": "Use episodic for ordinary intelligent-retrieval memory, or collection for an explicit append to Collection Memory.",
-    "recall_key": "For Episodic Memory, the exact user-provided or client-generated Recall Key. For Collection Memory it is optional; when omitted, GHOST generates a human-readable unique key. M1 through M100 are reserved.",
-    "collection_id": "The exact stable Collection ID. Supply exactly one Collection ID or Collection Name for a Collection append.",
-    "collection_name": "The exact Collection Name. Use it only when it resolves safely and supply no Collection ID in the same call.",
-    "episode_title": "A short human-readable title for the selected visible episode, preferably three to ten words.",
-    "episode_description": "A compact description of this episode's local contribution. For Episodic Memory it also supports later semantic retrieval.",
+    "memory_type": "Use episodic for ordinary intelligent-retrieval memory, collection for an explicit Collection append, or clipboard for temporary M1-M100 storage. An M1-M100 Recall Key always routes to clipboard.",
+    "recall_key": "For Clipboard Memory, the required exact slot M1 through M100. For Episodic Memory, the exact user-provided or client-generated Recall Key. For Collection Memory it is optional; when omitted, GHOST generates a human-readable unique key.",
+    "collection_id": "The exact stable Collection ID. Supply exactly one Collection ID or Collection Name for a Collection append. Omit for Clipboard and Episodic Memory.",
+    "collection_name": "The exact Collection Name. Use it only when it resolves safely and supply no Collection ID in the same call. Omit for Clipboard and Episodic Memory.",
+    "episode_title": "A short human-readable title for Episodic or Collection Memory, preferably three to ten words. Omit for Clipboard Memory.",
+    "episode_description": "A compact local description for Episodic or Collection Memory. Omit for Clipboard Memory.",
     "input_text": "The complete selected visible user message, copied without summarization or rewriting.",
     "output_text": "The complete corresponding visible assistant answer, copied without summarization or rewriting.",
-    "active_retrieval_brief": "For Collection Memory, the current cumulative Collection ActiveBrief after incorporating this episode. Omit it for Episodic Memory."
+    "active_retrieval_brief": "For Collection Memory, the current cumulative Collection ActiveBrief after incorporating this episode. Omit it for Episodic and Clipboard Memory."
   }
 }

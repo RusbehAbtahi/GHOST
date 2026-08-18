@@ -1,21 +1,23 @@
 {
   "tool_description": [
-    "Recall memory through one shared tool. It supports exact Recall Key or Record ID fetches, semantic Episodic search, and deterministic numbered Collection retrieval.",
-    "For exact recall, supply exactly one Recall Key or Record ID. GHOST directly returns that owner-scoped episode without vector search. Exact Collection episodes use this same path.",
+    "Recall memory through one shared tool. It supports newest-slot Clipboard recall, exact Recall Key or Record ID fetches, semantic Episodic search, and deterministic numbered Collection retrieval.",
+    "Recall Keys M1 through M100 always select Clipboard Memory. GHOST returns only the newest non-expired visible user/assistant pair stored in that exact slot; Clipboard recall has no semantic search, description-only mode, listing, or multi-call selection stage.",
+    "For ordinary exact recall, supply exactly one Recall Key or Record ID. GHOST directly returns that owner-scoped episode without vector search. Exact Collection episodes use this same path.",
     "For semantic Episodic recall, formulate query_description and optional ISO date bounds. GHOST returns up to ten descriptions with workflow_state selection_required; select the best Record ID and call the same tool again for the final exact episode.",
     "For numbered Collection recall, set memory_type to collection, target exactly one Collection ID or exact Collection Name, and select one mode: episode_number, episode_numbers, range, first, last, or all. GHOST returns a deterministic token-safe result and explicitly reports unavailable and omitted episode numbers.",
-    "The default result_mode is episode. Use description only when the user explicitly asks for descriptions without complete stored Q/A content. A workflow_state of complete is final."
+    "The default result_mode is episode. Use description only when the user explicitly asks for descriptions of Episodic or Collection Memory. A workflow_state of complete is final."
   ],
   "server_instruction": [
-    "Use exact recall whenever the user supplies a Recall Key or Record ID. Do not add semantic or Collection-number selectors to an exact request.",
+    "When the user asks to recall M1 through M100, call ghost_memory_recall once with memory_type clipboard, that exact recall_key, and result_mode episode. Return the complete newest stored pair and stop when workflow_state is complete.",
+    "Use ordinary exact recall whenever the user supplies a non-Clipboard Recall Key or Record ID. Do not add semantic or Collection-number selectors to an exact request.",
     "When no exact identifier is known and the user is describing an ordinary Episodic Memory, use memory_type episodic with query_description and infer concrete ISO date_from/date_to values only when relevant. If workflow_state is selection_required, choose the best candidate Record ID and make exactly one second exact call with the same result_mode. Stop when workflow_state is complete.",
     "For Collection numbered retrieval, set memory_type collection, supply exactly one exact Collection ID or exact Collection Name, and translate the user's request into selection_mode and its matching fields. Preserve the user's order for an explicit episode_numbers list. A Collection response with workflow_state complete is final; report unavailable/deleted and token-omitted numbers clearly.",
-    "Use result_mode episode by default. Use result_mode description only when the user explicitly requests only descriptions."
+    "Use result_mode episode by default. Never request result_mode description for Clipboard Memory. Use description only when the user explicitly requests only Episodic or Collection descriptions."
   ],
   "field_descriptions": {
-    "memory_type": "Use collection for numbered Collection retrieval. Use episodic for semantic Episodic retrieval. It may be omitted for shared exact recall.",
-    "recall_key": "An exact stored Recall Key used for deterministic direct recall.",
-    "record_id": "An exact stored Record ID used for deterministic direct recall or the second call after semantic candidate selection.",
+    "memory_type": "Use clipboard for exact M1-M100 newest-slot retrieval, collection for numbered Collection retrieval, or episodic for semantic Episodic retrieval. It may be omitted for ordinary shared exact recall.",
+    "recall_key": "An exact stored Recall Key. M1 through M100 deterministically recall only the newest active Clipboard pair in that slot.",
+    "record_id": "An exact Episodic or Collection Record ID used for deterministic direct recall or the second call after semantic candidate selection. Clipboard recall does not use Record ID.",
     "query_description": "The semantic description of the sought Episodic Memory. Use only when no exact identifier is known and memory_type is episodic.",
     "date_from": "Optional inclusive UTC lower bound for semantic Episodic recall, expressed as an ISO date or datetime.",
     "date_to": "Optional inclusive UTC upper bound for semantic Episodic recall, expressed as an ISO date or datetime.",
@@ -27,6 +29,6 @@
     "range_start": "Inclusive positive range start; valid only with selection_mode range.",
     "range_end": "Inclusive positive range end; valid only with selection_mode range.",
     "count": "Positive number of available episodes requested by selection_mode first or last.",
-    "result_mode": "Select episode for complete stored content, or description only when the user explicitly requests descriptions."
+    "result_mode": "Select episode for complete stored content. Description mode is available only for Episodic or Collection Memory, never Clipboard."
   }
 }

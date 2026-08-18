@@ -1,7 +1,7 @@
-"""Expose the shared MCP Save contract for Episodic and Collection Memory.
+"""Expose the shared MCP Save contract for all supported memory modes.
 
 This module validates one authenticated Save request and deterministically
-routes it to ordinary Episodic persistence or explicit Collection append.
+routes it to Episodic persistence, Collection append, or Clipboard append.
 Model-facing instructions are loaded from custom_memory_save.json.
 
 Main classes:
@@ -27,6 +27,11 @@ from ragstream.mcp.ghost_engineer_prompt import (
 from ragstream.mcp.memory_tool_instructions import (
     load_memory_tool_instructions,
 )
+from ragstream.memory.mcp_clipboard_store import (
+    CLIPBOARD_MEMORY_TYPE,
+    McpClipboardStore,
+    is_clipboard_slot,
+)
 from ragstream.memory.mcp_memory_collection_store import (
     COLLECTION_MEMORY_TYPE,
     McpMemoryCollectionStore,
@@ -43,13 +48,14 @@ WORKFLOW_COMPLETE = "complete"
 EPISODIC_MEMORY_TYPE = "episodic"
 
 _SUPPORTED_MEMORY_TYPES = {
+    CLIPBOARD_MEMORY_TYPE,
     EPISODIC_MEMORY_TYPE,
     COLLECTION_MEMORY_TYPE,
 }
 
-_INSTRUCTIONS = load_memory_tool_instructions(
-    "custom_memory_save.json"
-)
+_CLIPBOARD_SLOT_PATTERN = "^[Mm](?:[1-9]|[1-9][0-9]|100)$"
+
+_INSTRUCTIONS = load_memory_tool_instructions("custom_memory_save.json")
 TOOL_DESCRIPTION = _INSTRUCTIONS.tool_description
 SERVER_INSTRUCTIONS = _INSTRUCTIONS.server_instruction
 
@@ -67,9 +73,7 @@ INPUT_SCHEMA = {
         "recall_key": {
             "type": "string",
             "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "recall_key"
-            ],
+            "description": _INSTRUCTIONS.field_descriptions["recall_key"],
         },
         "collection_id": {
             "type": "string",
@@ -103,16 +107,12 @@ INPUT_SCHEMA = {
         "input_text": {
             "type": "string",
             "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "input_text"
-            ],
+            "description": _INSTRUCTIONS.field_descriptions["input_text"],
         },
         "output_text": {
             "type": "string",
             "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "output_text"
-            ],
+            "description": _INSTRUCTIONS.field_descriptions["output_text"],
         },
         "active_retrieval_brief": {
             "type": "string",
@@ -122,43 +122,58 @@ INPUT_SCHEMA = {
             ],
         },
     },
-    "required": [
-        "episode_title",
-        "episode_description",
-        "input_text",
-        "output_text",
-    ],
-    "allOf": [
+    "required": ["input_text", "output_text"],
+    "oneOf": [
         {
-            "if": {
-                "required": ["memory_type"],
-                "properties": {
-                    "memory_type": {
-                        "const": COLLECTION_MEMORY_TYPE,
-                    }
+            "properties": {
+                "memory_type": {"const": COLLECTION_MEMORY_TYPE},
+            },
+            "required": [
+                "memory_type",
+                "episode_title",
+                "episode_description",
+                "active_retrieval_brief",
+            ],
+            "oneOf": [
+                {
+                    "required": ["collection_id"],
+                    "not": {"required": ["collection_name"]},
+                },
+                {
+                    "required": ["collection_name"],
+                    "not": {"required": ["collection_id"]},
+                },
+            ],
+        },
+        {
+            "properties": {
+                "memory_type": {"const": CLIPBOARD_MEMORY_TYPE},
+                "recall_key": {"pattern": _CLIPBOARD_SLOT_PATTERN},
+            },
+            "required": ["recall_key"],
+            "not": {
+                "anyOf": [
+                    {"required": ["collection_id"]},
+                    {"required": ["collection_name"]},
+                    {"required": ["episode_title"]},
+                    {"required": ["episode_description"]},
+                    {"required": ["active_retrieval_brief"]},
+                ]
+            },
+        },
+        {
+            "properties": {
+                "memory_type": {"const": EPISODIC_MEMORY_TYPE},
+                "recall_key": {
+                    "not": {"pattern": _CLIPBOARD_SLOT_PATTERN}
                 },
             },
-            "then": {
-                "required": ["active_retrieval_brief"],
-                "oneOf": [
-                    {
-                        "required": ["collection_id"],
-                        "not": {
-                            "required": ["collection_name"],
-                        },
-                    },
-                    {
-                        "required": ["collection_name"],
-                        "not": {
-                            "required": ["collection_id"],
-                        },
-                    },
-                ],
-            },
-            "else": {
-                "required": ["recall_key"],
-            },
-        }
+            "required": [
+                "recall_key",
+                "episode_title",
+                "episode_description",
+            ],
+        },
     ],
     "additionalProperties": False,
 }
@@ -178,46 +193,23 @@ OUTPUT_SCHEMA = {
         "requested_recall_key": {
             "type": ["string", "null"],
         },
-        "recall_key": {
-            "type": "string",
-            "minLength": 1,
-        },
+        "recall_key": {"type": "string", "minLength": 1},
         "episode_title": {
             "type": "string",
             "minLength": 1,
             "maxLength": MAX_EPISODE_TITLE_LENGTH,
         },
-        "episode_description": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "record_id": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "collection_id": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "collection_name": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "episode_number": {
-            "type": "integer",
-            "minimum": 1,
-        },
-        "created_at_utc": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "next_sequence_number": {
-            "type": "integer",
-            "minimum": 1,
-        },
-        "reason": {
-            "type": "string",
-        },
+        "episode_description": {"type": "string", "minLength": 1},
+        "record_id": {"type": "string", "minLength": 1},
+        "file_id": {"type": "string", "minLength": 1},
+        "sequence_number": {"type": "integer", "minimum": 1},
+        "expires_at_utc": {"type": "string", "minLength": 1},
+        "collection_id": {"type": "string", "minLength": 1},
+        "collection_name": {"type": "string", "minLength": 1},
+        "episode_number": {"type": "integer", "minimum": 1},
+        "created_at_utc": {"type": "string", "minLength": 1},
+        "next_sequence_number": {"type": "integer", "minimum": 1},
+        "reason": {"type": "string"},
     },
     "required": ["saved", "workflow_state"],
     "additionalProperties": False,
@@ -225,15 +217,24 @@ OUTPUT_SCHEMA = {
 
 
 class GhostMemoryTagTool:
-    """Route authenticated Save calls to Episodic or Collection storage."""
+    """Route authenticated Save calls to the selected memory backend."""
 
     def __init__(
         self,
         memory_store: McpMemoryStore,
-        collection_store: McpMemoryCollectionStore,
+        collection_store: McpMemoryCollectionStore | None = None,
+        clipboard_store: McpClipboardStore | None = None,
     ) -> None:
+        """Create the Save interface over the shared memory stores."""
         self._memory_store = memory_store
-        self._collection_store = collection_store
+        self._collection_store = collection_store or McpMemoryCollectionStore(
+            memory_root=memory_store.memory_root,
+            sqlite_path=memory_store.sqlite_path,
+        )
+        self._clipboard_store = clipboard_store or McpClipboardStore(
+            memory_root=memory_store.memory_root,
+            sqlite_path=memory_store.sqlite_path,
+        )
 
     def call_sanitized(
         self,
@@ -242,13 +243,9 @@ class GhostMemoryTagTool:
     ) -> GhostToolResult:
         """Validate and execute one deterministic Save path."""
         if not isinstance(owner_sub, str) or not owner_sub.strip():
-            return self._failure(
-                "authenticated user is required"
-            )
+            return self._failure("authenticated user is required")
         if not isinstance(arguments, Mapping):
-            return self._failure(
-                "memory save input is required"
-            )
+            return self._failure("memory save input is required")
 
         allowed_properties = {
             "memory_type",
@@ -262,17 +259,40 @@ class GhostMemoryTagTool:
             "active_retrieval_brief",
         }
         if set(arguments).difference(allowed_properties):
-            return self._failure(
-                "unsupported input property"
-            )
+            return self._failure("unsupported input property")
 
-        memory_type = arguments.get(
+        requested_memory_type = arguments.get(
             "memory_type",
             EPISODIC_MEMORY_TYPE,
         )
-        if memory_type not in _SUPPORTED_MEMORY_TYPES:
+        if requested_memory_type not in _SUPPORTED_MEMORY_TYPES:
             return self._failure(
-                "memory_type must be episodic or collection"
+                "memory_type must be episodic, collection, or clipboard"
+            )
+
+        recall_key = self._read_optional_text(arguments, "recall_key")
+        if recall_key is False:
+            return self._failure(
+                "recall_key must be a non-empty string"
+            )
+
+        clipboard_key = (
+            recall_key
+            if isinstance(recall_key, str)
+            and is_clipboard_slot(recall_key)
+            else None
+        )
+        memory_type = (
+            CLIPBOARD_MEMORY_TYPE
+            if clipboard_key is not None
+            else requested_memory_type
+        )
+
+        if memory_type == CLIPBOARD_MEMORY_TYPE:
+            return self._save_clipboard(
+                owner_sub=owner_sub,
+                arguments=arguments,
+                recall_key=recall_key,
             )
 
         common_values = self._read_common_values(arguments)
@@ -295,12 +315,99 @@ class GhostMemoryTagTool:
             common_values,
         )
 
+    def _save_clipboard(
+        self,
+        *,
+        owner_sub: str,
+        arguments: Mapping[str, Any],
+        recall_key: str | bool | None,
+    ) -> GhostToolResult:
+        """Append one exact visible Q/A pair to a reserved M1-M100 slot."""
+        if (
+            not isinstance(recall_key, str)
+            or not is_clipboard_slot(recall_key)
+        ):
+            return self._failure(
+                "Clipboard Memory requires recall_key M1 through M100",
+                memory_type=CLIPBOARD_MEMORY_TYPE,
+            )
+
+        forbidden = {
+            "collection_id",
+            "collection_name",
+            "episode_title",
+            "episode_description",
+            "active_retrieval_brief",
+        }.intersection(arguments)
+        if forbidden:
+            return self._failure(
+                "Clipboard Memory accepts only recall_key, input_text, and "
+                "output_text",
+                memory_type=CLIPBOARD_MEMORY_TYPE,
+                requested_recall_key=recall_key,
+            )
+
+        pair = self._read_visible_pair(arguments)
+        if isinstance(pair, str):
+            return self._failure(
+                pair,
+                memory_type=CLIPBOARD_MEMORY_TYPE,
+                requested_recall_key=recall_key,
+            )
+
+        try:
+            saved = self._clipboard_store.save(
+                owner_sub=owner_sub,
+                clipboard_slot=recall_key,
+                input_text=pair["input_text"],
+                output_text=pair["output_text"],
+            )
+        except ValueError as error:
+            return self._failure(
+                str(error),
+                memory_type=CLIPBOARD_MEMORY_TYPE,
+                requested_recall_key=recall_key,
+            )
+        except Exception:  # noqa: BLE001
+            return self._failure(
+                "GHOST Clipboard Memory storage failed",
+                memory_type=CLIPBOARD_MEMORY_TYPE,
+                requested_recall_key=recall_key,
+            )
+
+        return GhostToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": (
+                        "Clipboard Memory saved successfully.\n"
+                        f"Recall key: {saved['recall_key']}\n"
+                        f"Record ID: {saved['record_id']}\n"
+                        f"Expires: {saved['expires_at_utc']}"
+                    ),
+                }
+            ],
+            structuredContent={
+                "saved": True,
+                "workflow_state": WORKFLOW_COMPLETE,
+                "memory_type": CLIPBOARD_MEMORY_TYPE,
+                "requested_recall_key": recall_key,
+                "recall_key": saved["recall_key"],
+                "record_id": saved["record_id"],
+                "file_id": saved["file_id"],
+                "sequence_number": saved["sequence_number"],
+                "created_at_utc": saved["created_at_utc"],
+                "expires_at_utc": saved["expires_at_utc"],
+            },
+        )
+
     def _save_episodic(
         self,
         owner_sub: str,
         arguments: Mapping[str, Any],
         common_values: dict[str, str],
     ) -> GhostToolResult:
+        """Persist one ordinary Episodic Memory episode."""
         collection_fields = {
             "collection_id",
             "collection_name",
@@ -312,10 +419,7 @@ class GhostMemoryTagTool:
                 memory_type=EPISODIC_MEMORY_TYPE,
             )
 
-        recall_key = self._read_optional_text(
-            arguments,
-            "recall_key",
-        )
+        recall_key = self._read_optional_text(arguments, "recall_key")
         if recall_key is False or recall_key is None:
             return self._failure(
                 "recall_key is required for Episodic Memory",
@@ -353,8 +457,7 @@ class GhostMemoryTagTool:
                     "text": (
                         "Episodic Memory saved successfully.\n"
                         f"Episode title: {record.episode_title}\n"
-                        f"Recall key: "
-                        f"{record.direct_recall_key}\n"
+                        f"Recall key: {record.direct_recall_key}\n"
                         f"Record ID: {record.record_id}"
                     ),
                 }
@@ -366,9 +469,7 @@ class GhostMemoryTagTool:
                 "requested_recall_key": recall_key,
                 "recall_key": record.direct_recall_key,
                 "episode_title": record.episode_title,
-                "episode_description": (
-                    record.episode_description
-                ),
+                "episode_description": record.episode_description,
                 "record_id": record.record_id,
                 "created_at_utc": record.created_at_utc,
             },
@@ -380,6 +481,7 @@ class GhostMemoryTagTool:
         arguments: Mapping[str, Any],
         common_values: dict[str, str],
     ) -> GhostToolResult:
+        """Append one numbered episode to an existing Collection."""
         collection_id = self._read_optional_text(
             arguments,
             "collection_id",
@@ -412,16 +514,16 @@ class GhostMemoryTagTool:
                 f"{invalid_fields[0]} must be a non-empty string",
                 memory_type=COLLECTION_MEMORY_TYPE,
             )
+
         if (collection_id is None) == (collection_name is None):
             return self._failure(
-                "exactly one of collection_id or "
-                "collection_name is required",
+                "exactly one of collection_id or collection_name is required",
                 memory_type=COLLECTION_MEMORY_TYPE,
             )
+
         if not isinstance(active_brief, str):
             return self._failure(
-                "active_retrieval_brief is required for "
-                "Collection Memory",
+                "active_retrieval_brief is required for Collection Memory",
                 memory_type=COLLECTION_MEMORY_TYPE,
             )
 
@@ -478,12 +580,9 @@ class GhostMemoryTagTool:
                     "type": "text",
                     "text": (
                         "Collection episode saved successfully.\n"
-                        f"Collection: "
-                        f"{saved['collection_name']}\n"
-                        f"Episode number: "
-                        f"{saved['episode_number']}\n"
-                        f"Episode title: "
-                        f"{saved['episode_title']}\n"
+                        f"Collection: {saved['collection_name']}\n"
+                        f"Episode number: {saved['episode_number']}\n"
+                        f"Episode title: {saved['episode_title']}\n"
                         f"Recall key: {saved['recall_key']}\n"
                         f"Record ID: {saved['record_id']}"
                     ),
@@ -501,6 +600,7 @@ class GhostMemoryTagTool:
     def _read_common_values(
         arguments: Mapping[str, Any],
     ) -> dict[str, str] | str:
+        """Read fields shared by Episodic and Collection Memory."""
         values: dict[str, str] = {}
 
         for field_name in (
@@ -512,8 +612,8 @@ class GhostMemoryTagTool:
             value = arguments.get(field_name)
             if not isinstance(value, str) or not value.strip():
                 return (
-                    f"{field_name} is required and must be a "
-                    "non-empty string"
+                    f"{field_name} is required and must be "
+                    "a non-empty string"
                 )
 
             values[field_name] = (
@@ -523,10 +623,7 @@ class GhostMemoryTagTool:
                 else value
             )
 
-        if (
-            len(values["episode_title"])
-            > MAX_EPISODE_TITLE_LENGTH
-        ):
+        if len(values["episode_title"]) > MAX_EPISODE_TITLE_LENGTH:
             return (
                 f"episode_title must be at most "
                 f"{MAX_EPISODE_TITLE_LENGTH} characters"
@@ -535,10 +632,29 @@ class GhostMemoryTagTool:
         return values
 
     @staticmethod
+    def _read_visible_pair(
+        arguments: Mapping[str, Any],
+    ) -> dict[str, str] | str:
+        """Read the exact visible user/assistant pair without rewriting it."""
+        values: dict[str, str] = {}
+
+        for field_name in ("input_text", "output_text"):
+            value = arguments.get(field_name)
+            if not isinstance(value, str) or not value.strip():
+                return (
+                    f"{field_name} is required and must be "
+                    "a non-empty string"
+                )
+            values[field_name] = value
+
+        return values
+
+    @staticmethod
     def _read_optional_text(
         arguments: Mapping[str, Any],
         field_name: str,
     ) -> str | bool | None:
+        """Read an optional non-empty string."""
         if field_name not in arguments:
             return None
 
@@ -555,13 +671,16 @@ class GhostMemoryTagTool:
         memory_type: str | None = None,
         requested_recall_key: str | None = None,
     ) -> GhostToolResult:
+        """Return one sanitized deterministic Save failure."""
         structured_content: dict[str, Any] = {
             "saved": False,
             "workflow_state": WORKFLOW_COMPLETE,
             "reason": reason,
         }
+
         if memory_type is not None:
             structured_content["memory_type"] = memory_type
+
         if requested_recall_key is not None:
             structured_content["requested_recall_key"] = (
                 requested_recall_key
@@ -571,9 +690,7 @@ class GhostMemoryTagTool:
             content=[
                 {
                     "type": "text",
-                    "text": (
-                        f"Memory was NOT saved. Reason: {reason}."
-                    ),
+                    "text": f"Memory was NOT saved. Reason: {reason}.",
                 }
             ],
             structuredContent=structured_content,
@@ -590,6 +707,7 @@ def tool_metadata(
         if required_scope is not None
         else DEFAULT_REQUIRED_SCOPE
     ).strip()
+
     if not scope:
         raise ValueError("required_scope must not be empty")
 

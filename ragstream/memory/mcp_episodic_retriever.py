@@ -16,7 +16,9 @@ Main methods:
 
 Important notes:
     SQLite selects the allowed owner/date record set before vector ranking.
-    Full Q/A text is read only for the final exact episode.
+    Full Q/A text is read only for the final exact episode. Clipboard records
+    are intentionally excluded because their exact newest-slot retrieval is
+    owned by McpClipboardStore.
 """
 
 from __future__ import annotations
@@ -24,15 +26,20 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
-
 from datetime import date, datetime, time, timezone
 from pathlib import Path
 from typing import Any
 
+from ragstream.memory.mcp_clipboard_store import (
+    CLIPBOARD_MEMORY_TYPE,
+)
 from ragstream.memory.mcp_episodic_description_vector_store import (
     McpEpisodicDescriptionVectorStore,
 )
-from ragstream.memory.memory_record import RECORD_END, RECORD_START
+from ragstream.memory.memory_record import (
+    RECORD_END,
+    RECORD_START,
+)
 
 
 MAX_SEMANTIC_CANDIDATES = 10
@@ -65,15 +72,24 @@ class McpEpisodicRetriever:
         recall_key: str | None = None,
         record_id: str | None = None,
     ) -> dict[str, Any] | None:
-        """Return one full episode selected by one exact identifier."""
-        owner = self._require_text(owner_sub, "owner_sub")
+        """Return one full non-Clipboard episode by one exact identifier."""
+        owner = self._require_text(
+            owner_sub,
+            "owner_sub",
+        )
         key = (
-            self._require_text(recall_key, "recall_key")
+            self._require_text(
+                recall_key,
+                "recall_key",
+            )
             if recall_key is not None
             else None
         )
         identifier = (
-            self._require_text(record_id, "record_id")
+            self._require_text(
+                record_id,
+                "record_id",
+            )
             if record_id is not None
             else None
         )
@@ -101,20 +117,37 @@ class McpEpisodicRetriever:
             "record_id": str(row["record_id"]),
             "sequence_number": int(row["sequence_number"]),
             "episode_title": str(row["episode_title"]),
-            "episode_description": str(row["episode_description"]),
+            "episode_description": str(
+                row["episode_description"]
+            ),
             "created_at_utc": str(row["created_at_utc"]),
-            "input_text": str(body.get("input_text", "")),
-            "output_text": str(body.get("output_text", "")),
+            "input_text": str(
+                body.get("input_text", "")
+            ),
+            "output_text": str(
+                body.get("output_text", "")
+            ),
             "active_retrieval_brief_title": str(
-                body.get("active_retrieval_brief_title", "")
+                body.get(
+                    "active_retrieval_brief_title",
+                    "",
+                )
             ),
             "active_retrieval_brief": str(
-                body.get("active_retrieval_brief", "")
+                body.get(
+                    "active_retrieval_brief",
+                    "",
+                )
             ),
             "active_retrieval_brief_contributor_ids": list(
-                body.get("active_retrieval_brief_contributor_ids", [])
+                body.get(
+                    "active_retrieval_brief_contributor_ids",
+                    [],
+                )
                 if isinstance(
-                    body.get("active_retrieval_brief_contributor_ids"),
+                    body.get(
+                        "active_retrieval_brief_contributor_ids"
+                    ),
                     list,
                 )
                 else []
@@ -131,7 +164,10 @@ class McpEpisodicRetriever:
         limit: int = MAX_SEMANTIC_CANDIDATES,
     ) -> list[dict[str, Any]]:
         """Return compact Episode Description candidates ranked by cosine."""
-        owner = self._require_text(owner_sub, "owner_sub")
+        owner = self._require_text(
+            owner_sub,
+            "owner_sub",
+        )
         query = self._require_text(
             query_description,
             "query_description",
@@ -143,7 +179,8 @@ class McpEpisodicRetriever:
             or limit > MAX_SEMANTIC_CANDIDATES
         ):
             raise ValueError(
-                f"limit must be between 1 and {MAX_SEMANTIC_CANDIDATES}."
+                f"limit must be between 1 and "
+                f"{MAX_SEMANTIC_CANDIDATES}."
             )
 
         start_utc = self._normalize_date_bound(
@@ -156,9 +193,14 @@ class McpEpisodicRetriever:
             field_name="date_to",
             end_of_day=True,
         )
-        if start_utc is not None and end_utc is not None:
-            if start_utc > end_utc:
-                raise ValueError("date_from must not be later than date_to.")
+        if (
+            start_utc is not None
+            and end_utc is not None
+            and start_utc > end_utc
+        ):
+            raise ValueError(
+                "date_from must not be later than date_to."
+            )
 
         rows = self._list_semantic_candidates(
             owner_sub=owner,
@@ -168,33 +210,48 @@ class McpEpisodicRetriever:
         if not rows:
             return []
 
-        rows_by_id = {str(row["record_id"]): row for row in rows}
-        vector_hits = self._description_vectors.search_descriptions(
-            owner_sub=owner,
-            query_description=query,
-            candidate_record_ids=list(rows_by_id),
-            limit=limit,
+        rows_by_id = {
+            str(row["record_id"]): row
+            for row in rows
+        }
+        vector_hits = (
+            self._description_vectors.search_descriptions(
+                owner_sub=owner,
+                query_description=query,
+                candidate_record_ids=list(rows_by_id),
+                limit=limit,
+            )
         )
 
         candidates: list[dict[str, Any]] = []
         for hit in vector_hits:
-            record_id_value = str(hit.get("record_id", ""))
+            record_id_value = str(
+                hit.get("record_id", "")
+            )
             row = rows_by_id.get(record_id_value)
             if row is None:
                 continue
+
             candidates.append(
                 {
                     "record_id": record_id_value,
-                    "recall_key": str(row["recall_key"]),
-                    "episode_title": str(row["episode_title"]),
+                    "recall_key": str(
+                        row["recall_key"]
+                    ),
+                    "episode_title": str(
+                        row["episode_title"]
+                    ),
                     "episode_description": str(
                         row["episode_description"]
                     ),
-                    "created_at_utc": str(row["created_at_utc"]),
-                    "cosine_similarity": hit.get("cosine_similarity"),
+                    "created_at_utc": str(
+                        row["created_at_utc"]
+                    ),
+                    "cosine_similarity": hit.get(
+                        "cosine_similarity"
+                    ),
                 }
             )
-
         return candidates
 
     def _lookup_exact_record(
@@ -209,11 +266,15 @@ class McpEpisodicRetriever:
             if recall_key is not None
             else "mr.record_id = ?"
         )
-        selector_value = recall_key if recall_key is not None else record_id
+        selector_value = (
+            recall_key
+            if recall_key is not None
+            else record_id
+        )
 
-        with sqlite3.connect(self.sqlite_path) as conn:
-            conn.row_factory = sqlite3.Row
-            return conn.execute(
+        with sqlite3.connect(self.sqlite_path) as connection:
+            connection.row_factory = sqlite3.Row
+            return connection.execute(
                 f"""
                 SELECT mf.file_id,
                        mf.memory_type,
@@ -225,13 +286,20 @@ class McpEpisodicRetriever:
                        mr.created_at_utc,
                        mf.filename_ragmem
                 FROM memory_records AS mr
-                JOIN memory_files AS mf ON mf.file_id = mr.file_id
+                JOIN memory_files AS mf
+                  ON mf.file_id = mr.file_id
                 WHERE mf.owner_sub = ?
+                  AND mf.memory_type <> ?
                   AND {selector}
-                ORDER BY mr.created_at_utc DESC, mr.record_id DESC
+                ORDER BY mr.created_at_utc DESC,
+                         mr.record_id DESC
                 LIMIT 1
                 """,
-                [owner_sub, selector_value],
+                [
+                    owner_sub,
+                    CLIPBOARD_MEMORY_TYPE,
+                    selector_value,
+                ],
             ).fetchone()
 
     def _list_semantic_candidates(
@@ -248,25 +316,36 @@ class McpEpisodicRetriever:
                    mr.episode_description,
                    mr.created_at_utc
             FROM memory_records AS mr
-            JOIN memory_files AS mf ON mf.file_id = mr.file_id
+            JOIN memory_files AS mf
+              ON mf.file_id = mr.file_id
             WHERE mf.owner_sub = ?
               AND mf.memory_type = ?
               AND mr.episode_description <> ''
         """
-        parameters: list[Any] = [owner_sub, EPISODIC_MEMORY_TYPE]
+        parameters: list[Any] = [
+            owner_sub,
+            EPISODIC_MEMORY_TYPE,
+        ]
 
         if date_from_utc is not None:
             query += " AND mr.created_at_utc >= ?"
             parameters.append(date_from_utc)
+
         if date_to_utc is not None:
             query += " AND mr.created_at_utc <= ?"
             parameters.append(date_to_utc)
 
-        query += " ORDER BY mr.created_at_utc DESC, mr.record_id DESC"
+        query += (
+            " ORDER BY mr.created_at_utc DESC,"
+            " mr.record_id DESC"
+        )
 
-        with sqlite3.connect(self.sqlite_path) as conn:
-            conn.row_factory = sqlite3.Row
-            return conn.execute(query, parameters).fetchall()
+        with sqlite3.connect(self.sqlite_path) as connection:
+            connection.row_factory = sqlite3.Row
+            return connection.execute(
+                query,
+                parameters,
+            ).fetchall()
 
     def _load_record_body(
         self,
@@ -275,31 +354,47 @@ class McpEpisodicRetriever:
         record_id: str,
     ) -> dict[str, Any]:
         relative_path = Path(filename_ragmem)
-        if relative_path.is_absolute() or ".." in relative_path.parts:
-            raise ValueError("MCP memory index contains an unsafe filename.")
+        if (
+            relative_path.is_absolute()
+            or ".." in relative_path.parts
+        ):
+            raise ValueError(
+                "MCP memory index contains an unsafe filename."
+            )
 
         ragmem_path = self.files_root / relative_path
         if not ragmem_path.is_file():
-            raise ValueError("MCP memory body file was not found.")
+            raise ValueError(
+                "MCP memory body file was not found."
+            )
 
         try:
-            text = ragmem_path.read_text(encoding="utf-8")
+            text = ragmem_path.read_text(
+                encoding="utf-8"
+            )
         except OSError as error:
-            raise ValueError("MCP memory body file cannot be read.") from error
+            raise ValueError(
+                "MCP memory body file cannot be read."
+            ) from error
 
         for match in _RECORD_PATTERN.finditer(text):
             try:
-                data = json.loads(match.group(1))
+                data = json.loads(
+                    match.group(1)
+                )
             except json.JSONDecodeError:
                 continue
 
             if (
                 isinstance(data, dict)
-                and str(data.get("record_id", "")) == record_id
+                and str(data.get("record_id", ""))
+                == record_id
             ):
                 return data
 
-        raise ValueError("MCP memory body and index do not match.")
+        raise ValueError(
+            "MCP memory body and index do not match."
+        )
 
     @staticmethod
     def _normalize_date_bound(
@@ -310,24 +405,43 @@ class McpEpisodicRetriever:
     ) -> str | None:
         if value is None:
             return None
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError(f"{field_name} must be a non-empty ISO date.")
+
+        if (
+            not isinstance(value, str)
+            or not value.strip()
+        ):
+            raise ValueError(
+                f"{field_name} must be a non-empty ISO date."
+            )
 
         text = value.strip()
         try:
-            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+            if re.fullmatch(
+                r"\d{4}-\d{2}-\d{2}",
+                text,
+            ):
                 parsed_date = date.fromisoformat(text)
-                boundary_time = time(23, 59, 59) if end_of_day else time.min
+                boundary_time = (
+                    time(23, 59, 59)
+                    if end_of_day
+                    else time.min
+                )
                 parsed = datetime.combine(
                     parsed_date,
                     boundary_time,
                     tzinfo=timezone.utc,
                 )
             else:
-                parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+                parsed = datetime.fromisoformat(
+                    text.replace("Z", "+00:00")
+                )
                 if parsed.tzinfo is None:
-                    parsed = parsed.replace(tzinfo=timezone.utc)
-                parsed = parsed.astimezone(timezone.utc)
+                    parsed = parsed.replace(
+                        tzinfo=timezone.utc
+                    )
+                parsed = parsed.astimezone(
+                    timezone.utc
+                )
         except ValueError as error:
             raise ValueError(
                 f"{field_name} must be an ISO date or datetime."
@@ -340,7 +454,15 @@ class McpEpisodicRetriever:
         )
 
     @staticmethod
-    def _require_text(value: str, field_name: str) -> str:
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError(f"{field_name} must not be empty.")
+    def _require_text(
+        value: str,
+        field_name: str,
+    ) -> str:
+        if (
+            not isinstance(value, str)
+            or not value.strip()
+        ):
+            raise ValueError(
+                f"{field_name} must not be empty."
+            )
         return value.strip()

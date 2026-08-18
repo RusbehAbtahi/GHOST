@@ -1,8 +1,9 @@
-"""Expose exact, semantic Episodic, and numbered Collection Recall.
+"""Expose Clipboard, exact, semantic Episodic, and Collection Recall.
 
 This module validates one authenticated Recall request and deterministically
-routes it to shared exact retrieval, semantic Episodic candidate search, or
-numbered Collection retrieval. Client instructions live in JSON.
+routes it to newest-slot Clipboard retrieval, shared exact retrieval, semantic
+Episodic candidate search, or numbered Collection retrieval. Client
+instructions live in JSON.
 
 Main classes:
     GhostMemoryRecallTool:
@@ -10,7 +11,8 @@ Main classes:
 
 Main methods and functions:
     call_sanitized():
-        Validates and executes one exact, semantic, or Collection stage.
+        Validates and executes one Clipboard, exact, semantic, or Collection
+        retrieval stage.
     tool_metadata():
         Builds the OAuth-protected MCP tool descriptor.
 """
@@ -24,17 +26,31 @@ from ragstream.mcp.ghost_engineer_prompt import (
     DEFAULT_REQUIRED_SCOPE,
     GhostToolResult,
 )
+from ragstream.mcp.memory_recall_contract import (
+    COLLECTION_ARGUMENTS as _COLLECTION_ARGUMENTS,
+    COLLECTION_SELECTION_MODES as _COLLECTION_SELECTION_MODES,
+    EPISODIC_MEMORY_TYPE,
+    MEMORY_TYPES as _MEMORY_TYPES,
+    RESULT_MODES as _RESULT_MODES,
+    RESULT_MODE_DESCRIPTION,
+    RESULT_MODE_EPISODE,
+    RETRIEVAL_CLIPBOARD,
+    RETRIEVAL_COLLECTION,
+    RETRIEVAL_EXACT,
+    RETRIEVAL_SEMANTIC,
+    WORKFLOW_COMPLETE,
+    WORKFLOW_SELECTION_REQUIRED,
+    build_recall_schemas,
+)
 from ragstream.mcp.memory_tool_instructions import (
     load_memory_tool_instructions,
 )
+from ragstream.memory.mcp_clipboard_store import (
+    CLIPBOARD_MEMORY_TYPE,
+    McpClipboardStore,
+    is_clipboard_slot,
+)
 from ragstream.memory.mcp_memory_collection_retriever import (
-    MAX_REQUESTED_EPISODE_NUMBERS,
-    SELECTION_ALL,
-    SELECTION_EPISODE_NUMBER,
-    SELECTION_EPISODE_NUMBERS,
-    SELECTION_FIRST,
-    SELECTION_LAST,
-    SELECTION_RANGE,
     CollectionRecallSelection,
     McpMemoryCollectionRetriever,
 )
@@ -47,449 +63,56 @@ from ragstream.memory.mcp_memory_store import McpMemoryStore
 TOOL_NAME = "ghost_memory_recall"
 TOOL_TITLE = "GHOST Memory Recall"
 
-WORKFLOW_SELECTION_REQUIRED = "selection_required"
-WORKFLOW_COMPLETE = "complete"
-
-RETRIEVAL_EXACT = "exact"
-RETRIEVAL_SEMANTIC = "semantic"
-RETRIEVAL_COLLECTION = "collection"
-
-EPISODIC_MEMORY_TYPE = "episodic"
-RESULT_MODE_EPISODE = "episode"
-RESULT_MODE_DESCRIPTION = "description"
-
-_MEMORY_TYPES = {
-    EPISODIC_MEMORY_TYPE,
-    COLLECTION_MEMORY_TYPE,
-}
-_RESULT_MODES = {
-    RESULT_MODE_EPISODE,
-    RESULT_MODE_DESCRIPTION,
-}
-_COLLECTION_SELECTION_MODES = {
-    SELECTION_EPISODE_NUMBER,
-    SELECTION_EPISODE_NUMBERS,
-    SELECTION_RANGE,
-    SELECTION_FIRST,
-    SELECTION_LAST,
-    SELECTION_ALL,
-}
-_COLLECTION_ARGUMENTS = {
-    "collection_id",
-    "collection_name",
-    "selection_mode",
-    "episode_number",
-    "episode_numbers",
-    "range_start",
-    "range_end",
-    "count",
-}
-
 _INSTRUCTIONS = load_memory_tool_instructions(
     "custom_memory_recall.json"
 )
 TOOL_DESCRIPTION = _INSTRUCTIONS.tool_description
 SERVER_INSTRUCTIONS = _INSTRUCTIONS.server_instruction
 
-INPUT_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "memory_type": {
-            "type": "string",
-            "enum": sorted(_MEMORY_TYPES),
-            "description": _INSTRUCTIONS.field_descriptions[
-                "memory_type"
-            ],
-        },
-        "recall_key": {
-            "type": "string",
-            "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "recall_key"
-            ],
-        },
-        "record_id": {
-            "type": "string",
-            "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "record_id"
-            ],
-        },
-        "query_description": {
-            "type": "string",
-            "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "query_description"
-            ],
-        },
-        "date_from": {
-            "type": "string",
-            "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "date_from"
-            ],
-        },
-        "date_to": {
-            "type": "string",
-            "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "date_to"
-            ],
-        },
-        "collection_id": {
-            "type": "string",
-            "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "collection_id"
-            ],
-        },
-        "collection_name": {
-            "type": "string",
-            "minLength": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "collection_name"
-            ],
-        },
-        "selection_mode": {
-            "type": "string",
-            "enum": sorted(_COLLECTION_SELECTION_MODES),
-            "description": _INSTRUCTIONS.field_descriptions[
-                "selection_mode"
-            ],
-        },
-        "episode_number": {
-            "type": "integer",
-            "minimum": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "episode_number"
-            ],
-        },
-        "episode_numbers": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": MAX_REQUESTED_EPISODE_NUMBERS,
-            "items": {
-                "type": "integer",
-                "minimum": 1,
-            },
-            "description": _INSTRUCTIONS.field_descriptions[
-                "episode_numbers"
-            ],
-        },
-        "range_start": {
-            "type": "integer",
-            "minimum": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "range_start"
-            ],
-        },
-        "range_end": {
-            "type": "integer",
-            "minimum": 1,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "range_end"
-            ],
-        },
-        "count": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": MAX_REQUESTED_EPISODE_NUMBERS,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "count"
-            ],
-        },
-        "result_mode": {
-            "type": "string",
-            "enum": sorted(_RESULT_MODES),
-            "default": RESULT_MODE_EPISODE,
-            "description": _INSTRUCTIONS.field_descriptions[
-                "result_mode"
-            ],
-        },
-    },
-    "anyOf": [
-        {
-            "required": ["recall_key"],
-        },
-        {
-            "required": ["record_id"],
-        },
-        {
-            "required": ["query_description"],
-        },
-        {
-            "required": ["memory_type", "selection_mode"],
-            "properties": {
-                "memory_type": {
-                    "const": COLLECTION_MEMORY_TYPE,
-                }
-            },
-        },
-    ],
-    "additionalProperties": False,
-}
-
-_CANDIDATE_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "record_id": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "recall_key": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "episode_title": {
-            "type": "string",
-        },
-        "episode_description": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "created_at_utc": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "cosine_similarity": {
-            "type": ["number", "null"],
-        },
-    },
-    "required": [
-        "record_id",
-        "recall_key",
-        "episode_title",
-        "episode_description",
-        "created_at_utc",
-        "cosine_similarity",
-    ],
-    "additionalProperties": False,
-}
-
-_COLLECTION_EPISODE_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "episode_number": {
-            "type": "integer",
-            "minimum": 1,
-        },
-        "record_id": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "recall_key": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "episode_title": {
-            "type": "string",
-        },
-        "episode_description": {
-            "type": "string",
-        },
-        "created_at_utc": {
-            "type": "string",
-        },
-        "input_text": {
-            "type": "string",
-        },
-        "output_text": {
-            "type": "string",
-        },
-        "active_retrieval_brief_title": {
-            "type": "string",
-        },
-        "active_retrieval_brief": {
-            "type": "string",
-        },
-        "active_retrieval_brief_contributor_ids": {
-            "type": "array",
-            "items": {
-                "type": "string",
-            },
-        },
-    },
-    "required": [
-        "episode_number",
-        "record_id",
-        "recall_key",
-        "episode_title",
-        "episode_description",
-        "created_at_utc",
-    ],
-    "additionalProperties": False,
-}
-
-OUTPUT_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "workflow_state": {
-            "type": "string",
-            "enum": [
-                WORKFLOW_SELECTION_REQUIRED,
-                WORKFLOW_COMPLETE,
-            ],
-        },
-        "retrieval_path": {
-            "type": "string",
-            "enum": [
-                RETRIEVAL_EXACT,
-                RETRIEVAL_SEMANTIC,
-                RETRIEVAL_COLLECTION,
-            ],
-        },
-        "result_mode": {
-            "type": "string",
-            "enum": sorted(_RESULT_MODES),
-        },
-        "memory_type": {
-            "type": "string",
-        },
-        "file_id": {
-            "type": "string",
-        },
-        "recall_key": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "record_id": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "sequence_number": {
-            "type": "integer",
-            "minimum": 0,
-        },
-        "episode_title": {
-            "type": "string",
-        },
-        "episode_description": {
-            "type": "string",
-        },
-        "created_at_utc": {
-            "type": "string",
-        },
-        "input_text": {
-            "type": "string",
-        },
-        "output_text": {
-            "type": "string",
-        },
-        "active_retrieval_brief_title": {
-            "type": "string",
-        },
-        "active_retrieval_brief": {
-            "type": "string",
-        },
-        "active_retrieval_brief_contributor_ids": {
-            "type": "array",
-            "items": {
-                "type": "string",
-            },
-        },
-        "candidate_count": {
-            "type": "integer",
-            "minimum": 0,
-        },
-        "candidates": {
-            "type": "array",
-            "maxItems": 10,
-            "items": _CANDIDATE_SCHEMA,
-        },
-        "collection_id": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "collection_name": {
-            "type": "string",
-            "minLength": 1,
-        },
-        "collection_description": {
-            "type": "string",
-        },
-        "selection_mode": {
-            "type": "string",
-            "enum": sorted(_COLLECTION_SELECTION_MODES),
-        },
-        "requested_episode_numbers": {
-            "type": "array",
-            "items": {
-                "type": "integer",
-                "minimum": 1,
-            },
-        },
-        "returned_episode_numbers": {
-            "type": "array",
-            "items": {
-                "type": "integer",
-                "minimum": 1,
-            },
-        },
-        "unavailable_episode_numbers": {
-            "type": "array",
-            "items": {
-                "type": "integer",
-                "minimum": 1,
-            },
-        },
-        "omitted_episode_numbers": {
-            "type": "array",
-            "items": {
-                "type": "integer",
-                "minimum": 1,
-            },
-        },
-        "episodes": {
-            "type": "array",
-            "items": _COLLECTION_EPISODE_SCHEMA,
-        },
-        "truncated": {
-            "type": "boolean",
-        },
-        "token_limit": {
-            "type": "integer",
-            "minimum": 1,
-        },
-        "estimated_tokens": {
-            "type": "integer",
-            "minimum": 0,
-        },
-        "reason": {
-            "type": "string",
-        },
-    },
-    "required": [
-        "workflow_state",
-        "retrieval_path",
-        "result_mode",
-    ],
-    "additionalProperties": False,
-}
+INPUT_SCHEMA, OUTPUT_SCHEMA = build_recall_schemas(
+    _INSTRUCTIONS.field_descriptions
+)
 
 
 class GhostMemoryRecallTool:
-    """Route authenticated Recall calls to one backend path."""
+    """Route authenticated Recall calls to one deterministic backend path."""
 
     def __init__(
         self,
         memory_store: McpMemoryStore,
-        collection_retriever: McpMemoryCollectionRetriever,
+        collection_retriever: McpMemoryCollectionRetriever | None = None,
+        clipboard_store: McpClipboardStore | None = None,
     ) -> None:
+        """Create Recall over the shared owner-scoped memory stores."""
         self._memory_store = memory_store
-        self._collection_retriever = collection_retriever
+        self._collection_retriever = (
+            collection_retriever
+            or McpMemoryCollectionRetriever(
+                memory_root=memory_store.memory_root,
+                sqlite_path=memory_store.sqlite_path,
+            )
+        )
+        self._clipboard_store = (
+            clipboard_store
+            or McpClipboardStore(
+                memory_root=memory_store.memory_root,
+                sqlite_path=memory_store.sqlite_path,
+            )
+        )
 
     def call_sanitized(
         self,
         owner_sub: str,
         arguments: Mapping[str, Any] | None,
     ) -> GhostToolResult:
-        """Validate and execute exact, semantic, or Collection Recall."""
+        """Validate and execute one deterministic Recall path."""
         if not isinstance(owner_sub, str) or not owner_sub.strip():
             return self._failure(
                 "authenticated user is required",
                 RETRIEVAL_EXACT,
                 RESULT_MODE_EPISODE,
             )
+
         if not isinstance(arguments, Mapping):
             return self._failure(
                 "memory recall input is required",
@@ -533,7 +156,7 @@ class GhostMemoryRecallTool:
             and memory_type not in _MEMORY_TYPES
         ):
             return self._failure(
-                "memory_type must be episodic or collection",
+                "memory_type must be episodic, collection, or clipboard",
                 RETRIEVAL_EXACT,
                 result_mode,
             )
@@ -579,6 +202,28 @@ class GhostMemoryRecallTool:
                 result_mode,
             )
 
+        clipboard_key = (
+            recall_key
+            if isinstance(recall_key, str)
+            and is_clipboard_slot(recall_key)
+            else None
+        )
+
+        if (
+            memory_type == CLIPBOARD_MEMORY_TYPE
+            or clipboard_key is not None
+        ):
+            return self._recall_clipboard(
+                owner_sub=owner_sub,
+                arguments=arguments,
+                recall_key=(
+                    clipboard_key
+                    if clipboard_key is not None
+                    else self._optional_string(recall_key)
+                ),
+                result_mode=result_mode,
+            )
+
         if exact_identifiers:
             disallowed = {
                 "query_description",
@@ -589,8 +234,8 @@ class GhostMemoryRecallTool:
 
             if disallowed:
                 return self._failure(
-                    "exact recall cannot include semantic or "
-                    "numbered Collection selectors",
+                    "exact recall cannot include semantic or numbered "
+                    "Collection selectors",
                     RETRIEVAL_EXACT,
                     result_mode,
                 )
@@ -625,8 +270,8 @@ class GhostMemoryRecallTool:
 
         if _COLLECTION_ARGUMENTS.intersection(arguments):
             return self._failure(
-                "numbered Collection selectors require "
-                "memory_type collection",
+                "numbered Collection selectors require memory_type "
+                "collection",
                 RETRIEVAL_COLLECTION,
                 result_mode,
             )
@@ -634,8 +279,8 @@ class GhostMemoryRecallTool:
         query_description = text_values["query_description"]
         if not isinstance(query_description, str):
             return self._failure(
-                "query_description is required when no exact "
-                "identifier is known",
+                "query_description is required when no exact identifier "
+                "is known",
                 RETRIEVAL_SEMANTIC,
                 result_mode,
             )
@@ -652,6 +297,93 @@ class GhostMemoryRecallTool:
             result_mode=result_mode,
         )
 
+    def _recall_clipboard(
+        self,
+        *,
+        owner_sub: str,
+        arguments: Mapping[str, Any],
+        recall_key: str | None,
+        result_mode: str,
+    ) -> GhostToolResult:
+        """Return only the newest non-expired pair in one M1-M100 slot."""
+        if (
+            not isinstance(recall_key, str)
+            or not is_clipboard_slot(recall_key)
+        ):
+            return self._failure(
+                "Clipboard Memory requires recall_key M1 through M100",
+                RETRIEVAL_CLIPBOARD,
+                RESULT_MODE_EPISODE,
+            )
+
+        if result_mode != RESULT_MODE_EPISODE:
+            return self._failure(
+                "Clipboard Memory supports only result_mode episode",
+                RETRIEVAL_CLIPBOARD,
+                RESULT_MODE_EPISODE,
+            )
+
+        allowed = {
+            "memory_type",
+            "recall_key",
+            "result_mode",
+        }
+        if set(arguments).difference(allowed):
+            return self._failure(
+                "Clipboard recall accepts only recall_key and result_mode",
+                RETRIEVAL_CLIPBOARD,
+                RESULT_MODE_EPISODE,
+            )
+
+        try:
+            memory = self._clipboard_store.recall_latest(
+                owner_sub=owner_sub,
+                clipboard_slot=recall_key,
+            )
+        except ValueError as error:
+            return self._failure(
+                str(error),
+                RETRIEVAL_CLIPBOARD,
+                RESULT_MODE_EPISODE,
+            )
+        except Exception:  # noqa: BLE001
+            return self._failure(
+                "GHOST Clipboard Memory recall failed",
+                RETRIEVAL_CLIPBOARD,
+                RESULT_MODE_EPISODE,
+            )
+
+        if memory is None:
+            return self._failure(
+                f'no active Clipboard Memory found for '
+                f'"{recall_key.upper()}"',
+                RETRIEVAL_CLIPBOARD,
+                RESULT_MODE_EPISODE,
+            )
+
+        return GhostToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": self._format_clipboard_memory(memory),
+                }
+            ],
+            structuredContent={
+                "workflow_state": WORKFLOW_COMPLETE,
+                "retrieval_path": RETRIEVAL_CLIPBOARD,
+                "result_mode": RESULT_MODE_EPISODE,
+                "memory_type": CLIPBOARD_MEMORY_TYPE,
+                "file_id": memory["file_id"],
+                "recall_key": memory["recall_key"],
+                "record_id": memory["record_id"],
+                "sequence_number": memory["sequence_number"],
+                "created_at_utc": memory["created_at_utc"],
+                "expires_at_utc": memory["expires_at_utc"],
+                "input_text": memory["input_text"],
+                "output_text": memory["output_text"],
+            },
+        )
+
     def _recall_exact(
         self,
         *,
@@ -661,6 +393,7 @@ class GhostMemoryRecallTool:
         result_mode: str,
         expected_memory_type: str | None,
     ) -> GhostToolResult:
+        """Recall one non-Clipboard episode using an exact identifier."""
         try:
             memory = self._memory_store.recall_memory(
                 owner_sub=owner_sub,
@@ -697,8 +430,8 @@ class GhostMemoryRecallTool:
             and memory["memory_type"] != expected_memory_type
         ):
             return self._failure(
-                "exact identifier does not belong to the "
-                "requested memory_type",
+                "exact identifier does not belong to the requested "
+                "memory_type",
                 RETRIEVAL_EXACT,
                 result_mode,
             )
@@ -713,9 +446,7 @@ class GhostMemoryRecallTool:
             "record_id": memory["record_id"],
             "sequence_number": memory["sequence_number"],
             "episode_title": memory["episode_title"],
-            "episode_description": memory[
-                "episode_description"
-            ],
+            "episode_description": memory["episode_description"],
             "created_at_utc": memory["created_at_utc"],
         }
 
@@ -732,11 +463,9 @@ class GhostMemoryRecallTool:
                     "active_retrieval_brief": memory[
                         "active_retrieval_brief"
                     ],
-                    "active_retrieval_brief_contributor_ids": (
-                        memory[
-                            "active_retrieval_brief_contributor_ids"
-                        ]
-                    ),
+                    "active_retrieval_brief_contributor_ids": memory[
+                        "active_retrieval_brief_contributor_ids"
+                    ],
                 }
             )
             text = self._format_exact_memory(memory)
@@ -758,13 +487,14 @@ class GhostMemoryRecallTool:
         text_values: dict[str, str | bool | None],
         result_mode: str,
     ) -> GhostToolResult:
+        """Recall deterministic numbered episodes from one Collection."""
         if (
             "query_description" in arguments
             or {"date_from", "date_to"}.intersection(arguments)
         ):
             return self._failure(
-                "semantic query and date fields are not "
-                "Collection selectors",
+                "semantic query and date fields are not Collection "
+                "selectors",
                 RETRIEVAL_COLLECTION,
                 result_mode,
             )
@@ -778,8 +508,8 @@ class GhostMemoryRecallTool:
 
         if (collection_id is None) == (collection_name is None):
             return self._failure(
-                "exactly one of collection_id or collection_name "
-                "is required",
+                "exactly one of collection_id or collection_name is "
+                "required",
                 RETRIEVAL_COLLECTION,
                 result_mode,
             )
@@ -791,6 +521,7 @@ class GhostMemoryRecallTool:
                 RETRIEVAL_COLLECTION,
                 result_mode,
             )
+
         if selection_mode not in _COLLECTION_SELECTION_MODES:
             return self._failure(
                 "unsupported Collection selection_mode",
@@ -810,13 +541,11 @@ class GhostMemoryRecallTool:
             )
 
         try:
-            recalled = (
-                self._collection_retriever.recall_episodes(
-                    owner_sub=owner_sub,
-                    selection=selection,
-                    collection_id=collection_id,
-                    collection_name=collection_name,
-                )
+            recalled = self._collection_retriever.recall_episodes(
+                owner_sub=owner_sub,
+                selection=selection,
+                collection_id=collection_id,
+                collection_name=collection_name,
             )
         except ValueError as error:
             return self._failure(
@@ -868,6 +597,7 @@ class GhostMemoryRecallTool:
         date_to: str | None,
         result_mode: str,
     ) -> GhostToolResult:
+        """Return semantic Episodic candidates for model-side selection."""
         try:
             candidates = (
                 self._memory_store.search_episodic_memories(
@@ -898,10 +628,8 @@ class GhostMemoryRecallTool:
             )
 
         lines = [
-            "Candidate selection is required before the final "
-            "episode fetch."
+            "Candidate selection is required before the final episode fetch."
         ]
-
         for position, candidate in enumerate(
             candidates,
             start=1,
@@ -942,14 +670,12 @@ class GhostMemoryRecallTool:
         selection_mode: str,
         arguments: Mapping[str, Any],
     ) -> CollectionRecallSelection | str:
-        raw_numbers = arguments.get(
-            "episode_numbers",
-            [],
-        )
+        """Build one typed Collection episode selection."""
+        raw_numbers = arguments.get("episode_numbers", [])
+
         if not isinstance(raw_numbers, list):
             return (
-                "episode_numbers must be an array of "
-                "positive integers"
+                "episode_numbers must be an array of positive integers"
             )
 
         if any(
@@ -975,6 +701,7 @@ class GhostMemoryRecallTool:
     def _format_exact_memory(
         memory: Mapping[str, Any],
     ) -> str:
+        """Format one complete exact Episodic or Collection episode."""
         lines = [
             f"Episode title: {memory['episode_title']}",
             (
@@ -1007,13 +734,30 @@ class GhostMemoryRecallTool:
                 memory["output_text"],
             ]
         )
-
         return "\n".join(lines)
+
+    @staticmethod
+    def _format_clipboard_memory(
+        memory: Mapping[str, Any],
+    ) -> str:
+        """Format the newest exact Clipboard pair."""
+        return "\n".join(
+            [
+                f"Clipboard slot: {memory['recall_key']}",
+                "",
+                "Input:",
+                memory["input_text"],
+                "",
+                "Output:",
+                memory["output_text"],
+            ]
+        )
 
     @staticmethod
     def _format_collection_result(
         result: Mapping[str, Any],
     ) -> str:
+        """Format one deterministic numbered Collection response."""
         lines = [
             f"Collection: {result['collection_name']}",
             f"Collection ID: {result['collection_id']}",
@@ -1069,6 +813,7 @@ class GhostMemoryRecallTool:
     def _description_projection(
         episode: Mapping[str, Any],
     ) -> dict[str, Any]:
+        """Return Collection episode metadata without full Q/A content."""
         return {
             field_name: episode[field_name]
             for field_name in (
@@ -1086,6 +831,7 @@ class GhostMemoryRecallTool:
         arguments: Mapping[str, Any],
         field_name: str,
     ) -> str | bool | None:
+        """Read an optional non-empty string."""
         if field_name not in arguments:
             return None
 
@@ -1099,6 +845,7 @@ class GhostMemoryRecallTool:
     def _optional_string(
         value: str | bool | None,
     ) -> str | None:
+        """Return a string value or None."""
         return value if isinstance(value, str) else None
 
     @staticmethod
@@ -1107,6 +854,7 @@ class GhostMemoryRecallTool:
         retrieval_path: str,
         result_mode: str,
     ) -> GhostToolResult:
+        """Return one sanitized deterministic Recall failure."""
         return GhostToolResult(
             content=[
                 {
@@ -1133,6 +881,7 @@ def tool_metadata(
         if required_scope is not None
         else DEFAULT_REQUIRED_SCOPE
     ).strip()
+
     if not scope:
         raise ValueError("required_scope must not be empty")
 

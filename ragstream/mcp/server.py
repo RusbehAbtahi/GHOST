@@ -364,21 +364,50 @@ class GhostMcpRuntime:
         self,
         _application: Starlette,
     ) -> AsyncIterator[None]:
-        """Keep the session manager active for Starlette's lifetime."""
+        """Start transport and schedule Clipboard expiration cleanup."""
         async with self.session_manager.run():
-            LogNoGUI(
-                "GHOST MCP session manager started.",
-                "INFO",
-                "INTERNAL",
-            )
-            try:
-                yield
-            finally:
+            async with anyio.create_task_group() as task_group:
+                task_group.start_soon(
+                    self._cleanup_expired_clipboard
+                )
+
                 LogNoGUI(
-                    "GHOST MCP session manager stopped.",
+                    "GHOST MCP session manager started.",
                     "INFO",
                     "INTERNAL",
                 )
+
+                try:
+                    yield
+                finally:
+                    LogNoGUI(
+                        "GHOST MCP session manager stopped.",
+                        "INFO",
+                        "INTERNAL",
+                    )
+
+    async def _cleanup_expired_clipboard(self) -> None:
+        """Run physical Clipboard cleanup outside the event loop."""
+        try:
+            result = await anyio.to_thread.run_sync(
+                self.ghost_application.cleanup_expired_clipboard
+            )
+        except Exception:  # noqa: BLE001
+            LogNoGUI(
+                "GHOST Clipboard startup cleanup failed.",
+                "WARN",
+                "INTERNAL",
+            )
+            return
+
+        LogNoGUI(
+            "GHOST Clipboard startup cleanup completed: "
+            f"deleted_files={result['deleted_file_count']}, "
+            f"deleted_records={result['deleted_record_count']}, "
+            f"failed_files={len(result['failed_file_ids'])}.",
+            "INFO",
+            "INTERNAL",
+        )
 
     def _authorization_challenge(
         self,

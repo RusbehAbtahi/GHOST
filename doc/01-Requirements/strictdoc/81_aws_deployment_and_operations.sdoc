@@ -1,7 +1,7 @@
 [DOCUMENT]
 TITLE: GHOST AWS Deployment and Operations Requirements
 UID: GHOST-AWS-DEPLOYMENT-OPERATIONS
-VERSION: 0.3
+VERSION: 0.4
 OPTIONS:
   MARKUP: Text
   AUTO_LEVELS: On
@@ -12,7 +12,7 @@ TITLE: 1. Scope, Evidence, and Environment Profile
 
 [TEXT]
 STATEMENT: >>>
-This document refines the runtime-platform parent with atomic requirements for the documented current AWS deployment and the approved target remote MCP extension.
+This document refines the runtime-platform parent with atomic requirements for the documented current AWS deployment, the approved target remote MCP extension, and the approved target serverless EC2 runtime-control extension.
 
 CURRENT means documented deployed behavior. TARGET means required future behavior that is not yet implementation truth.
 <<<
@@ -22,7 +22,7 @@ UID: GHOST-AWS-DEPLOYMENT-CAPABILITY
 STATUS: Draft
 TITLE: AWS Deployment and Operations Capability
 STATEMENT: >>>
-GHOST shall reproduce the documented current Phase-1 AWS deployment and shall add the target remote MCP deployment without changing the current Streamlit service unless a TARGET requirement explicitly requires an additive change.
+GHOST shall reproduce the documented current Phase-1 AWS deployment and shall add the target remote MCP deployment and target serverless EC2 runtime-control deployment without changing the current Streamlit service unless a TARGET requirement explicitly requires an additive change.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -36,6 +36,8 @@ STATEMENT: >>>
 CURRENT requirements shall be derived from the supplied AWS deployment guide, supplied HTTPS reverse-proxy architecture, supplied ragstream-start script, and current repository deployment artifacts.
 
 TARGET MCP requirements shall be derived from the approved deployment decisions and the applicable MCP, Claude, and ChatGPT interoperability specifications.
+
+TARGET EC2 runtime-control requirements shall be derived from the approved GHOST operating decisions documented for remote start, stop, status, selectable instance profile, readiness verification, and inactivity shutdown.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -1382,5 +1384,340 @@ The MCP deployment requirements shall remain TARGET until the implementation exi
 RELATIONS:
 - TYPE: Parent
   VALUE: GHOST-AWS-TGT-MCP-SAME-EC2
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 11. TARGET Serverless EC2 Runtime Control
+
+[TEXT]
+STATEMENT: >>>
+This section defines the AWS realization of the approved GHOST EC2 runtime-control capability.
+
+The controller is a small serverless control plane that remains reachable while the managed GHOST EC2 instance is stopped. It owns AWS-side start, stop, status, instance-profile selection, readiness verification, inactivity-state handling, and the redundant shutdown watchdog realization.
+
+The MCP-visible functional contract for these operations is owned by 113_mcp_runtime_control.sdoc.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+STATUS: Draft
+TITLE: TARGET EC2 Runtime-Control Capability
+STATEMENT: >>>
+GHOST shall provide a serverless AWS control capability for the designated GHOST EC2 instance that can start the instance, report its runtime status, and stop the instance without depending on the EC2-hosted GHOST MCP server being available.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-DEPLOYMENT-CAPABILITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-CONTROL-INDEPENDENT
+STATUS: Draft
+TITLE: TARGET EC2-Independent Controller Endpoint
+STATEMENT: >>>
+The runtime-control endpoint and its Lambda execution path shall remain available when the managed GHOST EC2 instance and all containers on that instance are stopped.
+
+The controller shall not require the EC2-hosted GHOST MCP endpoint in order to execute start, status, or stop operations.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-CONTROL-AUTH
+STATUS: Draft
+TITLE: TARGET Runtime-Control Cognito Authentication
+STATEMENT: >>>
+The runtime-control endpoint shall require authenticated access through the existing approved GHOST Cognito identity environment. The existing approved GHOST Cognito user identity shall be usable for this controller and shall not require creation of a second end-user account.
+
+Unauthenticated requests shall not be permitted to start, stop, inspect, or reconfigure the managed EC2 instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-CONTROL-IAM
+STATUS: Draft
+TITLE: TARGET Runtime-Control Least-Privilege IAM
+STATEMENT: >>>
+The controller Lambda role shall receive only the permissions required for the approved runtime-control behavior.
+
+Start, stop, and instance-type modification permissions shall be restricted to the designated GHOST EC2 instance wherever AWS resource-level authorization permits it. Read-only describe permissions and access to the exact runtime-control SSM parameters may be broader only where required by AWS API semantics.
+
+The controller shall not receive EC2 termination permission.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-CONTROL-FIXED-INSTANCE
+STATUS: Draft
+TITLE: TARGET Fixed Managed EC2 Instance
+STATEMENT: >>>
+The runtime controller shall operate only on the exact GHOST EC2 instance identifier recorded in the local deployment profile.
+
+The public MCP tool contract shall not accept an arbitrary EC2 instance identifier supplied by the caller.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-CONTROL-IAM
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-RUNTIME-PROFILES
+STATUS: Draft
+TITLE: TARGET Selectable EC2 Runtime Profiles
+STATEMENT: >>>
+The controller shall support exactly the following approved runtime profiles unless this requirement is later revised:
+
+1. Profile 1: t3.medium.
+2. Profile 2: m7i-flex.xlarge.
+
+Profile 1 shall be the default when the caller does not explicitly select a profile.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-PROFILE-WHILE-STOPPED
+STATUS: Draft
+TITLE: TARGET Instance-Type Selection While Stopped
+STATEMENT: >>>
+The controller shall apply the selected EC2 instance type while the managed instance is in the stopped state and before issuing StartInstances.
+
+A start request received while the instance is not stopped shall not silently stop or restart the instance merely to change its instance type.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-PROFILES
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-IDLE-TIMEOUT
+STATUS: Draft
+TITLE: TARGET Configurable Idle Timeout
+STATEMENT: >>>
+Each start operation shall establish one effective inactivity timeout for the resulting EC2 run.
+
+The default timeout shall be 20 minutes when the user does not provide a value.
+
+The effective timeout shall never be lower than 10 minutes or higher than 120 minutes. A requested value below 10 minutes shall be limited to 10 minutes, and a requested value above 120 minutes shall be limited to 120 minutes.
+
+The effective value shall be returned to the caller so the applied shutdown policy is visible.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-CONTROL-STATE
+STATUS: Draft
+TITLE: TARGET Lightweight Runtime-Control State
+STATEMENT: >>>
+The controller shall use the existing AWS Systems Manager Parameter Store service for the small non-secret runtime-control state required by the approved design.
+
+The state shall include at least the effective idle timeout and the latest qualifying MCP activity time needed by the serverless watchdog.
+
+Exact parameter names shall be recorded in the local deployment profile. No new database shall be required solely for this runtime-control capability.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-IDLE-TIMEOUT
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-START-SEQUENCE
+STATUS: Draft
+TITLE: TARGET EC2 Start Sequence
+STATEMENT: >>>
+For an authenticated start request while the managed instance is stopped, the controller shall:
+
+1. resolve the requested runtime profile or use Profile 1 by default;
+2. resolve and constrain the requested idle timeout or use 20 minutes by default;
+3. modify the stopped instance to the selected approved EC2 type when necessary;
+4. persist the effective runtime-control state;
+5. initialize the run's last-activity time so an accidentally started but unused instance remains protected by the idle policy;
+6. issue StartInstances; and
+7. verify GHOST readiness before reporting the start operation as ready.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-READINESS
+STATUS: Draft
+TITLE: TARGET GHOST Readiness Verification
+STATEMENT: >>>
+The controller shall not report GHOST as ready merely because the EC2 state is running.
+
+Readiness shall require a successful health check against the deployed GHOST service after the EC2 startup path, Docker activation, and public service path have become usable.
+
+The controller shall wait within one bounded start operation until readiness succeeds or the startup wait fails. A timeout or failed health check shall be reported as not ready and shall not be represented as successful readiness.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-START-SEQUENCE
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-STATUS
+STATUS: Draft
+TITLE: TARGET EC2 Runtime Status Observation
+STATEMENT: >>>
+The controller shall be able to report the current EC2 state and, when available, the current approved runtime profile, concrete EC2 instance type, GHOST readiness state, effective idle timeout, and elapsed time since the latest qualifying MCP activity.
+
+A status observation shall not itself reset the GHOST inactivity timer.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-STOP
+STATUS: Draft
+TITLE: TARGET Explicit EC2 Stop
+STATEMENT: >>>
+An authenticated stop request shall stop the designated GHOST EC2 instance through the normal EC2 stop operation.
+
+The controller shall treat an already stopped instance safely and shall never translate the stop operation into instance termination.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-QUALIFYING-ACTIVITY
+STATUS: Draft
+TITLE: TARGET Qualifying MCP Activity Definition
+STATEMENT: >>>
+Only a real authenticated tools/call invocation accepted for execution by the EC2-hosted GHOST MCP service shall refresh the EC2 inactivity timer.
+
+Qualifying activity includes approved GHOST functional tool calls such as prompt engineering, retrieval, memory operations, and other authenticated GHOST MCP capabilities executed on the managed EC2 instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-IDLE-TIMEOUT
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-NON-ACTIVITY
+STATUS: Draft
+TITLE: TARGET Background Traffic Does Not Prevent Shutdown
+STATEMENT: >>>
+The inactivity timer shall not be refreshed by health checks, readiness polling, OAuth or discovery traffic, MCP initialization, tools/list, controller status polling, EventBridge or Lambda watchdog execution, Docker activity, operating-system activity, CPU usage, network background traffic, or other non-tools/call background behavior.
+
+The controller's own start, status, and readiness polling shall not create continuing GHOST activity after the initial start timestamp is established.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-QUALIFYING-ACTIVITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-ACTIVITY-PUBLISH
+STATUS: Draft
+TITLE: TARGET Dual Activity Recording
+STATEMENT: >>>
+For each qualifying authenticated GHOST MCP tool call, the EC2-hosted MCP runtime shall refresh both:
+
+1. the serverless-visible last-activity value used by the Lambda watchdog; and
+2. a local last-activity marker used by the EC2-local watchdog.
+
+The implementation shall refresh activity when the call is accepted and again when the call completes so normal tool execution does not shorten the intended post-call idle period.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-QUALIFYING-ACTIVITY
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-INFLIGHT-PROTECTION
+STATUS: Draft
+TITLE: TARGET In-Flight MCP Call Protection
+STATEMENT: >>>
+The inactivity watchdogs shall not stop the EC2 instance while a qualifying authenticated GHOST MCP tool call is actively executing.
+
+After the final active qualifying call completes, the effective idle timeout shall run from the refreshed completion activity time.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-ACTIVITY-PUBLISH
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-LAMBDA-WATCHDOG
+STATUS: Draft
+TITLE: TARGET Serverless Idle-Shutdown Watchdog
+STATEMENT: >>>
+A scheduled serverless watchdog shall check the managed EC2 runtime state at an interval no greater than one minute while applying the idle-shutdown policy.
+
+When the instance is running, no qualifying MCP call is active, and the elapsed time since the latest qualifying activity is at least the effective idle timeout, the watchdog shall issue StopInstances for the designated EC2 instance.
+
+When the instance is stopped, the watchdog shall perform no start or restart action.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-IDLE-TIMEOUT
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-LOCAL-WATCHDOG
+STATUS: Draft
+TITLE: TARGET Independent EC2-Local Shutdown Watchdog
+STATEMENT: >>>
+The EC2 host shall also run a lightweight local watchdog independent of the controller Lambda execution path.
+
+During boot, the host shall obtain the effective idle timeout established for the run and retain the value locally. The local watchdog shall evaluate the local qualifying-activity marker at an interval no greater than one minute.
+
+When no qualifying MCP call is active and the local inactivity duration reaches the effective timeout, the host shall initiate operating-system shutdown.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-IDLE-TIMEOUT
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-LOCAL-WATCHDOG-INDEPENDENCE
+STATUS: Draft
+TITLE: TARGET Local Watchdog Independence and Stop Semantics
+STATEMENT: >>>
+After boot initialization, the EC2-local watchdog shall not depend on successful execution of the controller Lambda in order to enforce inactivity shutdown.
+
+The managed EC2 instance's instance-initiated shutdown behavior shall be configured as stop rather than terminate so a local watchdog shutdown leaves the persistent EBS-backed instance available for later restart.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-LOCAL-WATCHDOG
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-CONTROL-PROFILE-VALUES
+STATUS: Draft
+TITLE: TARGET Runtime-Control Local Profile Values
+STATEMENT: >>>
+Before deployment, the local profile shall record the exact managed EC2 instance identifier, controller endpoint value, Lambda function identity, Cognito values used by the controller, runtime-control SSM parameter names, scheduled-watchdog identity, local-watchdog activation artifact, readiness health URL, and any implementation-assigned startup wait limit.
+
+Secret values shall not be written into the requirement file or local profile.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
+
+[REQUIREMENT]
+UID: GHOST-AWS-TGT-EC2-CONTROL-ACCEPTANCE
+STATUS: Draft
+TITLE: TARGET EC2 Runtime-Control Acceptance
+STATEMENT: >>>
+The runtime-control target shall not be promoted to CURRENT until acceptance demonstrates at least that:
+
+1. the controller remains reachable while the GHOST EC2 instance is stopped;
+2. unauthenticated control requests are rejected;
+3. start with omitted options uses Profile 1 t3.medium and a 20-minute idle timeout;
+4. Profile 2 starts the same stopped instance as m7i-flex.xlarge;
+5. the effective idle timeout cannot be configured below 10 or above 120 minutes;
+6. the start operation reports ready only after the GHOST health check succeeds;
+7. status reports the actual EC2 state without refreshing idle activity;
+8. explicit stop stops but does not terminate the instance;
+9. health checks, polling, and background host activity do not keep the instance alive;
+10. qualifying authenticated GHOST MCP tool calls refresh the inactivity timer;
+11. the serverless watchdog stops an idle instance; and
+12. the EC2-local watchdog independently stops an idle instance when the Lambda watchdog path is unavailable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-AWS-TGT-EC2-RUNTIME-CONTROL
 
 [[/SECTION]]

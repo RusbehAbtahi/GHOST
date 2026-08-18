@@ -11,61 +11,61 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1.1-1-1-Purpose" },
 
-  {"_LINK":"85526a5d17a54134a4f165a59c940bcb" },
+  {"_LINK":"e5f357f067a24acc98c5dbf77a356612" },
 
   {"_LINK":"1.2-1-2-Product-Identity-and-Motivation" },
 
-  {"_LINK":"496d0b4410fa450e9a2623f1ed2e5e36" },
+  {"_LINK":"23f6f79ef500405bb0543604b809f6ce" },
 
   {"_LINK":"1.3-1-3-Scope" },
 
-  {"_LINK":"edfcc66b847847cbbc891ee09c74ab94" },
+  {"_LINK":"68259a50eef5449badc4a370a176d460" },
 
   {"_LINK":"1.4-1-4-Intended-Audience-and-Intended-Use" },
 
-  {"_LINK":"a994009d65fb4d60b36b3d938f63a843" },
+  {"_LINK":"5586195fa7e04e2ab28a25e4fbfc0674" },
 
   {"_LINK":"1.5-1-5-Definitions-and-Acronyms" },
 
-  {"_LINK":"537de9417e894dcb99ccac7a28e8dbef" },
+  {"_LINK":"f75d7ad882a441aaba72d2b6cffb4138" },
 
   {"_LINK":"1.6-1-6-Ghost2-Future-Vision-Boundary" },
 
-  {"_LINK":"66de3b9144a246c2b4e013c8e671cbe7" },
+  {"_LINK":"0c8e3a6035b84d85821a205cb5a0e842" },
 
   {"_LINK":"2-2-Overall-Description" },
 
   {"_LINK":"2.1-2-1-Product-Perspective" },
 
-  {"_LINK":"73511fd7eabd4c10bb54b07e9cf94668" },
+  {"_LINK":"01fa96e002e2409f9c99ad73727852d7" },
 
   {"_LINK":"2.2-2-2-Current-Workflow-and-Pipeline-Boundary" },
 
-  {"_LINK":"df81fd03db2e4c158d3cc77188861950" },
+  {"_LINK":"f1a420964e7a4f3dbfe6ec7d99ec8116" },
 
   {"_LINK":"2.3-2-3-Authority-and-Evidence-Order" },
 
-  {"_LINK":"cb691eee68524725bb3526e3f3bdb7ec" },
+  {"_LINK":"b5e7a5a24ec147c4a2a0f7dd30ae7d9b" },
 
   {"_LINK":"2.4-2-4-Core-Data-and-Control-Concepts" },
 
-  {"_LINK":"64b5ab8558c44c47970efc9632debc0f" },
+  {"_LINK":"1f11855b94ec4eb28257d8da21facbb2" },
 
   {"_LINK":"2.5-2-5-Capability-Ownership-Overview" },
 
-  {"_LINK":"e9fbe1392ab4441eac538bff13a586b2" },
+  {"_LINK":"0b605648348f4eecab53781b71b901f7" },
 
   {"_LINK":"2.6-2-6-Current-Baseline-and-Maturity-Boundary" },
 
-  {"_LINK":"24a6a2e7d0994514a179e61b448b07e2" },
+  {"_LINK":"39ee7b17a4264ede8290752f09d65f21" },
 
   {"_LINK":"2.7-2-7-Assumptions-and-Dependencies" },
 
-  {"_LINK":"012cc60d03cb457cbb2b02dd088f8b9e" },
+  {"_LINK":"8c5e08b8ae264fa1bd141d45708ef194" },
 
   {"_LINK":"2.8-2-8-Requirement-File-Tree-and-Ownership-Map" },
 
-  {"_LINK":"da08899efc2b45ae99e455560e281754" },
+  {"_LINK":"9e34362a4b5e44bea6bf9626876dc147" },
 
   {"UID":"GHOST-SRS-FILE-TREE","_LINK":"GHOST-SRS-FILE-TREE" },
 
@@ -75,7 +75,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1.1-3-1-1-Source-of-Truth-Authority-and-Human-Control" },
 
-  {"_LINK":"ab54bfe8157d4c4098cc07119acfe686" },
+  {"_LINK":"eaa7596ef68142e29627099afd805362" },
 
   {"UID":"GHOST-SRS-NFR-SOT-001","_LINK":"GHOST-SRS-NFR-SOT-001" },
 
@@ -91,7 +91,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1.2-3-1-2-Naming-Change-Control-and-Version-Governance" },
 
-  {"_LINK":"4971041ce0754c9db2b33a8800318849" },
+  {"_LINK":"bf5af81be7564caf8e7ec3e5d87f6f31" },
 
   {"UID":"GHOST-SRS-NFR-GOV-001","_LINK":"GHOST-SRS-NFR-GOV-001" },
 
@@ -107,7 +107,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1.3-3-1-3-UID-and-Traceability-Policy" },
 
-  {"_LINK":"b7fa9dc89a71453697541212d72c0502" },
+  {"_LINK":"d35d487fac9f449789c2a80e907d36b6" },
 
   {"UID":"GHOST-SRS-NFR-UID-001","_LINK":"GHOST-SRS-NFR-UID-001" },
 
@@ -123,7 +123,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1.4-3-1-4-Quality-Governance-and-Observability-90_quality_governance_and_observability-sdoc" },
 
-  {"_LINK":"8db48c9defe641f984e8838db000e6b5" },
+  {"_LINK":"215b5b4754bb4b24a872faf677999d9e" },
 
   {"UID":"GHOST-SRS-NFR-QLT-001","_LINK":"GHOST-SRS-NFR-QLT-001" },
 
@@ -133,7 +133,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1.5-3-1-5-Security-Privacy-and-Operational-Hardening-93_quality_security_traceability_governance-sdoc" },
 
-  {"_LINK":"eaadf1b09c124f54af1eec69f87a17c6" },
+  {"_LINK":"0a03525afdb04d789f0d9d2e9824103b" },
 
   {"UID":"GHOST-SRS-NFR-SEC-001","_LINK":"GHOST-SRS-NFR-SEC-001" },
 
@@ -141,7 +141,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1.6-3-1-6-Runtime-Operations-and-Deployment-80_runtime_platform_and_operations-sdoc" },
 
-  {"_LINK":"0271bfd5dfd94949a3c6e3f5484895df" },
+  {"_LINK":"aeb307b346254acfa02ee00ba88a705c" },
 
   {"UID":"GHOST-SRS-NFR-OPS-001","_LINK":"GHOST-SRS-NFR-OPS-001" },
 
@@ -151,7 +151,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1.7-3-1-7-System-Integrity-and-Failure-Behavior" },
 
-  {"_LINK":"f713fc0dfd91470a98e6edf864cf7c0e" },
+  {"_LINK":"bf0ce180e96341409307b0f22ae9fc3c" },
 
   {"UID":"GHOST-SRS-NFR-INT-001","_LINK":"GHOST-SRS-NFR-INT-001" },
 
@@ -163,7 +163,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1.8-3-1-8-Non-Goals-and-Current-Boundaries" },
 
-  {"_LINK":"0047599715d648559f3d200ffbb28497" },
+  {"_LINK":"484fb675767e4ef7bd394d228584a88a" },
 
   {"UID":"GHOST-SRS-NFR-NG-001","_LINK":"GHOST-SRS-NFR-NG-001" },
 
@@ -177,7 +177,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.2.1-3-2-1-Orchestrator-and-Runtime-Pipeline-10_orchestrator_and_pipeline-sdoc" },
 
-  {"_LINK":"edef8e2f2d354521aa3e80f57b74d409" },
+  {"_LINK":"c5fb5012718a4e5784454edb49d8ac8e" },
 
   {"UID":"GHOST-SRS-FR-ORCH-001","_LINK":"GHOST-SRS-FR-ORCH-001" },
 
@@ -189,7 +189,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.2.2-3-2-2-Agent-Stack-20_agent_stack-sdoc" },
 
-  {"_LINK":"f8c6b7e934a24a7699556a3910c75719" },
+  {"_LINK":"515a68164bcc4ac3887ca3b32b9ab929" },
 
   {"UID":"GHOST-SRS-FR-AGT-001","_LINK":"GHOST-SRS-FR-AGT-001" },
 
@@ -199,7 +199,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.2.3-3-2-3-PreProcessing-and-Prompt-Functions-30_preprocessing_prompt_functions-sdoc" },
 
-  {"_LINK":"cca4a5051dbd42cebd46c894c70dddc1" },
+  {"_LINK":"5f48c31fbed2439782ec557cf115af33" },
 
   {"UID":"GHOST-SRS-FR-PRM-001","_LINK":"GHOST-SRS-FR-PRM-001" },
 
@@ -211,7 +211,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.2.4-3-2-4-Knowledge-Management-40_knowledge_management-sdoc" },
 
-  {"_LINK":"ed7a2dd4ef254890a14b5c29a2b1ce25" },
+  {"_LINK":"a065e82198a04666a315b1450a8177e8" },
 
   {"UID":"GHOST-SRS-FR-KNOW-001","_LINK":"GHOST-SRS-FR-KNOW-001" },
 
@@ -225,7 +225,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.2.5-3-2-5-Memory-Management-50_memory_management-sdoc" },
 
-  {"_LINK":"f3f2651f6ea54097b8860788c666c418" },
+  {"_LINK":"8936cc1adb714659b876cc6db28cdb97" },
 
   {"UID":"GHOST-SRS-FR-MEM-001","_LINK":"GHOST-SRS-FR-MEM-001" },
 
@@ -237,9 +237,9 @@ window.StrictDoc.project.map = {
 
   {"UID":"GHOST-SRS-FR-MEM-005","_LINK":"GHOST-SRS-FR-MEM-005" },
 
-  {"_LINK":"3.2.6-3-2-6-Human-Workbench-and-Interfaces-70_human_workbench_and_interfaces-sdoc" },
+  {"_LINK":"3.2.6-3-2-6-Human-Workbench-and-Graphical-Interfaces-70_human_workbench_and_interfaces-sdoc" },
 
-  {"_LINK":"601e18f91b524cff9427409fed6920f6" },
+  {"_LINK":"279cde4d6cf74120ac85f19bb9d14f7a" },
 
   {"UID":"GHOST-SRS-FR-UI-001","_LINK":"GHOST-SRS-FR-UI-001" },
 
@@ -251,7 +251,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.2.7-3-2-7-External-Interfaces-and-AI-Tooling-Boundary" },
 
-  {"_LINK":"2f967a2f940f4b5292e6ab84d09f1aee" },
+  {"_LINK":"e734a314fee442e990fd298791d162d7" },
 
   {"UID":"GHOST-SRS-FR-EXT-001","_LINK":"GHOST-SRS-FR-EXT-001" },
 
@@ -267,7 +267,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.2.8-3-2-8-Runtime-Platform-and-Operations-80_runtime_platform_and_operations-sdoc" },
 
-  {"_LINK":"acf1e128002a459785bf0e5a0d933a3e" },
+  {"_LINK":"e29c60c6edca401d96137a146265d25f" },
 
   {"UID":"GHOST-SRS-FR-RUN-001","_LINK":"GHOST-SRS-FR-RUN-001" },
 
@@ -277,7 +277,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.2.9-3-2-9-Quality-Governance-and-Observability-90_quality_governance_and_observability-sdoc" },
 
-  {"_LINK":"f250e18213ae4129ba054c8e0d1da807" },
+  {"_LINK":"6f47724e0832452b9f93f3cc3ac83ac0" },
 
   {"UID":"GHOST-SRS-FR-QGO-001","_LINK":"GHOST-SRS-FR-QGO-001" },
 
@@ -287,7 +287,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.2.10-3-2-10-Future-Vision-and-Lifecycle-Synchronization-100_future_vision_and_lifecycle_sync-sdoc" },
 
-  {"_LINK":"331016a0ffbb49f0b22e7f60395bfe55" },
+  {"_LINK":"d29ebb878d4e40a3ad6bc0b47d280d3b" },
 
   {"UID":"GHOST-SRS-FR-FUT-001","_LINK":"GHOST-SRS-FR-FUT-001" },
 
@@ -303,7 +303,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose" },
 
-  {"_LINK":"3368e7d1697e486298f1f98c8e45a861" },
+  {"_LINK":"118ecfcfdbed46f58ff6e803e4749df8" },
 
   {"_LINK":"2-2-Scope-and-Boundary" },
 
@@ -313,27 +313,27 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1-3-1-Requirement-Architecture-Code-Sync-Reserved-Capability" },
 
-  {"_LINK":"aa7011f8289c463382d06ef4cace788f" },
+  {"_LINK":"eb33b2e67e224ade818f5185ecb4bdc8" },
 
   {"_LINK":"3.2-3-2-Ghost2-Boundary" },
 
-  {"_LINK":"482043290f494eb89f25dc2fce93deae" },
+  {"_LINK":"edb4673002f0419ca681df4b8b5ce1d5" },
 
   {"_LINK":"3.3-3-3-Blackboard-Architecture-Boundary" },
 
-  {"_LINK":"8c0e7b7ec85045a3b6522119c3860bc7" },
+  {"_LINK":"923f87f6e6f749668fb32b65dab3e76e" },
 
   {"_LINK":"3.4-3-4-Advanced-Orchestration" },
 
-  {"_LINK":"23019b2918ea430c88179341a14e85d4" },
+  {"_LINK":"477ae9c55e4b46059ee57cf4169eca31" },
 
   {"_LINK":"3.5-3-5-Future-Model-Backend-Expansion" },
 
-  {"_LINK":"4779588711ce49958639140eb60e4ca1" },
+  {"_LINK":"97164f7bb1374a50bd0536de614eb54e" },
 
   {"_LINK":"3.6-3-6-Future-Capabilities-Not-Yet-Architecturally-Fixed" },
 
-  {"_LINK":"ca42b495d7cf4fc7a2d838f465bc4766" }, ],
+  {"_LINK":"e9e5943a39ea4354887d6298d1a17e77" }, ],
  "strictdoc/10_orchestrator_and_pipeline.html": [
 
 
@@ -341,7 +341,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"f807292d65a747de876106fae5d38c25" },
+  {"_LINK":"239339e2746643e7b4c1d4be717f1785" },
 
   {"UID":"GHOST-ORCH-ROOT","_LINK":"GHOST-ORCH-ROOT" },
 
@@ -349,7 +349,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Runtime-Object-Model-and-Boundaries" },
 
-  {"_LINK":"c914cbb9f45844b8961f5ea9bcc96db1" },
+  {"_LINK":"593e09d9d00c4542a0cadeb140ff6ec7" },
 
   {"UID":"GHOST-ORCH-SUPERPROMPT-CENTRAL-STATE","_LINK":"GHOST-ORCH-SUPERPROMPT-CENTRAL-STATE" },
 
@@ -361,7 +361,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-Four-Functional-Runtime-Stages" },
 
-  {"_LINK":"73a993f213d24b43a78926465b621862" },
+  {"_LINK":"180324300df14bd282b5d6e0c6891361" },
 
   {"UID":"GHOST-ORCH-FOUR-STAGE-HIERARCHY","_LINK":"GHOST-ORCH-FOUR-STAGE-HIERARCHY" },
 
@@ -375,7 +375,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Stage-1-Prompt-Preprocessing-and-Prompt-Functions" },
 
-  {"_LINK":"46b45fc139c241e2b44d35afece9aeb4" },
+  {"_LINK":"cb9a2c03bec84d558b6e77556e69e280" },
 
   {"UID":"GHOST-ORCH-PREPROCESS-INPUT","_LINK":"GHOST-ORCH-PREPROCESS-INPUT" },
 
@@ -389,7 +389,7 @@ window.StrictDoc.project.map = {
 
   {"UID":"GHOST-ORCH-PREPROCESS-OUTPUT","_LINK":"GHOST-ORCH-PREPROCESS-OUTPUT" },
 
-  {"_LINK":"760a0e4831b047bdae2e0383787b373e" },
+  {"_LINK":"2a64e31f0e4043f2ab36af662d16f4f6" },
 
   {"UID":"GHOST-ORCH-A2-INPUT","_LINK":"GHOST-ORCH-A2-INPUT" },
 
@@ -403,7 +403,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-Stage-2-Knowledge-Management-Path" },
 
-  {"_LINK":"90ae4130156b413ab23841e120cc7c26" },
+  {"_LINK":"0e072d5835664c05b6ef36eb2e7ca3e0" },
 
   {"UID":"GHOST-ORCH-KNOWLEDGE-SCOPE","_LINK":"GHOST-ORCH-KNOWLEDGE-SCOPE" },
 
@@ -431,7 +431,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-Stage-3-Memory-Management-Path" },
 
-  {"_LINK":"caa1c58e13d944d789c278a77c38350b" },
+  {"_LINK":"bca117913dda49f2b6dda38194804fed" },
 
   {"UID":"GHOST-ORCH-MEMORY-SCOPE","_LINK":"GHOST-ORCH-MEMORY-SCOPE" },
 
@@ -461,7 +461,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-Stage-4-Final-Context-Integration-and-Prompt-Composition" },
 
-  {"_LINK":"41c1ef4ac26a4c4995aae28c9c678148" },
+  {"_LINK":"82af36c6384242d4845e1fb2621d39f4" },
 
   {"UID":"GHOST-ORCH-COMPOSE-SCOPE","_LINK":"GHOST-ORCH-COMPOSE-SCOPE" },
 
@@ -479,7 +479,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-Coordination-Between-the-Four-Stages" },
 
-  {"_LINK":"e9d9aeb6b4f34238a9ab6bb234a59c6a" },
+  {"_LINK":"ee4ae04fb0fc4c9fbff9b05d876e6b58" },
 
   {"UID":"GHOST-ORCH-COORDINATE-SAME-SP","_LINK":"GHOST-ORCH-COORDINATE-SAME-SP" },
 
@@ -497,7 +497,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-Data-Roots-and-Runtime-Configuration" },
 
-  {"_LINK":"dcd719bf189e4e31be46ee2ba878f4b4" },
+  {"_LINK":"bb57207009e542d98c6eb2185a56baa1" },
 
   {"UID":"GHOST-ORCH-DATA-ROOTS","_LINK":"GHOST-ORCH-DATA-ROOTS" },
 
@@ -511,7 +511,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Boundary-Rules-for-Sibling-Requirement-Files" },
 
-  {"_LINK":"2581d3f6b33f46d0befa011b7ffe868a" },
+  {"_LINK":"cbbecd4809f2495db151768666e6cb26" },
 
   {"UID":"GHOST-ORCH-BOUNDARY-AGENTSTACK","_LINK":"GHOST-ORCH-BOUNDARY-AGENTSTACK" },
 
@@ -527,7 +527,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"11-11-Acceptance-Criteria" },
 
-  {"_LINK":"1afc38691a7b49ed88e8f348b6850897" },
+  {"_LINK":"636bc649c5d444599584c5d7812611e9" },
 
   {"UID":"GHOST-ORCH-AC-FOUR-STAGES","_LINK":"GHOST-ORCH-AC-FOUR-STAGES" },
 
@@ -538,6 +538,442 @@ window.StrictDoc.project.map = {
   {"UID":"GHOST-ORCH-AC-SUPERPROMPT","_LINK":"GHOST-ORCH-AC-SUPERPROMPT" },
 
   {"UID":"GHOST-ORCH-AC-COMPOSITION","_LINK":"GHOST-ORCH-AC-COMPOSITION" }, ],
+ "strictdoc/110_mcp.html": [
+
+
+  {"UID":"GHOST-MCP","_LINK":"GHOST-MCP" },
+
+  {"_LINK":"1-1-Purpose-and-Scope" },
+
+  {"_LINK":"583d082ed31f46bca6f283bea20b3588" },
+
+  {"UID":"GHOST-MCP-ROOT","_LINK":"GHOST-MCP-ROOT" },
+
+  {"UID":"GHOST-MCP-CHILD-DOCUMENTS","_LINK":"GHOST-MCP-CHILD-DOCUMENTS" },
+
+  {"UID":"GHOST-MCP-INTERFACE-OWNERSHIP","_LINK":"GHOST-MCP-INTERFACE-OWNERSHIP" },
+
+  {"UID":"GHOST-MCP-PRODUCT-PACKAGE-BOUNDARY","_LINK":"GHOST-MCP-PRODUCT-PACKAGE-BOUNDARY" },
+
+  {"_LINK":"2-2-MCP-Communication-Contract" },
+
+  {"UID":"GHOST-MCP-REMOTE-TOOL-PROVIDER","_LINK":"GHOST-MCP-REMOTE-TOOL-PROVIDER" },
+
+  {"UID":"GHOST-MCP-CLIENT-COMPATIBILITY","_LINK":"GHOST-MCP-CLIENT-COMPATIBILITY" },
+
+  {"UID":"GHOST-MCP-EXPLICIT-CLIENT-INVOCATION","_LINK":"GHOST-MCP-EXPLICIT-CLIENT-INVOCATION" },
+
+  {"UID":"GHOST-MCP-REMOTE-STREAMABLE-HTTP","_LINK":"GHOST-MCP-REMOTE-STREAMABLE-HTTP" },
+
+  {"UID":"GHOST-MCP-EXTERNAL-HTTPS","_LINK":"GHOST-MCP-EXTERNAL-HTTPS" },
+
+  {"UID":"GHOST-MCP-PROTOCOL-INITIALIZATION","_LINK":"GHOST-MCP-PROTOCOL-INITIALIZATION" },
+
+  {"UID":"GHOST-MCP-TOOLS-LIST","_LINK":"GHOST-MCP-TOOLS-LIST" },
+
+  {"UID":"GHOST-MCP-TOOLS-CALL","_LINK":"GHOST-MCP-TOOLS-CALL" },
+
+  {"_LINK":"3-3-Authentication-Authorization-and-Owner-Isolation" },
+
+  {"UID":"GHOST-MCP-PROTECTED-ACCESS","_LINK":"GHOST-MCP-PROTECTED-ACCESS" },
+
+  {"UID":"GHOST-MCP-OAUTH-PROTECTED-RESOURCE-METADATA","_LINK":"GHOST-MCP-OAUTH-PROTECTED-RESOURCE-METADATA" },
+
+  {"UID":"GHOST-MCP-BEARER-TOKEN-TRANSPORT","_LINK":"GHOST-MCP-BEARER-TOKEN-TRANSPORT" },
+
+  {"UID":"GHOST-MCP-TOKEN-RESOURCE-VALIDATION","_LINK":"GHOST-MCP-TOKEN-RESOURCE-VALIDATION" },
+
+  {"UID":"GHOST-MCP-OWNER-ISOLATION","_LINK":"GHOST-MCP-OWNER-ISOLATION" },
+
+  {"UID":"GHOST-MCP-AUTHENTICATION-FAILURE","_LINK":"GHOST-MCP-AUTHENTICATION-FAILURE" },
+
+  {"UID":"GHOST-MCP-AUTHORIZATION-FAILURE","_LINK":"GHOST-MCP-AUTHORIZATION-FAILURE" },
+
+  {"UID":"GHOST-MCP-ORIGIN-VALIDATION","_LINK":"GHOST-MCP-ORIGIN-VALIDATION" },
+
+  {"_LINK":"4-4-Shared-Runtime-and-Safety-Behavior" },
+
+  {"UID":"GHOST-MCP-TOOL-RATE-LIMITING","_LINK":"GHOST-MCP-TOOL-RATE-LIMITING" },
+
+  {"UID":"GHOST-MCP-REQUEST-ISOLATION","_LINK":"GHOST-MCP-REQUEST-ISOLATION" },
+
+  {"UID":"GHOST-MCP-MALFORMED-REQUEST-ERROR","_LINK":"GHOST-MCP-MALFORMED-REQUEST-ERROR" },
+
+  {"UID":"GHOST-MCP-ERROR-SANITIZATION","_LINK":"GHOST-MCP-ERROR-SANITIZATION" },
+
+  {"UID":"GHOST-MCP-TOOL-METADATA-TRUTH","_LINK":"GHOST-MCP-TOOL-METADATA-TRUTH" },
+
+  {"_LINK":"5-5-Functional-Ownership-Boundaries" },
+
+  {"UID":"GHOST-MCP-PREPROCESSING-OWNERSHIP-REFERENCE","_LINK":"GHOST-MCP-PREPROCESSING-OWNERSHIP-REFERENCE" },
+
+  {"UID":"GHOST-MCP-AWS-OWNERSHIP-REFERENCE","_LINK":"GHOST-MCP-AWS-OWNERSHIP-REFERENCE" },
+
+  {"UID":"GHOST-MCP-UI-OWNERSHIP-BOUNDARY","_LINK":"GHOST-MCP-UI-OWNERSHIP-BOUNDARY" },
+
+  {"UID":"GHOST-MCP-MEMORY-OWNERSHIP-BOUNDARY","_LINK":"GHOST-MCP-MEMORY-OWNERSHIP-BOUNDARY" },
+
+  {"_LINK":"6-6-Client-and-Protocol-Acceptance" },
+
+  {"UID":"GHOST-MCP-PROTOCOL-ACCEPTANCE","_LINK":"GHOST-MCP-PROTOCOL-ACCEPTANCE" },
+
+  {"UID":"GHOST-MCP-CHATGPT-ACCEPTANCE","_LINK":"GHOST-MCP-CHATGPT-ACCEPTANCE" },
+
+  {"UID":"GHOST-MCP-CLAUDE-ACCEPTANCE","_LINK":"GHOST-MCP-CLAUDE-ACCEPTANCE" },
+
+  {"UID":"GHOST-MCP-CROSS-CLIENT-CONSISTENCY","_LINK":"GHOST-MCP-CROSS-CLIENT-CONSISTENCY" },
+
+  {"_LINK":"7-7-Controlled-Extension-and-Requirement-Stability" },
+
+  {"_LINK":"cbf0b989ee444577b592750a7f62f7fd" },
+
+  {"UID":"GHOST-MCP-EXTENSION-APPROVAL","_LINK":"GHOST-MCP-EXTENSION-APPROVAL" },
+
+  {"UID":"GHOST-MCP-CONTRACT-CHANGE-CONTROL","_LINK":"GHOST-MCP-CONTRACT-CHANGE-CONTROL" }, ],
+ "strictdoc/111_mcp_capabilities.html": [
+
+
+  {"UID":"GHOST-MCP-CAPABILITIES","_LINK":"GHOST-MCP-CAPABILITIES" },
+
+  {"_LINK":"1-1-Purpose-and-Scope" },
+
+  {"_LINK":"238779fe2c5f4c5d8a407ac62915ef55" },
+
+  {"UID":"GHOST-MCP-CAP-ROOT","_LINK":"GHOST-MCP-CAP-ROOT" },
+
+  {"_LINK":"2-2-Prompt-Engineering" },
+
+  {"_LINK":"c9d3c620ca824dc98da580075498cb7e" },
+
+  {"UID":"GHOST-MCP-ENGINEER-PROMPT-TOOL","_LINK":"GHOST-MCP-ENGINEER-PROMPT-TOOL" },
+
+  {"UID":"GHOST-MCP-APPROVED-FLOW","_LINK":"GHOST-MCP-APPROVED-FLOW" },
+
+  {"UID":"GHOST-MCP-FRESH-SUPERPROMPT","_LINK":"GHOST-MCP-FRESH-SUPERPROMPT" },
+
+  {"UID":"GHOST-MCP-PREPROCESS-CALL","_LINK":"GHOST-MCP-PREPROCESS-CALL" },
+
+  {"UID":"GHOST-MCP-PREPROCESS-STAGE-GATE","_LINK":"GHOST-MCP-PREPROCESS-STAGE-GATE" },
+
+  {"UID":"GHOST-MCP-A2-CALL","_LINK":"GHOST-MCP-A2-CALL" },
+
+  {"UID":"GHOST-MCP-A2-COMPLETION-GATE","_LINK":"GHOST-MCP-A2-COMPLETION-GATE" },
+
+  {"UID":"GHOST-MCP-ENGINEERED-PROMPT-SOURCE","_LINK":"GHOST-MCP-ENGINEERED-PROMPT-SOURCE" },
+
+  {"UID":"GHOST-MCP-NO-ANSWER-GENERATION","_LINK":"GHOST-MCP-NO-ANSWER-GENERATION" },
+
+  {"UID":"GHOST-MCP-PROMPT-EXPERIMENT-BOUNDARY","_LINK":"GHOST-MCP-PROMPT-EXPERIMENT-BOUNDARY" },
+
+  {"_LINK":"3-3-MCP-Memory-Model" },
+
+  {"UID":"GHOST-MCP-MEMORY-MODEL","_LINK":"GHOST-MCP-MEMORY-MODEL" },
+
+  {"UID":"GHOST-MCP-MEMORY-COMMON-TRUTH","_LINK":"GHOST-MCP-MEMORY-COMMON-TRUTH" },
+
+  {"UID":"GHOST-MCP-MEMORY-OWNER-SCOPE","_LINK":"GHOST-MCP-MEMORY-OWNER-SCOPE" },
+
+  {"_LINK":"4-4-Shared-Memory-Operations" },
+
+  {"_LINK":"4.1-4-1-Save" },
+
+  {"UID":"GHOST-MCP-MEMORY-SAVE","_LINK":"GHOST-MCP-MEMORY-SAVE" },
+
+  {"UID":"GHOST-MCP-MEMORY-SAVE-VISIBLE-CONTENT","_LINK":"GHOST-MCP-MEMORY-SAVE-VISIBLE-CONTENT" },
+
+  {"UID":"GHOST-MCP-MEMORY-SAVE-TITLE-DESCRIPTION","_LINK":"GHOST-MCP-MEMORY-SAVE-TITLE-DESCRIPTION" },
+
+  {"UID":"GHOST-MCP-MEMORY-SAVE-RECALL-KEY","_LINK":"GHOST-MCP-MEMORY-SAVE-RECALL-KEY" },
+
+  {"_LINK":"4.2-4-2-Recall" },
+
+  {"UID":"GHOST-MCP-MEMORY-RECALL","_LINK":"GHOST-MCP-MEMORY-RECALL" },
+
+  {"UID":"GHOST-MCP-MEMORY-EXACT-RECALL","_LINK":"GHOST-MCP-MEMORY-EXACT-RECALL" },
+
+  {"UID":"GHOST-MCP-MEMORY-NO-FAKE-EXACT-FILTER","_LINK":"GHOST-MCP-MEMORY-NO-FAKE-EXACT-FILTER" },
+
+  {"_LINK":"4.3-4-3-List" },
+
+  {"UID":"GHOST-MCP-MEMORY-LIST","_LINK":"GHOST-MCP-MEMORY-LIST" },
+
+  {"UID":"GHOST-MCP-MEMORY-LIST-FILTERS","_LINK":"GHOST-MCP-MEMORY-LIST-FILTERS" },
+
+  {"_LINK":"4.4-4-4-Delete" },
+
+  {"UID":"GHOST-MCP-MEMORY-DELETE","_LINK":"GHOST-MCP-MEMORY-DELETE" },
+
+  {"UID":"GHOST-MCP-MEMORY-DELETE-DUPLICATE-SAFETY","_LINK":"GHOST-MCP-MEMORY-DELETE-DUPLICATE-SAFETY" },
+
+  {"UID":"GHOST-MCP-MEMORY-DELETE-NO-CLIPBOARD","_LINK":"GHOST-MCP-MEMORY-DELETE-NO-CLIPBOARD" },
+
+  {"_LINK":"5-5-Episodic-Memory" },
+
+  {"UID":"GHOST-MCP-EPISODIC-ROOT","_LINK":"GHOST-MCP-EPISODIC-ROOT" },
+
+  {"UID":"GHOST-MCP-EPISODIC-DESCRIPTION-REQUIRED","_LINK":"GHOST-MCP-EPISODIC-DESCRIPTION-REQUIRED" },
+
+  {"UID":"GHOST-MCP-EPISODIC-DESCRIPTION-VECTOR","_LINK":"GHOST-MCP-EPISODIC-DESCRIPTION-VECTOR" },
+
+  {"UID":"GHOST-MCP-EPISODIC-INTELLIGENT-QUERY","_LINK":"GHOST-MCP-EPISODIC-INTELLIGENT-QUERY" },
+
+  {"UID":"GHOST-MCP-EPISODIC-DATE-NARROWING","_LINK":"GHOST-MCP-EPISODIC-DATE-NARROWING" },
+
+  {"UID":"GHOST-MCP-EPISODIC-COSINE-RANKING","_LINK":"GHOST-MCP-EPISODIC-COSINE-RANKING" },
+
+  {"UID":"GHOST-MCP-EPISODIC-CANDIDATE-RETURN","_LINK":"GHOST-MCP-EPISODIC-CANDIDATE-RETURN" },
+
+  {"UID":"GHOST-MCP-EPISODIC-CLIENT-SELECTION","_LINK":"GHOST-MCP-EPISODIC-CLIENT-SELECTION" },
+
+  {"UID":"GHOST-MCP-EPISODIC-EXACT-FINAL-FETCH","_LINK":"GHOST-MCP-EPISODIC-EXACT-FINAL-FETCH" },
+
+  {"UID":"GHOST-MCP-EPISODIC-NO-TITLE-FIRST-FUNNEL","_LINK":"GHOST-MCP-EPISODIC-NO-TITLE-FIRST-FUNNEL" },
+
+  {"_LINK":"6-6-Clipboard-Memory" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-ROOT","_LINK":"GHOST-MCP-CLIPBOARD-ROOT" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-RESERVED-KEYS","_LINK":"GHOST-MCP-CLIPBOARD-RESERVED-KEYS" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-DAILY-FILE","_LINK":"GHOST-MCP-CLIPBOARD-DAILY-FILE" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-APPEND-ONLY","_LINK":"GHOST-MCP-CLIPBOARD-APPEND-ONLY" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-LATEST-RECALL","_LINK":"GHOST-MCP-CLIPBOARD-LATEST-RECALL" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-CONTENT","_LINK":"GHOST-MCP-CLIPBOARD-CONTENT" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-NO-SEMANTIC-RETRIEVAL","_LINK":"GHOST-MCP-CLIPBOARD-NO-SEMANTIC-RETRIEVAL" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-NO-GENERIC-LIST-DELETE","_LINK":"GHOST-MCP-CLIPBOARD-NO-GENERIC-LIST-DELETE" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-RETENTION","_LINK":"GHOST-MCP-CLIPBOARD-RETENTION" },
+
+  {"UID":"GHOST-MCP-CLIPBOARD-STARTUP-CLEANUP","_LINK":"GHOST-MCP-CLIPBOARD-STARTUP-CLEANUP" },
+
+  {"_LINK":"7-7-Collection-Memory" },
+
+  {"UID":"GHOST-MCP-COLLECTION-ROOT","_LINK":"GHOST-MCP-COLLECTION-ROOT" },
+
+  {"UID":"GHOST-MCP-COLLECTION-INIT","_LINK":"GHOST-MCP-COLLECTION-INIT" },
+
+  {"UID":"GHOST-MCP-COLLECTION-IDENTITY","_LINK":"GHOST-MCP-COLLECTION-IDENTITY" },
+
+  {"UID":"GHOST-MCP-COLLECTION-EXPLICIT-APPEND","_LINK":"GHOST-MCP-COLLECTION-EXPLICIT-APPEND" },
+
+  {"UID":"GHOST-MCP-COLLECTION-EPISODE-METADATA","_LINK":"GHOST-MCP-COLLECTION-EPISODE-METADATA" },
+
+  {"UID":"GHOST-MCP-COLLECTION-ACTIVEBRIEF","_LINK":"GHOST-MCP-COLLECTION-ACTIVEBRIEF" },
+
+  {"UID":"GHOST-MCP-COLLECTION-LIST","_LINK":"GHOST-MCP-COLLECTION-LIST" },
+
+  {"UID":"GHOST-MCP-COLLECTION-LIST-EPISODES","_LINK":"GHOST-MCP-COLLECTION-LIST-EPISODES" },
+
+  {"UID":"GHOST-MCP-COLLECTION-INDIVIDUAL-RECALL","_LINK":"GHOST-MCP-COLLECTION-INDIVIDUAL-RECALL" },
+
+  {"UID":"GHOST-MCP-COLLECTION-RANGE-RECALL","_LINK":"GHOST-MCP-COLLECTION-RANGE-RECALL" },
+
+  {"UID":"GHOST-MCP-COLLECTION-RANGE-TOKEN-SAFETY","_LINK":"GHOST-MCP-COLLECTION-RANGE-TOKEN-SAFETY" },
+
+  {"UID":"GHOST-MCP-COLLECTION-DELETE-WHOLE","_LINK":"GHOST-MCP-COLLECTION-DELETE-WHOLE" },
+
+  {"UID":"GHOST-MCP-COLLECTION-DELETE-CONFIRMATION","_LINK":"GHOST-MCP-COLLECTION-DELETE-CONFIRMATION" },
+
+  {"UID":"GHOST-MCP-COLLECTION-INDIVIDUAL-DELETE","_LINK":"GHOST-MCP-COLLECTION-INDIVIDUAL-DELETE" },
+
+  {"_LINK":"8-8-Current-Implementation-and-Target-Boundary" },
+
+  {"_LINK":"77e95b42d293432ea9c68199e0f80e16" },
+
+  {"UID":"GHOST-MCP-CAP-NO-IMPLEMENTATION-INVENTION","_LINK":"GHOST-MCP-CAP-NO-IMPLEMENTATION-INVENTION" }, ],
+ "strictdoc/112_mcp_activeblackboard.html": [
+
+
+  {"UID":"GHOST-MCP-ACTIVEBLACKBOARD","_LINK":"GHOST-MCP-ACTIVEBLACKBOARD" },
+
+  {"_LINK":"1-1-Purpose-and-Scope" },
+
+  {"_LINK":"db54c536f9a146058025a9450e7145d9" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-ROOT","_LINK":"GHOST-MCP-BLACKBOARD-ROOT" },
+
+  {"_LINK":"2-2-Current-Persistent-Chat-Prototype" },
+
+  {"_LINK":"18b8c2eb67c04a4aa42707e82975cc89" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE","_LINK":"GHOST-MCP-BLACKBOARD-CURRENT-PROTOTYPE" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-CURRENT-SINGLE-STREAM","_LINK":"GHOST-MCP-BLACKBOARD-CURRENT-SINGLE-STREAM" },
+
+  {"_LINK":"3-3-Persistent-Chat-Initialization" },
+
+  {"UID":"GHOST-MCP-PCHAT-INIT-TOOL","_LINK":"GHOST-MCP-PCHAT-INIT-TOOL" },
+
+  {"UID":"GHOST-MCP-PCHAT-INIT-EXPLICIT","_LINK":"GHOST-MCP-PCHAT-INIT-EXPLICIT" },
+
+  {"UID":"GHOST-MCP-PCHAT-INIT-INPUT","_LINK":"GHOST-MCP-PCHAT-INIT-INPUT" },
+
+  {"UID":"GHOST-MCP-PCHAT-STABLE-ID","_LINK":"GHOST-MCP-PCHAT-STABLE-ID" },
+
+  {"UID":"GHOST-MCP-PCHAT-INIT-NO-EPISODE","_LINK":"GHOST-MCP-PCHAT-INIT-NO-EPISODE" },
+
+  {"_LINK":"4-4-Persistent-Chat-Append" },
+
+  {"UID":"GHOST-MCP-PCHAT-APPEND-TOOL","_LINK":"GHOST-MCP-PCHAT-APPEND-TOOL" },
+
+  {"UID":"GHOST-MCP-PCHAT-VISIBLE-QA","_LINK":"GHOST-MCP-PCHAT-VISIBLE-QA" },
+
+  {"UID":"GHOST-MCP-PCHAT-NO-HIDDEN-CONTENT","_LINK":"GHOST-MCP-PCHAT-NO-HIDDEN-CONTENT" },
+
+  {"UID":"GHOST-MCP-PCHAT-PRESENTATION-AUTHORITY","_LINK":"GHOST-MCP-PCHAT-PRESENTATION-AUTHORITY" },
+
+  {"UID":"GHOST-MCP-PCHAT-ANSWER-BEFORE-APPEND","_LINK":"GHOST-MCP-PCHAT-ANSWER-BEFORE-APPEND" },
+
+  {"UID":"GHOST-MCP-PCHAT-APPEND-EXISTING-ONLY","_LINK":"GHOST-MCP-PCHAT-APPEND-EXISTING-ONLY" },
+
+  {"_LINK":"5-5-ActiveBrief-Continuity" },
+
+  {"UID":"GHOST-MCP-PCHAT-ACTIVEBRIEF","_LINK":"GHOST-MCP-PCHAT-ACTIVEBRIEF" },
+
+  {"UID":"GHOST-MCP-PCHAT-FIRST-BRIEF","_LINK":"GHOST-MCP-PCHAT-FIRST-BRIEF" },
+
+  {"UID":"GHOST-MCP-PCHAT-BRIEF-UPDATE","_LINK":"GHOST-MCP-PCHAT-BRIEF-UPDATE" },
+
+  {"UID":"GHOST-MCP-PCHAT-CLIENT-BRIEF-AUTHORITY","_LINK":"GHOST-MCP-PCHAT-CLIENT-BRIEF-AUTHORITY" },
+
+  {"_LINK":"6-6-Episode-Ordering-and-Persistence-Integrity" },
+
+  {"UID":"GHOST-MCP-PCHAT-SEQUENCE","_LINK":"GHOST-MCP-PCHAT-SEQUENCE" },
+
+  {"UID":"GHOST-MCP-PCHAT-STREAM-ID","_LINK":"GHOST-MCP-PCHAT-STREAM-ID" },
+
+  {"UID":"GHOST-MCP-PCHAT-RECORD-ID","_LINK":"GHOST-MCP-PCHAT-RECORD-ID" },
+
+  {"UID":"GHOST-MCP-PCHAT-COMMON-PERSISTENCE","_LINK":"GHOST-MCP-PCHAT-COMMON-PERSISTENCE" },
+
+  {"UID":"GHOST-MCP-PCHAT-COHERENCE","_LINK":"GHOST-MCP-PCHAT-COHERENCE" },
+
+  {"UID":"GHOST-MCP-PCHAT-PARTIAL-SAVE","_LINK":"GHOST-MCP-PCHAT-PARTIAL-SAVE" },
+
+  {"_LINK":"7-7-Persistent-Chat-Resume" },
+
+  {"UID":"GHOST-MCP-PCHAT-RESUME-TOOL","_LINK":"GHOST-MCP-PCHAT-RESUME-TOOL" },
+
+  {"UID":"GHOST-MCP-PCHAT-RESUME-NO-CREATE","_LINK":"GHOST-MCP-PCHAT-RESUME-NO-CREATE" },
+
+  {"UID":"GHOST-MCP-PCHAT-RESUME-OWNER","_LINK":"GHOST-MCP-PCHAT-RESUME-OWNER" },
+
+  {"UID":"GHOST-MCP-PCHAT-RESUME-LATEST","_LINK":"GHOST-MCP-PCHAT-RESUME-LATEST" },
+
+  {"UID":"GHOST-MCP-PCHAT-RESUME-STATE","_LINK":"GHOST-MCP-PCHAT-RESUME-STATE" },
+
+  {"_LINK":"8-8-List-and-Delete-Integration" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-LIST-TARGET","_LINK":"GHOST-MCP-BLACKBOARD-LIST-TARGET" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-EPISODE-DELETE","_LINK":"GHOST-MCP-BLACKBOARD-EPISODE-DELETE" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-DELETE-BRIEF-TRACE","_LINK":"GHOST-MCP-BLACKBOARD-DELETE-BRIEF-TRACE" },
+
+  {"_LINK":"9-9-Current-Prototype-Boundary" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-NO-CURRENT-MULTIACTOR","_LINK":"GHOST-MCP-BLACKBOARD-NO-CURRENT-MULTIACTOR" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-NO-INVENTED-CURRENT-TOOLS","_LINK":"GHOST-MCP-BLACKBOARD-NO-INVENTED-CURRENT-TOOLS" },
+
+  {"_LINK":"10-10-Future-ActiveBlackboard-Vision" },
+
+  {"_LINK":"2f56c38abfa843189c0c41585ee3060b" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-FUTURE-SHARED","_LINK":"GHOST-MCP-BLACKBOARD-FUTURE-SHARED" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-FUTURE-ACTORS","_LINK":"GHOST-MCP-BLACKBOARD-FUTURE-ACTORS" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-FUTURE-BRIEFS","_LINK":"GHOST-MCP-BLACKBOARD-FUTURE-BRIEFS" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-FUTURE-PULL","_LINK":"GHOST-MCP-BLACKBOARD-FUTURE-PULL" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-FUTURE-GUI","_LINK":"GHOST-MCP-BLACKBOARD-FUTURE-GUI" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-FUTURE-HUMAN-CONTROL","_LINK":"GHOST-MCP-BLACKBOARD-FUTURE-HUMAN-CONTROL" },
+
+  {"_LINK":"11-11-Intentionally-Unresolved-Future-Design" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-UNRESOLVED","_LINK":"GHOST-MCP-BLACKBOARD-UNRESOLVED" },
+
+  {"UID":"GHOST-MCP-BLACKBOARD-NO-FUTURE-IMPLEMENTATION-CLAIM","_LINK":"GHOST-MCP-BLACKBOARD-NO-FUTURE-IMPLEMENTATION-CLAIM" }, ],
+ "strictdoc/113_mcp_runtime_control.html": [
+
+
+  {"UID":"GHOST-MCP-RUNTIME-CONTROL","_LINK":"GHOST-MCP-RUNTIME-CONTROL" },
+
+  {"_LINK":"1-1-Purpose-and-Scope" },
+
+  {"_LINK":"5da7e349641946d98de85f5411a6ac23" },
+
+  {"UID":"GHOST-MCP-RUNTIME-ROOT","_LINK":"GHOST-MCP-RUNTIME-ROOT" },
+
+  {"UID":"GHOST-MCP-RUNTIME-SEPARATE-ENDPOINT","_LINK":"GHOST-MCP-RUNTIME-SEPARATE-ENDPOINT" },
+
+  {"_LINK":"2-2-Runtime-Control-Tool-Inventory-and-Access" },
+
+  {"UID":"GHOST-MCP-RUNTIME-TOOLS","_LINK":"GHOST-MCP-RUNTIME-TOOLS" },
+
+  {"UID":"GHOST-MCP-RUNTIME-AUTH","_LINK":"GHOST-MCP-RUNTIME-AUTH" },
+
+  {"UID":"GHOST-MCP-RUNTIME-FIXED-TARGET","_LINK":"GHOST-MCP-RUNTIME-FIXED-TARGET" },
+
+  {"_LINK":"3-3-Start-Tool" },
+
+  {"UID":"GHOST-MCP-RUNTIME-START-TOOL","_LINK":"GHOST-MCP-RUNTIME-START-TOOL" },
+
+  {"UID":"GHOST-MCP-RUNTIME-PROFILE-INPUT","_LINK":"GHOST-MCP-RUNTIME-PROFILE-INPUT" },
+
+  {"UID":"GHOST-MCP-RUNTIME-IDLE-INPUT","_LINK":"GHOST-MCP-RUNTIME-IDLE-INPUT" },
+
+  {"UID":"GHOST-MCP-RUNTIME-START-STOPPED-ONLY","_LINK":"GHOST-MCP-RUNTIME-START-STOPPED-ONLY" },
+
+  {"UID":"GHOST-MCP-RUNTIME-START-READINESS","_LINK":"GHOST-MCP-RUNTIME-START-READINESS" },
+
+  {"UID":"GHOST-MCP-RUNTIME-START-RESULT","_LINK":"GHOST-MCP-RUNTIME-START-RESULT" },
+
+  {"_LINK":"4-4-Status-Tool" },
+
+  {"UID":"GHOST-MCP-RUNTIME-STATUS-TOOL","_LINK":"GHOST-MCP-RUNTIME-STATUS-TOOL" },
+
+  {"UID":"GHOST-MCP-RUNTIME-STATUS-RESULT","_LINK":"GHOST-MCP-RUNTIME-STATUS-RESULT" },
+
+  {"UID":"GHOST-MCP-RUNTIME-STATUS-NO-ACTIVITY","_LINK":"GHOST-MCP-RUNTIME-STATUS-NO-ACTIVITY" },
+
+  {"_LINK":"5-5-Stop-Tool" },
+
+  {"UID":"GHOST-MCP-RUNTIME-STOP-TOOL","_LINK":"GHOST-MCP-RUNTIME-STOP-TOOL" },
+
+  {"UID":"GHOST-MCP-RUNTIME-STOP-SAFE","_LINK":"GHOST-MCP-RUNTIME-STOP-SAFE" },
+
+  {"_LINK":"6-6-Inactivity-Shutdown-Contract" },
+
+  {"_LINK":"dc25ec884fb14746ace54f33a3874b01" },
+
+  {"UID":"GHOST-MCP-RUNTIME-IDLE-POLICY","_LINK":"GHOST-MCP-RUNTIME-IDLE-POLICY" },
+
+  {"UID":"GHOST-MCP-RUNTIME-ACTIVITY-DEFINITION","_LINK":"GHOST-MCP-RUNTIME-ACTIVITY-DEFINITION" },
+
+  {"UID":"GHOST-MCP-RUNTIME-ACTIVITY-EXCLUSIONS","_LINK":"GHOST-MCP-RUNTIME-ACTIVITY-EXCLUSIONS" },
+
+  {"UID":"GHOST-MCP-RUNTIME-INFLIGHT","_LINK":"GHOST-MCP-RUNTIME-INFLIGHT" },
+
+  {"UID":"GHOST-MCP-RUNTIME-REDUNDANT-WATCHDOG","_LINK":"GHOST-MCP-RUNTIME-REDUNDANT-WATCHDOG" },
+
+  {"_LINK":"7-7-Error-and-Safety-Behavior" },
+
+  {"UID":"GHOST-MCP-RUNTIME-NO-FALSE-READY","_LINK":"GHOST-MCP-RUNTIME-NO-FALSE-READY" },
+
+  {"UID":"GHOST-MCP-RUNTIME-NO-ARBITRARY-AWS","_LINK":"GHOST-MCP-RUNTIME-NO-ARBITRARY-AWS" },
+
+  {"_LINK":"8-8-Acceptance" },
+
+  {"UID":"GHOST-MCP-RUNTIME-ACCEPTANCE","_LINK":"GHOST-MCP-RUNTIME-ACCEPTANCE" }, ],
  "strictdoc/20_agent_stack.html": [
 
 
@@ -545,7 +981,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"72e60772d3784bbcae440fc2192a44cd" },
+  {"_LINK":"7424dfe98efb4d07a451d19363ae1fdc" },
 
   {"UID":"GHOST-AGENT-STACK-ROOT","_LINK":"GHOST-AGENT-STACK-ROOT" },
 
@@ -555,7 +991,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Architectural-Model-and-Responsibility-Boundaries" },
 
-  {"_LINK":"ef8dc531eb3d46afabc20a647b5837d5" },
+  {"_LINK":"15206b83643541a6aa27b9a26e1ea0bd" },
 
   {"UID":"GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS","_LINK":"GHOST-AGENT-STACK-SEPARATION-OF-CONCERNS" },
 
@@ -573,7 +1009,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-Agent-Configuration-Contract" },
 
-  {"_LINK":"ac828dec65d542e5b56b110b30e2c28a" },
+  {"_LINK":"57d251bbb9c749008cf3a41c2e686b8c" },
 
   {"UID":"GHOST-AGENT-CONFIG-JSON","_LINK":"GHOST-AGENT-CONFIG-JSON" },
 
@@ -609,7 +1045,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-AgentFactory-Requirements" },
 
-  {"_LINK":"e177143e38e9405383782ea1779f5b3a" },
+  {"_LINK":"90532bb76aba4600824c5d1adb223030" },
 
   {"UID":"GHOST-AGENT-FACTORY-CONFIG-PATH","_LINK":"GHOST-AGENT-FACTORY-CONFIG-PATH" },
 
@@ -631,7 +1067,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-AgentPrompt-Requirements" },
 
-  {"_LINK":"29e6b17131d545dcbbcaee81277c20b3" },
+  {"_LINK":"ae0d57e285a6414abe5ee2a470cc5e78" },
 
   {"UID":"GHOST-AGENT-PROMPT-FROM-CONFIG","_LINK":"GHOST-AGENT-PROMPT-FROM-CONFIG" },
 
@@ -673,7 +1109,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-LLMClient-Requirements" },
 
-  {"_LINK":"72c1315cde4346a8bbeb60298ab5269b" },
+  {"_LINK":"522a297ad2c34aa596a4753c994cbfe5" },
 
   {"UID":"GHOST-LLM-CLIENT-PROVIDER-BOUNDARY","_LINK":"GHOST-LLM-CLIENT-PROVIDER-BOUNDARY" },
 
@@ -707,7 +1143,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-Concrete-Agent-Integration-Contract" },
 
-  {"_LINK":"24876b16d6f64ed2aae2e3e96b0e1bb6" },
+  {"_LINK":"d80824bccd914a2c913700159fcdc0c2" },
 
   {"UID":"GHOST-AGENT-CONSUMER-GENERIC-FLOW","_LINK":"GHOST-AGENT-CONSUMER-GENERIC-FLOW" },
 
@@ -737,7 +1173,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-Error-Handling-Security-and-Quality-Boundaries" },
 
-  {"_LINK":"29b826fffe5e421fb4bfbc3ea67c7569" },
+  {"_LINK":"4b8f17c7133d46c094a1b9651fc6f87f" },
 
   {"UID":"GHOST-AGENT-STACK-CONFIG-ERRORS","_LINK":"GHOST-AGENT-STACK-CONFIG-ERRORS" },
 
@@ -757,7 +1193,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-Traceability-and-Sibling-Requirement-Ownership" },
 
-  {"_LINK":"3cafa992411147309c5c09d933d8d296" },
+  {"_LINK":"bf43b33d596b48f5b766ab5f8a9e44f5" },
 
   {"UID":"GHOST-AGENT-STACK-CODE-TRACE-ANCHORS","_LINK":"GHOST-AGENT-STACK-CODE-TRACE-ANCHORS" },
 
@@ -767,7 +1203,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Acceptance-Criteria" },
 
-  {"_LINK":"31fac0bcf9534f79a3d1c7d234a6aa7a" },
+  {"_LINK":"15b9d5d240364a69ba1e291d7f82d968" },
 
   {"UID":"GHOST-AGENT-STACK-AC-FACTORY-CONSTRUCTION","_LINK":"GHOST-AGENT-STACK-AC-FACTORY-CONSTRUCTION" },
 
@@ -803,7 +1239,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"f8addc9287494922b3ec7a5caadfb109" },
+  {"_LINK":"18f6fc268a5a4ec8bca0b5b1e8196c05" },
 
   {"UID":"GHOST-PREPROCESS-ROOT","_LINK":"GHOST-PREPROCESS-ROOT" },
 
@@ -815,7 +1251,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Functional-Architecture-and-Responsibility-Boundaries" },
 
-  {"_LINK":"02a0e14fef7b4953950f02169b38dbf1" },
+  {"_LINK":"29e3f17ac3e148c1a1f220cdc1765310" },
 
   {"UID":"GHOST-PREPROCESS-END-TO-END-FLOW","_LINK":"GHOST-PREPROCESS-END-TO-END-FLOW" },
 
@@ -837,7 +1273,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-Prompt-Schema-and-Canonical-Field-Contract" },
 
-  {"_LINK":"c92c379d027043f4830823a9d8d5b9a8" },
+  {"_LINK":"b07e3a1f97ba451c920582f31d2d2b39" },
 
   {"UID":"GHOST-PREPROCESS-SCHEMA-LOAD","_LINK":"GHOST-PREPROCESS-SCHEMA-LOAD" },
 
@@ -865,7 +1301,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Deterministic-Prompt-Parsing-and-Name-Resolution" },
 
-  {"_LINK":"cb00ebda1fe640d1b43e0df8e6f028f5" },
+  {"_LINK":"d3f6c38702fe47da94d0138e46e43c38" },
 
   {"UID":"GHOST-PREPROCESS-NONEMPTY-INPUT","_LINK":"GHOST-PREPROCESS-NONEMPTY-INPUT" },
 
@@ -895,7 +1331,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-SuperPrompt-Construction-and-Initial-Projection" },
 
-  {"_LINK":"0e0ad5e1d5684e75a03a1f681fc5a7ae" },
+  {"_LINK":"b7e2bac7d8a74b3abd1d8c022f4e6aac" },
 
   {"UID":"GHOST-PREPROCESS-IN-PLACE-UPDATE","_LINK":"GHOST-PREPROCESS-IN-PLACE-UPDATE" },
 
@@ -919,7 +1355,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-ActiveBrief-Selection-and-Classifier-Input" },
 
-  {"_LINK":"c3baa5645fb34fe9962002a26a3c0343" },
+  {"_LINK":"d2c19bbce9e74a68b7dbd5ebfa373db0" },
 
   {"UID":"GHOST-PREPROCESS-ACTIVEBRIEF-OPTIONAL","_LINK":"GHOST-PREPROCESS-ACTIVEBRIEF-OPTIONAL" },
 
@@ -939,7 +1375,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-ActiveBrief-Relation-Classification-and-Deterministic-Routing" },
 
-  {"_LINK":"064d556f40f14646a938a6eed6682ce3" },
+  {"_LINK":"7becb4f76c3e4c149b9f8b4a8a971020" },
 
   {"UID":"GHOST-PREPROCESS-TWO-DIMENSION-CLASSIFICATION","_LINK":"GHOST-PREPROCESS-TWO-DIMENSION-CLASSIFICATION" },
 
@@ -983,7 +1419,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-A2-PromptShaper-and-Job-Structuring" },
 
-  {"_LINK":"d093dde3ef4c4939ba9c9fa1ce4b7f3f" },
+  {"_LINK":"d25f2bd843684cfbb6224ec7a2657e76" },
 
   {"UID":"GHOST-PREPROCESS-A2-INPUT-STATE","_LINK":"GHOST-PREPROCESS-A2-INPUT-STATE" },
 
@@ -1027,7 +1463,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-Prepared-Handoff-to-Knowledge-and-Memory-Retrieval" },
 
-  {"_LINK":"f2118d55470948c6ba804fdc41b494e8" },
+  {"_LINK":"2064bb320b014ef98c0bcfa70b7edc67" },
 
   {"UID":"GHOST-PREPROCESS-QUERY-FINALIZATION","_LINK":"GHOST-PREPROCESS-QUERY-FINALIZATION" },
 
@@ -1051,7 +1487,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Error-Handling-Logging-and-Quality-Requirements" },
 
-  {"_LINK":"2ec0d94ec2714844be4cf73efe965e83" },
+  {"_LINK":"04a89cb73fe54e5db6e6a2dd61620ccd" },
 
   {"UID":"GHOST-PREPROCESS-SCHEMA-ERROR","_LINK":"GHOST-PREPROCESS-SCHEMA-ERROR" },
 
@@ -1071,7 +1507,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"11-11-Traceability-and-Sibling-Requirement-Ownership" },
 
-  {"_LINK":"58f3833c286b44bb8e83c4ade245d1df" },
+  {"_LINK":"a81a5197a26742edb402d17aa4a6525b" },
 
   {"UID":"GHOST-PREPROCESS-CODE-TRACE-ANCHORS","_LINK":"GHOST-PREPROCESS-CODE-TRACE-ANCHORS" },
 
@@ -1083,7 +1519,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"12-12-Acceptance-Criteria" },
 
-  {"_LINK":"de94bc32d33a414d97a1f3f637748fcd" },
+  {"_LINK":"6fe93a75f5944eab90fcddfeab8debe5" },
 
   {"UID":"GHOST-PREPROCESS-AC-WHITESPACE","_LINK":"GHOST-PREPROCESS-AC-WHITESPACE" },
 
@@ -1147,7 +1583,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"95250216b62640acad457082b7d8313c" },
+  {"_LINK":"14b1ade3bea74594a37306ce1c8f138a" },
 
   {"UID":"GHOST-KM-ROOT","_LINK":"GHOST-KM-ROOT" },
 
@@ -1161,7 +1597,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Functional-Architecture-and-Responsibility-Boundaries" },
 
-  {"_LINK":"99b708ec24ef49d0aa205cf3a45c622a" },
+  {"_LINK":"3ef2f74d39da4b9297712788f475f745" },
 
   {"UID":"GHOST-KM-ARCHITECTURE","_LINK":"GHOST-KM-ARCHITECTURE" },
 
@@ -1185,7 +1621,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-End-to-End-Knowledge-Flow-and-Dependencies" },
 
-  {"_LINK":"0ada7c1257ee41a98eec278ee20cf4c5" },
+  {"_LINK":"ca5deb91f1a24a64a059ed2ff4b3d10f" },
 
   {"UID":"GHOST-KM-OFFLINE-ONLINE-SEPARATION","_LINK":"GHOST-KM-OFFLINE-ONLINE-SEPARATION" },
 
@@ -1209,7 +1645,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Shared-Knowledge-Artifacts-and-SuperPrompt-Contract" },
 
-  {"_LINK":"353f14b9163e4ee2b647e3e0adb8b493" },
+  {"_LINK":"58e1de20aadd4e2abad547c34db72f17" },
 
   {"UID":"GHOST-KM-SUPERPROMPT-AUTHORITY","_LINK":"GHOST-KM-SUPERPROMPT-AUTHORITY" },
 
@@ -1233,7 +1669,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-Independence-from-Memory-and-Future-Context-Coordination" },
 
-  {"_LINK":"2a5bf85f7aae41798a6779ae3389d8f5" },
+  {"_LINK":"a01bddf14f154f99b4c13d6efa69f3a5" },
 
   {"UID":"GHOST-KM-INDEPENDENT-SELECTION","_LINK":"GHOST-KM-INDEPENDENT-SELECTION" },
 
@@ -1249,7 +1685,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-Configuration-and-Current-Future-Implementation-Boundary" },
 
-  {"_LINK":"2be70ea79c0f49c7b9260a7a7e80764c" },
+  {"_LINK":"538d82a7e48b4ab6be535c68dd36bcb8" },
 
   {"UID":"GHOST-KM-CONFIG-AUTHORITY","_LINK":"GHOST-KM-CONFIG-AUTHORITY" },
 
@@ -1267,7 +1703,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-Error-Handling-Logging-and-Observability" },
 
-  {"_LINK":"e6fab84acdc34770837b456d41c928bb" },
+  {"_LINK":"58cfe4bb81e5405398d5fcfb5c5e5616" },
 
   {"UID":"GHOST-KM-NO-FABRICATED-EVIDENCE","_LINK":"GHOST-KM-NO-FABRICATED-EVIDENCE" },
 
@@ -1287,7 +1723,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-Quality-Determinism-and-Performance-Requirements" },
 
-  {"_LINK":"77015a22d868491084e878e7818a92e1" },
+  {"_LINK":"11dc343a747a4165aefa75703e30a20c" },
 
   {"UID":"GHOST-KM-DETERMINISTIC-OPERATIONS","_LINK":"GHOST-KM-DETERMINISTIC-OPERATIONS" },
 
@@ -1307,7 +1743,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-Traceability-and-Sibling-Requirement-Ownership" },
 
-  {"_LINK":"42f3ce59d89644fd82ea62ad96a00b92" },
+  {"_LINK":"43e55d6dbfd34ae7a3d6ebd2a077625f" },
 
   {"UID":"GHOST-KM-INGESTION-REFERENCE","_LINK":"GHOST-KM-INGESTION-REFERENCE" },
 
@@ -1329,7 +1765,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Acceptance-Criteria" },
 
-  {"_LINK":"756fa0372aa64123964cf58f88000cef" },
+  {"_LINK":"0118f856a58148c4a22fbb16dde573a0" },
 
   {"UID":"GHOST-KM-AC-HIERARCHY","_LINK":"GHOST-KM-AC-HIERARCHY" },
 
@@ -1359,7 +1795,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"c2bc8595560c46aa93ef90fcba9d6e3b" },
+  {"_LINK":"cbb8f14f3fb84d2c9c707acdc659361c" },
 
   {"UID":"GHOST-DOC-INGEST-ROOT","_LINK":"GHOST-DOC-INGEST-ROOT" },
 
@@ -1375,7 +1811,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Project-Source-Discovery-and-Loading" },
 
-  {"_LINK":"3df85dc0eefe41dc882c63d10b7a2a0c" },
+  {"_LINK":"7e2cbeee10a345f5a973878bcf56b029" },
 
   {"UID":"GHOST-DOC-INGEST-DOCROOT","_LINK":"GHOST-DOC-INGEST-DOCROOT" },
 
@@ -1397,7 +1833,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-File-State-Hashing-and-Manifest-Ledger" },
 
-  {"_LINK":"a3fe24ce613248f1b042a20612e7f758" },
+  {"_LINK":"6970c890b76b4d68b372aa2b8dae3d46" },
 
   {"UID":"GHOST-DOC-INGEST-SHA256","_LINK":"GHOST-DOC-INGEST-SHA256" },
 
@@ -1431,7 +1867,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Chunking-and-Stable-Identifier-Contract" },
 
-  {"_LINK":"1ecc80ad27d445549feb30ffd52d7858" },
+  {"_LINK":"52d84b12951a414d9500351866986be9" },
 
   {"UID":"GHOST-DOC-INGEST-CHUNKER","_LINK":"GHOST-DOC-INGEST-CHUNKER" },
 
@@ -1459,7 +1895,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-Dense-Embedding-and-Chroma-Persistence" },
 
-  {"_LINK":"cbcf6705adf74e72a66f9f25b2672fca" },
+  {"_LINK":"3b9ce84eb2a14bcdb668d45f9dcd52b2" },
 
   {"UID":"GHOST-DOC-INGEST-DENSE-REQUIRED","_LINK":"GHOST-DOC-INGEST-DENSE-REQUIRED" },
 
@@ -1483,7 +1919,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-Optional-SPLADE-Sparse-Ingestion" },
 
-  {"_LINK":"1d569d1ee3f8493f8de5267fbe0caf37" },
+  {"_LINK":"c024a9c72bce4264acf9f351c6f55ce4" },
 
   {"UID":"GHOST-DOC-INGEST-SPARSE-OPTIONAL","_LINK":"GHOST-DOC-INGEST-SPARSE-OPTIONAL" },
 
@@ -1511,7 +1947,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-Version-Cleanup-Tombstones-and-Store-Maintenance" },
 
-  {"_LINK":"aedbf933f1914cf989669d288eb17e24" },
+  {"_LINK":"b2f10edc69b440579488982b234b0e7d" },
 
   {"UID":"GHOST-DOC-INGEST-DELETE-OLD-FLAG","_LINK":"GHOST-DOC-INGEST-DELETE-OLD-FLAG" },
 
@@ -1533,7 +1969,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-Ingestion-Orchestration-and-Statistics" },
 
-  {"_LINK":"8962b2ba70484d788522860ee89ef7aa" },
+  {"_LINK":"748f399c71b04e5eaabe6ca8151661f5" },
 
   {"UID":"GHOST-DOC-INGEST-SEQUENCE","_LINK":"GHOST-DOC-INGEST-SEQUENCE" },
 
@@ -1555,7 +1991,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-Configuration-Governance" },
 
-  {"_LINK":"fa6eb0007d8045e7b90ab38c479776d7" },
+  {"_LINK":"3359594cd4dd46ffae6db21ad2cdc41d" },
 
   {"UID":"GHOST-DOC-INGEST-CONFIG-JSON","_LINK":"GHOST-DOC-INGEST-CONFIG-JSON" },
 
@@ -1571,7 +2007,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Error-Handling-Security-and-Quality-Boundaries" },
 
-  {"_LINK":"dba33e8d709642b1b6a2249850a60de9" },
+  {"_LINK":"d63ec41ada914e6ab70ef7b592d37d72" },
 
   {"UID":"GHOST-DOC-INGEST-FAIL-LOUD","_LINK":"GHOST-DOC-INGEST-FAIL-LOUD" },
 
@@ -1589,7 +2025,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"11-11-Traceability-and-Acceptance-Criteria" },
 
-  {"_LINK":"7baf8019a0e24a04b9f576bc244ba1f3" },
+  {"_LINK":"4eaf5de1cbcb430c87d1197bf14f0f34" },
 
   {"UID":"GHOST-DOC-INGEST-CODE-OWNERSHIP","_LINK":"GHOST-DOC-INGEST-CODE-OWNERSHIP" },
 
@@ -1627,7 +2063,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"94eccc65ae114e50bd7f90297e31e9ae" },
+  {"_LINK":"affbdb7d73e04bfe9037f5ad6b546d87" },
 
   {"UID":"GHOST-DOC-RETRIEVE-ROOT","_LINK":"GHOST-DOC-RETRIEVE-ROOT" },
 
@@ -1641,7 +2077,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Retrieval-Input-and-Query-Projection" },
 
-  {"_LINK":"220d7b4ac69a42f084b05c60a03f6ce0" },
+  {"_LINK":"e6e45a441dd84994bdd2c59ba69f588c" },
 
   {"UID":"GHOST-DOC-RETRIEVE-SP","_LINK":"GHOST-DOC-RETRIEVE-SP" },
 
@@ -1659,7 +2095,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-Deterministic-Query-Splitting" },
 
-  {"_LINK":"6fe15bfb330541f5be3e20c3385651b4" },
+  {"_LINK":"4c7081cb63c34d03a16102e5f474789f" },
 
   {"UID":"GHOST-DOC-RETRIEVE-QUERY-SPLIT","_LINK":"GHOST-DOC-RETRIEVE-QUERY-SPLIT" },
 
@@ -1677,7 +2113,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Dense-Candidate-Generation" },
 
-  {"_LINK":"6d850a40f34e46898e6919a54c3c069f" },
+  {"_LINK":"06d6790d9d9a4c6d8a2ba812e1ff30e5" },
 
   {"UID":"GHOST-DOC-RETRIEVE-DENSE-FIRST","_LINK":"GHOST-DOC-RETRIEVE-DENSE-FIRST" },
 
@@ -1707,7 +2143,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-Hard-Embedding-Floor" },
 
-  {"_LINK":"fa74ba2401f14d32a82a6a17056b0963" },
+  {"_LINK":"84a129b23ed5457185e493b136d87915" },
 
   {"UID":"GHOST-DOC-RETRIEVE-EMB-FLOOR","_LINK":"GHOST-DOC-RETRIEVE-EMB-FLOOR" },
 
@@ -1719,7 +2155,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-Optional-SPLADE-Rescoring-Branch" },
 
-  {"_LINK":"2b5f480b53674c6cb7d686898346f1e4" },
+  {"_LINK":"febb6587c3e44d29aa164c0af57cc4ee" },
 
   {"UID":"GHOST-DOC-RETRIEVE-SPARSE-OPTION","_LINK":"GHOST-DOC-RETRIEVE-SPARSE-OPTION" },
 
@@ -1751,7 +2187,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-First-Weighted-Reciprocal-Rank-Fusion" },
 
-  {"_LINK":"6c8f8d7774d04c00bca79b0a8cb60e10" },
+  {"_LINK":"19b86e5189394a30abbf526035e63e71" },
 
   {"UID":"GHOST-DOC-RETRIEVE-RRF1","_LINK":"GHOST-DOC-RETRIEVE-RRF1" },
 
@@ -1775,7 +2211,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-Source-Hydration-and-Chunk-Reconstruction" },
 
-  {"_LINK":"6e807be25dfb46e6bde4bf57b9b570b1" },
+  {"_LINK":"74d1969a5eca49ecb23889150a6f30c0" },
 
   {"UID":"GHOST-DOC-RETRIEVE-HYDRATE","_LINK":"GHOST-DOC-RETRIEVE-HYDRATE" },
 
@@ -1799,7 +2235,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-Retrieval-Stage-SuperPrompt-Write-Back" },
 
-  {"_LINK":"3a9321aee003429f8f541a9aa5298974" },
+  {"_LINK":"baa2798e2a0b4331be3246f31947526b" },
 
   {"UID":"GHOST-DOC-RETRIEVE-WRITE","_LINK":"GHOST-DOC-RETRIEVE-WRITE" },
 
@@ -1819,7 +2255,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Optional-ColBERT-Reranking-Input-and-Cleaning" },
 
-  {"_LINK":"2e42383b1361485bb403d0cbadb54381" },
+  {"_LINK":"595ea87c99bc4322b48d1efcf756d382" },
 
   {"UID":"GHOST-DOC-RERANK-ROOT","_LINK":"GHOST-DOC-RERANK-ROOT" },
 
@@ -1847,7 +2283,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"11-11-ColBERT-Scoring-and-Second-Fusion" },
 
-  {"_LINK":"2fbd16acb6d94596b150b6df73e137d3" },
+  {"_LINK":"028d9c143396455c8fccabd6fec53788" },
 
   {"UID":"GHOST-DOC-RERANK-ENCODE","_LINK":"GHOST-DOC-RERANK-ENCODE" },
 
@@ -1871,7 +2307,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"12-12-Reranking-Bypass-and-SuperPrompt-Write-Back" },
 
-  {"_LINK":"93efd453f1074b75a7e318e753192c7c" },
+  {"_LINK":"7b721f1cf1224d87ba9754fd292b412f" },
 
   {"UID":"GHOST-DOC-RERANK-BYPASS","_LINK":"GHOST-DOC-RERANK-BYPASS" },
 
@@ -1887,7 +2323,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"13-13-Configuration-Error-Handling-and-Observability" },
 
-  {"_LINK":"e056d186df334b479c3f448cf16c3003" },
+  {"_LINK":"6cbc5a53aa23408aa71f50671bf5d3b9" },
 
   {"UID":"GHOST-DOC-RETRIEVE-CONFIG-JSON","_LINK":"GHOST-DOC-RETRIEVE-CONFIG-JSON" },
 
@@ -1909,7 +2345,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"14-14-Traceability-and-Acceptance-Criteria" },
 
-  {"_LINK":"f8d96ad7feff4eca8a691c911a3ce0a0" },
+  {"_LINK":"86b6566bdf144e75bf598716984cab51" },
 
   {"UID":"GHOST-DOC-RETRIEVE-CODE-OWNERSHIP","_LINK":"GHOST-DOC-RETRIEVE-CODE-OWNERSHIP" },
 
@@ -1947,7 +2383,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"87f202e2b18a4141ba4b88e469aac079" },
+  {"_LINK":"1c12444595694b4daa030f287ceae066" },
 
   {"UID":"GHOST-EVIDENCE-ROOT","_LINK":"GHOST-EVIDENCE-ROOT" },
 
@@ -1963,7 +2399,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-A3-Candidate-Input-and-Preconditions" },
 
-  {"_LINK":"c51920d45e524141b636163bca1fec73" },
+  {"_LINK":"710323ab3c994e249534e4c49444399b" },
 
   {"UID":"GHOST-A3-ROOT","_LINK":"GHOST-A3-ROOT" },
 
@@ -1985,7 +2421,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-A3-Prompt-Construction-and-Identifier-Isolation" },
 
-  {"_LINK":"a8f5ed998eeb47fca8ba733b4e32fb3a" },
+  {"_LINK":"3bcd6c22b7524782b4e5fc62a0630937" },
 
   {"UID":"GHOST-A3-PROMPT","_LINK":"GHOST-A3-PROMPT" },
 
@@ -2007,7 +2443,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-A3-Agent-Configuration-and-LLM-Invocation" },
 
-  {"_LINK":"feb886be8fb34bab811a60f29c4ea68c" },
+  {"_LINK":"bb1745f513764e60a4ce976c51493f23" },
 
   {"UID":"GHOST-A3-CONFIG","_LINK":"GHOST-A3-CONFIG" },
 
@@ -2027,7 +2463,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-A3-Deterministic-Decision-Mapping-and-Selection" },
 
-  {"_LINK":"ff9e653f3dac41ebbb9f27740b40f90c" },
+  {"_LINK":"d9785c32f9bb4731ad22c8d9bc17d26c" },
 
   {"UID":"GHOST-A3-MAP","_LINK":"GHOST-A3-MAP" },
 
@@ -2059,7 +2495,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-A3-SuperPrompt-Write-Back-and-Observability" },
 
-  {"_LINK":"24e3ade842f94caa81988e24a18a6920" },
+  {"_LINK":"8589e02e357148658f97abe1e477f18c" },
 
   {"UID":"GHOST-A3-VIEW","_LINK":"GHOST-A3-VIEW" },
 
@@ -2079,7 +2515,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-A4-Preconditions-and-Empty-Selection-Safety" },
 
-  {"_LINK":"93f2c609fbbc47359866ae67a0fd754c" },
+  {"_LINK":"d9c3af9d6a034c339db20d8de9868de3" },
 
   {"UID":"GHOST-A4-ROOT","_LINK":"GHOST-A4-ROOT" },
 
@@ -2099,7 +2535,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-A4-Configuration-Loading-and-Seven-Step-Workflow" },
 
-  {"_LINK":"939a0ee9ee8b43d8bb608756cf19d83a" },
+  {"_LINK":"d5cd0829039644dca6f4d1dc8ae5529d" },
 
   {"UID":"GHOST-A4-JSON-PATHS","_LINK":"GHOST-A4-JSON-PATHS" },
 
@@ -2119,7 +2555,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-A4-Selected-Chunk-Preparation" },
 
-  {"_LINK":"a407bca586764a9bb7c5927b98a506ec" },
+  {"_LINK":"d5fe5ba6e60a4ed7aedc0aeb37ef40d9" },
 
   {"UID":"GHOST-A4-SELECT","_LINK":"GHOST-A4-SELECT" },
 
@@ -2139,7 +2575,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-A4-Chunk-Phraser-and-Active-Class-Validation" },
 
-  {"_LINK":"6f2d9d5eab5442fda0b762f046b96c33" },
+  {"_LINK":"80f34b35b38843d3a215b05f450e15ed" },
 
   {"UID":"GHOST-A4-PHRASER","_LINK":"GHOST-A4-PHRASER" },
 
@@ -2165,7 +2601,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"11-11-A4-Chunk-Classifier-and-Deterministic-Mapping" },
 
-  {"_LINK":"2ef05a66778442999f7bd525bb3a69e0" },
+  {"_LINK":"393fb53f7d8745c8bf3ace09cb1b9f16" },
 
   {"UID":"GHOST-A4-CLASSIFIER","_LINK":"GHOST-A4-CLASSIFIER" },
 
@@ -2181,7 +2617,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"12-12-A4-Grouping-Budget-Profiles-and-Fallback" },
 
-  {"_LINK":"9d58e079415a443581af1bd24f030540" },
+  {"_LINK":"c787e2848e0b467fb4de63048e1253ee" },
 
   {"UID":"GHOST-A4-GROUPS","_LINK":"GHOST-A4-GROUPS" },
 
@@ -2211,7 +2647,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"13-13-A4-Final-Condenser" },
 
-  {"_LINK":"6c1890f7f14942fdba10b923c1ce14f3" },
+  {"_LINK":"9b911aee264947d8bea6827759157032" },
 
   {"UID":"GHOST-A4-FINAL","_LINK":"GHOST-A4-FINAL" },
 
@@ -2237,7 +2673,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"14-14-A4-SuperPrompt-Write-Back-and-Rendering" },
 
-  {"_LINK":"278e5c7a1efd4c4a85049e3b54e54da3" },
+  {"_LINK":"746d3231453c4da8b500640b772578fe" },
 
   {"UID":"GHOST-A4-NONEMPTY-SCTX","_LINK":"GHOST-A4-NONEMPTY-SCTX" },
 
@@ -2261,7 +2697,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"15-15-Configuration-Error-Handling-Traceability-and-Acceptance" },
 
-  {"_LINK":"d10a3e44a9ee409d9aec4671a109b546" },
+  {"_LINK":"d1bb076bd932452aaba026daa38d827d" },
 
   {"UID":"GHOST-EVIDENCE-CONFIG-JSON","_LINK":"GHOST-EVIDENCE-CONFIG-JSON" },
 
@@ -2307,7 +2743,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"0442df2abee54ace8a80fcf7db034225" },
+  {"_LINK":"ec54e42948864f53a6c46557b433b79a" },
 
   {"UID":"GHOST-MEMORY-ROOT","_LINK":"GHOST-MEMORY-ROOT" },
 
@@ -2323,7 +2759,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Architectural-Position-and-Peer-Boundaries" },
 
-  {"_LINK":"a796dee247f94734882771a1c33a2738" },
+  {"_LINK":"91a92f14d5214099905455aacb41798f" },
 
   {"UID":"GHOST-MEMORY-ARCHITECTURAL-POSITION","_LINK":"GHOST-MEMORY-ARCHITECTURAL-POSITION" },
 
@@ -2347,7 +2783,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-Functional-Decomposition-and-Lifecycle" },
 
-  {"_LINK":"d52a618ebc27413597d3c4452241125a" },
+  {"_LINK":"400d20566fe14fd782c13f6e5cd8a9b2" },
 
   {"UID":"GHOST-MEMORY-RECORDING-CAPABILITY","_LINK":"GHOST-MEMORY-RECORDING-CAPABILITY" },
 
@@ -2373,7 +2809,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Authority-and-Data-Truth-Model" },
 
-  {"_LINK":"3adb15367f4240deaaa03f64cecf25ea" },
+  {"_LINK":"bca7146b6c84448e99d0607c17835101" },
 
   {"UID":"GHOST-MEMORY-TRUTH-MODEL","_LINK":"GHOST-MEMORY-TRUTH-MODEL" },
 
@@ -2399,7 +2835,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-Runtime-Candidate-and-Context-Model" },
 
-  {"_LINK":"c04bbf10c59445ffba548df6b3d85341" },
+  {"_LINK":"34d7240f5be042fd88224ee58d3d9049" },
 
   {"UID":"GHOST-MEMORY-WORKING-ROLE","_LINK":"GHOST-MEMORY-WORKING-ROLE" },
 
@@ -2423,7 +2859,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-Implementation-Location-Map" },
 
-  {"_LINK":"679cc2de4ca347a7907b32160bcae47f" },
+  {"_LINK":"161ce357c2924740946e1e2f8d1a9255" },
 
   {"UID":"GHOST-MEMORY-LOCATION-CORE","_LINK":"GHOST-MEMORY-LOCATION-CORE" },
 
@@ -2447,7 +2883,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-Configuration-Governance" },
 
-  {"_LINK":"704138e4b4794133a71c2fa6d4b6ec42" },
+  {"_LINK":"0cd5c4767a39402484904a0d2189f56c" },
 
   {"UID":"GHOST-MEMORY-CONFIG-ROOT","_LINK":"GHOST-MEMORY-CONFIG-ROOT" },
 
@@ -2471,7 +2907,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-Error-Handling-Security-and-Quality-Boundaries" },
 
-  {"_LINK":"daffeff1852648a381c33316dbd7f05d" },
+  {"_LINK":"dd41381e30f64ce383db1591375c5019" },
 
   {"UID":"GHOST-MEMORY-FAILURE-ISOLATION","_LINK":"GHOST-MEMORY-FAILURE-ISOLATION" },
 
@@ -2495,7 +2931,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-Sibling-Ownership-and-Future-Boundary" },
 
-  {"_LINK":"b2d3092e34f44f35ae598b73939f0f1f" },
+  {"_LINK":"6629c523c9554bb4bf59f1373f9848d1" },
 
   {"UID":"GHOST-MEMORY-REC-FILE-REFERENCE","_LINK":"GHOST-MEMORY-REC-FILE-REFERENCE" },
 
@@ -2523,7 +2959,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Acceptance-Criteria" },
 
-  {"_LINK":"2c0c31f0a77240a58e192490234356de" },
+  {"_LINK":"9a90cb68b198406789e8350bfc832e12" },
 
   {"UID":"GHOST-MEMORY-AC-HIERARCHY","_LINK":"GHOST-MEMORY-AC-HIERARCHY" },
 
@@ -2553,7 +2989,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"b2a40632b2f747b7847b229b8b76c614" },
+  {"_LINK":"2a31d3828f82473d892fd99d631088f5" },
 
   {"UID":"GHOST-MEM-REC-ROOT","_LINK":"GHOST-MEM-REC-ROOT" },
 
@@ -2569,7 +3005,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Implementation-and-Data-Location-Map" },
 
-  {"_LINK":"990aaef41ac44388a4810afff456f126" },
+  {"_LINK":"820ddbb74a30435fbee8e11aec87ea8c" },
 
   {"UID":"GHOST-MEM-REC-PATH-RECORD","_LINK":"GHOST-MEM-REC-PATH-RECORD" },
 
@@ -2593,7 +3029,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-MemoryRecord-Identity-and-Field-Model" },
 
-  {"_LINK":"d7740f72b09b4b57ae731c15cbbcb14c" },
+  {"_LINK":"5882721ff69d40ee9424cb80eb7d925c" },
 
   {"UID":"GHOST-MEM-REC-ID","_LINK":"GHOST-MEM-REC-ID" },
 
@@ -2637,7 +3073,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Automatic-Keywords-and-Editable-Metadata" },
 
-  {"_LINK":"d3778c4eff494307984a825d905afa73" },
+  {"_LINK":"1199443d2cb14e64bcd1b5d31ccc163f" },
 
   {"UID":"GHOST-MEM-REC-YAKE","_LINK":"GHOST-MEM-REC-YAKE" },
 
@@ -2663,7 +3099,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-Active-History-Initialization-and-Capture-Workflow" },
 
-  {"_LINK":"6c885276af4042619d35ab5ce6ae213b" },
+  {"_LINK":"e6f2f9e4cc4747c4a22c4d09ac66abe8" },
 
   {"UID":"GHOST-MEM-REC-MANAGER-INIT","_LINK":"GHOST-MEM-REC-MANAGER-INIT" },
 
@@ -2705,7 +3141,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-Stable-ragmem-Body-Persistence" },
 
-  {"_LINK":"8d72c20314474e51a06b9dd1b0c2bf09" },
+  {"_LINK":"3ad158ca18994974a681a6883139c67f" },
 
   {"UID":"GHOST-MEM-REC-RAGMEM-AUTHORITY","_LINK":"GHOST-MEM-REC-RAGMEM-AUTHORITY" },
 
@@ -2731,7 +3167,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-ragmeta-json-Metadata-Persistence" },
 
-  {"_LINK":"3623e8d4f21d45a880d68ddeaa451a2f" },
+  {"_LINK":"ba3b6880ec2d442fafa133cd4489f600" },
 
   {"UID":"GHOST-MEM-REC-META-AUTHORITY","_LINK":"GHOST-MEM-REC-META-AUTHORITY" },
 
@@ -2759,7 +3195,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-SQLite-Metadata-Mirror" },
 
-  {"_LINK":"7ab1538a12fd429bbc03c90f2b85aa96" },
+  {"_LINK":"e98ae0ec573d4e9e9281da54a003d0be" },
 
   {"UID":"GHOST-MEM-REC-SQLITE-SCHEMA","_LINK":"GHOST-MEM-REC-SQLITE-SCHEMA" },
 
@@ -2793,7 +3229,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-Loading-Closing-and-Active-State" },
 
-  {"_LINK":"554cdf737b294463b67e24c2c6e232b2" },
+  {"_LINK":"813f7263d03b4d74895343aba3476537" },
 
   {"UID":"GHOST-MEM-REC-LOAD-ID","_LINK":"GHOST-MEM-REC-LOAD-ID" },
 
@@ -2811,7 +3247,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Memory-History-File-Operations" },
 
-  {"_LINK":"9bcce10a6ac04b7b8922ba39b1a13faf" },
+  {"_LINK":"e64f793f813b40d08f0c94d0482a7239" },
 
   {"UID":"GHOST-MEM-REC-FILE-LIST","_LINK":"GHOST-MEM-REC-FILE-LIST" },
 
@@ -2855,7 +3291,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"11-11-ChatGPT-Shared-Link-Import" },
 
-  {"_LINK":"b5c2a98c2f7d412ab1c227713f47d138" },
+  {"_LINK":"e5e24718d96942c9822f242bd6e12dfd" },
 
   {"UID":"GHOST-MEM-REC-IMPORT-URL","_LINK":"GHOST-MEM-REC-IMPORT-URL" },
 
@@ -2895,7 +3331,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"12-12-Streamlit-Session-and-Action-Wiring" },
 
-  {"_LINK":"60e91f02cdb045849b45417599f75ab7" },
+  {"_LINK":"b4b05030ca6c4fcb9cf03e995dc72eda" },
 
   {"UID":"GHOST-MEM-REC-SESSION-MANAGER","_LINK":"GHOST-MEM-REC-SESSION-MANAGER" },
 
@@ -2917,7 +3353,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"13-13-Error-Handling-Security-and-Quality" },
 
-  {"_LINK":"82a3f6de2e724a3bbe3f1a6db088e7f4" },
+  {"_LINK":"b78679dd58324aaaa605defff43c89e5" },
 
   {"UID":"GHOST-MEM-REC-NO-EMPTY-PAIR","_LINK":"GHOST-MEM-REC-NO-EMPTY-PAIR" },
 
@@ -2943,7 +3379,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"14-14-Traceability-and-Acceptance-Criteria" },
 
-  {"_LINK":"fb11dab4e9d44869bb7037f382fb7559" },
+  {"_LINK":"13e6e8e9696f46d382b2834e8ccaf51b" },
 
   {"UID":"GHOST-MEM-REC-CODE-OWNERSHIP","_LINK":"GHOST-MEM-REC-CODE-OWNERSHIP" },
 
@@ -2979,7 +3415,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"e8e54e754101498ab1b4d66c6e0799cc" },
+  {"_LINK":"6ecdee8cfedc44a28274256efa401580" },
 
   {"UID":"GHOST-MEM-IR-ROOT","_LINK":"GHOST-MEM-IR-ROOT" },
 
@@ -2995,7 +3431,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Implementation-Location-Map-and-Startup-Wiring" },
 
-  {"_LINK":"d73be6a398ba4cf78bea5d0e2da1969f" },
+  {"_LINK":"fdcbf782b58542d4826e3c74cdf3d582" },
 
   {"UID":"GHOST-MEM-IR-PATH-CHUNKER","_LINK":"GHOST-MEM-IR-PATH-CHUNKER" },
 
@@ -3023,7 +3459,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-Memory-Vector-Entry-Model" },
 
-  {"_LINK":"66e5066f3abf4909995acbc3680a67bd" },
+  {"_LINK":"bbccd03999424442a496b1fd3556b251" },
 
   {"UID":"GHOST-MEM-IR-ENTRY-ROLES","_LINK":"GHOST-MEM-IR-ENTRY-ROLES" },
 
@@ -3055,7 +3491,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Memory-Chunking-and-Ingestion-Hash" },
 
-  {"_LINK":"fca6b2d082e740af87e398c9dc0395fb" },
+  {"_LINK":"e72f64b8abed42f9a66ffb53132c28ec" },
 
   {"UID":"GHOST-MEM-IR-CHUNKER-CONFIG","_LINK":"GHOST-MEM-IR-CHUNKER-CONFIG" },
 
@@ -3081,7 +3517,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-Dedicated-Memory-Vector-Store" },
 
-  {"_LINK":"e6675019ff174d6bb041766ab3bb912d" },
+  {"_LINK":"c067b7dbf4c24c5db8588dbf304ad9cd" },
 
   {"UID":"GHOST-MEM-IR-STORE-PERSISTENT","_LINK":"GHOST-MEM-IR-STORE-PERSISTENT" },
 
@@ -3117,7 +3553,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-Memory-Ingestion-Orchestration" },
 
-  {"_LINK":"7138338667e54ef2967d172fc6a5aef2" },
+  {"_LINK":"09ed5a5ccba843baa3bf53255ad51ce1" },
 
   {"UID":"GHOST-MEM-IR-INGEST-DEPS","_LINK":"GHOST-MEM-IR-INGEST-DEPS" },
 
@@ -3153,7 +3589,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-Memory-Retrieval-Input-and-Routing-Preconditions" },
 
-  {"_LINK":"ab39b2becb69438f84e681b417b74dd3" },
+  {"_LINK":"217a4aed2cf94413b07f865105241516" },
 
   {"UID":"GHOST-MEM-IR-RETRIEVER-DEPS","_LINK":"GHOST-MEM-IR-RETRIEVER-DEPS" },
 
@@ -3183,7 +3619,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-Semantic-Memory-Vector-Pass" },
 
-  {"_LINK":"7b936fca4ec546e4abe884b0cfa88caa" },
+  {"_LINK":"f57c75d458834324b07cfdd7a2ac1162" },
 
   {"UID":"GHOST-MEM-IR-SEMANTIC-ENABLE","_LINK":"GHOST-MEM-IR-SEMANTIC-ENABLE" },
 
@@ -3209,7 +3645,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-Raw-Hit-Normalization-and-Parent-Aggregation" },
 
-  {"_LINK":"02c313e615374c48a9a050a4ace81eea" },
+  {"_LINK":"5f06ac698491475a82964a814c56b8a5" },
 
   {"UID":"GHOST-MEM-IR-DISTANCE-SCORE","_LINK":"GHOST-MEM-IR-DISTANCE-SCORE" },
 
@@ -3241,7 +3677,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Episodic-Recency-and-Semantic-Chunk-Selection" },
 
-  {"_LINK":"31dfcfd9e69a48d08807911193f6be6f" },
+  {"_LINK":"ff9ca59e57c9480e9ef9d82243cfa794" },
 
   {"UID":"GHOST-MEM-IR-EPISODIC-RECENCY-ENABLE","_LINK":"GHOST-MEM-IR-EPISODIC-RECENCY-ENABLE" },
 
@@ -3275,7 +3711,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"11-11-Deterministic-SQLite-and-ragmem-Candidate-Lookups" },
 
-  {"_LINK":"249ae3af980d4cf6b7c85de17fb958f4" },
+  {"_LINK":"bcf3aa31f820431da09f801075573d41" },
 
   {"UID":"GHOST-MEM-IR-LOOKUP-NO-SQLITE","_LINK":"GHOST-MEM-IR-LOOKUP-NO-SQLITE" },
 
@@ -3313,7 +3749,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"12-12-Episodic-Candidate-Merge-and-Candidate-Enrichment" },
 
-  {"_LINK":"466bc68f7cad415184e30b143664604c" },
+  {"_LINK":"1ab9490dab7c417894b7061159b58105" },
 
   {"UID":"GHOST-MEM-IR-EPISODIC-ENABLE","_LINK":"GHOST-MEM-IR-EPISODIC-ENABLE" },
 
@@ -3337,7 +3773,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"13-13-MemoryContextPack-Contract" },
 
-  {"_LINK":"0955630e2e364b55b656e356d517dd20" },
+  {"_LINK":"c92cc6190b30446c80b69936c5c8259a" },
 
   {"UID":"GHOST-MEM-IR-PACK","_LINK":"GHOST-MEM-IR-PACK" },
 
@@ -3367,7 +3803,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"14-14-SuperPrompt-Write-Back-and-Controller-Integration" },
 
-  {"_LINK":"74292057987a425cbfe0aa10203e59b2" },
+  {"_LINK":"bab0d483b9bd4b4594556dd1c4f71ae5" },
 
   {"UID":"GHOST-MEM-IR-CONTROLLER-CONFIG","_LINK":"GHOST-MEM-IR-CONTROLLER-CONFIG" },
 
@@ -3395,7 +3831,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"15-15-Configuration-Governance-and-Current-Consumption" },
 
-  {"_LINK":"24f7f60bf717478cb09b3e36492e8f53" },
+  {"_LINK":"f8c88fd0a6ea444ea330fe0d3855cd0f" },
 
   {"UID":"GHOST-MEM-IR-CONFIG-ROOT","_LINK":"GHOST-MEM-IR-CONFIG-ROOT" },
 
@@ -3419,7 +3855,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"16-16-Error-Handling-Security-and-Quality-Boundaries" },
 
-  {"_LINK":"68f8ef47942c4122bdcb7fd60ea49c94" },
+  {"_LINK":"12b86c29229e4330ba6eac46ed1219b6" },
 
   {"UID":"GHOST-MEM-IR-NO-FABRICATED-HIT","_LINK":"GHOST-MEM-IR-NO-FABRICATED-HIT" },
 
@@ -3443,7 +3879,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"17-17-Traceability-and-Acceptance-Criteria" },
 
-  {"_LINK":"48884836cd7545f3a2c6a72e26a6c9ee" },
+  {"_LINK":"b9008ead64404e43a16d84025d46670a" },
 
   {"UID":"GHOST-MEM-IR-CODE-OWNERSHIP","_LINK":"GHOST-MEM-IR-CODE-OWNERSHIP" },
 
@@ -3485,7 +3921,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"703d08511033448bb5cc193b90f72482" },
+  {"_LINK":"2ca0ac74de40404487046588022e5ec8" },
 
   {"UID":"GHOST-MEM-MERGE-ROOT","_LINK":"GHOST-MEM-MERGE-ROOT" },
 
@@ -3505,7 +3941,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Implementation-Location-Map-and-Functional-Decomposition" },
 
-  {"_LINK":"db8b03499fda42b3b8e8645685125c92" },
+  {"_LINK":"0ec0a9b0d4f4499691084497e6f0909a" },
 
   {"UID":"GHOST-MEM-MERGE-LOCATION-MAP","_LINK":"GHOST-MEM-MERGE-LOCATION-MAP" },
 
@@ -3523,7 +3959,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-ActiveRetrievalBrief-Recording-Position-and-Authority" },
 
-  {"_LINK":"14ea0e85182445c290ff8a28962b2c75" },
+  {"_LINK":"e23fc7800f594a15a0c64008cf237559" },
 
   {"UID":"GHOST-MEM-ACTIVEBRIEF-DEFINITION","_LINK":"GHOST-MEM-ACTIVEBRIEF-DEFINITION" },
 
@@ -3547,7 +3983,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-MemorySentenceReducer-Contract" },
 
-  {"_LINK":"e1f2de3b5c154f90894638de50926f0b" },
+  {"_LINK":"d33fbee797cf4cc5aab9f2f3c5a23e58" },
 
   {"UID":"GHOST-MEM-REDUCER-INPUT","_LINK":"GHOST-MEM-REDUCER-INPUT" },
 
@@ -3591,7 +4027,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-ActiveBrief-Previous-State-Selection" },
 
-  {"_LINK":"98e0f60494594235b3bd405cd1a00ef9" },
+  {"_LINK":"9eb54e3ddc15428081b35d9d491cc271" },
 
   {"UID":"GHOST-MEM-ACTIVEBRIEF-PREVIOUS-SCAN","_LINK":"GHOST-MEM-ACTIVEBRIEF-PREVIOUS-SCAN" },
 
@@ -3609,7 +4045,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-ActiveBrief-Relevance-Gate" },
 
-  {"_LINK":"fcfcf0894ba548008a562b6a320dc50c" },
+  {"_LINK":"3033ac5cc7854fd28f7132e47460d9e6" },
 
   {"UID":"GHOST-MEM-ACTIVEGATE-ROOT","_LINK":"GHOST-MEM-ACTIVEGATE-ROOT" },
 
@@ -3645,7 +4081,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-ActiveBrief-Init-Update-Skip-and-Topic-Shift-Routing" },
 
-  {"_LINK":"14f2a505db2248e6ac327dd5d6134d32" },
+  {"_LINK":"e9203c312df14bf48381c624c6e66436" },
 
   {"UID":"GHOST-MEM-ACTIVEROUTE-INIT","_LINK":"GHOST-MEM-ACTIVEROUTE-INIT" },
 
@@ -3679,7 +4115,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-Pending-Topic-Buffer-and-Contributor-Traceability" },
 
-  {"_LINK":"64cfecf68fef4269bddcfa1bf39917a5" },
+  {"_LINK":"9e92a0a87fb244f29eb68439eed0c3b6" },
 
   {"UID":"GHOST-MEM-PENDING-RAM","_LINK":"GHOST-MEM-PENDING-RAM" },
 
@@ -3705,7 +4141,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-ActiveBrief-Agent-Definitions-and-Output-Contract" },
 
-  {"_LINK":"c2a86a056da0451bb24136c9ecca76c0" },
+  {"_LINK":"3ed20268ed284190b4283a967a98ad1e" },
 
   {"UID":"GHOST-MEM-ACTIVEAGENT-ID","_LINK":"GHOST-MEM-ACTIVEAGENT-ID" },
 
@@ -3735,7 +4171,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Runtime-Memory-Compression" },
 
-  {"_LINK":"9ef2e30465ee4c298d87fb8a9a68807c" },
+  {"_LINK":"3b4ed2bc68dd438bbb1b94157edbca2c" },
 
   {"UID":"GHOST-MEM-COMPRESSOR-ROOT","_LINK":"GHOST-MEM-COMPRESSOR-ROOT" },
 
@@ -3767,7 +4203,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"11-11-MemoryMergeSynthesizer-Inputs-and-Evidence-Construction" },
 
-  {"_LINK":"fe1c966b529141f58f720bf9a8b8f9cc" },
+  {"_LINK":"967adcbfb04a4fcda35a379c0a7c3611" },
 
   {"UID":"GHOST-MEM-SYNTH-ROOT","_LINK":"GHOST-MEM-SYNTH-ROOT" },
 
@@ -3803,7 +4239,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"12-12-Memory-Synthesizer-Agent-Contract-and-Output" },
 
-  {"_LINK":"74b21a16e12b4960baa2753994b66181" },
+  {"_LINK":"9a81bc582e654f22be71a3fc95149cf5" },
 
   {"UID":"GHOST-MEM-SYNTHAGENT-ID","_LINK":"GHOST-MEM-SYNTHAGENT-ID" },
 
@@ -3837,7 +4273,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"13-13-MemoryContextPack-and-SuperPrompt-Handoff" },
 
-  {"_LINK":"7dfc841240e7490b8006938d6c6e533b" },
+  {"_LINK":"d69cb33e014d43c29d29d83099638b20" },
 
   {"UID":"GHOST-MEM-HANDOFF-PACK","_LINK":"GHOST-MEM-HANDOFF-PACK" },
 
@@ -3863,7 +4299,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"14-14-Configuration-Governance-and-Current-Consumption" },
 
-  {"_LINK":"cae2a58e7fe345c398cb0f758b220974" },
+  {"_LINK":"f77059fca5b24ddcaf1a66e4fa4a0b01" },
 
   {"UID":"GHOST-MEM-MERGECFG-RUNTIME","_LINK":"GHOST-MEM-MERGECFG-RUNTIME" },
 
@@ -3889,7 +4325,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"15-15-Error-Handling-Logging-and-Quality-Requirements" },
 
-  {"_LINK":"cac01640b45a41c5ba5006817ae2bd94" },
+  {"_LINK":"3916ed33de03445f95bbc1981a4e0406" },
 
   {"UID":"GHOST-MEM-MERGE-ERROR-DURABLE","_LINK":"GHOST-MEM-MERGE-ERROR-DURABLE" },
 
@@ -3915,7 +4351,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"16-16-Blackboard-and-Future-Development-Boundary" },
 
-  {"_LINK":"095f7715971049f080d217f43520c5ac" },
+  {"_LINK":"3d9ffeeff5014d4188285d2570c56f02" },
 
   {"UID":"GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED","_LINK":"GHOST-MEM-BLACKBOARD-NOT-IMPLEMENTED" },
 
@@ -3939,7 +4375,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"17-17-Traceability-and-Acceptance-Criteria" },
 
-  {"_LINK":"83ff3dc4648a400f8eaa2d0661f91f81" },
+  {"_LINK":"e3359e273d8f47b4a8a8a8a9dc84cbbc" },
 
   {"UID":"GHOST-MEM-MERGE-CODE-OWNERSHIP","_LINK":"GHOST-MEM-MERGE-CODE-OWNERSHIP" },
 
@@ -3985,7 +4421,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-Scope-and-Authority" },
 
-  {"_LINK":"e84a1f1c452642faac5faa68a20d95ed" },
+  {"_LINK":"52bab54608e245e48fc58cd61d5f599e" },
 
   {"UID":"GHOST-CONTEXT-INTEGRATION-ROOT","_LINK":"GHOST-CONTEXT-INTEGRATION-ROOT" },
 
@@ -3997,7 +4433,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Architectural-Position-and-Inputs" },
 
-  {"_LINK":"868dfc0305de4558bc8129b526089cae" },
+  {"_LINK":"d6f8280e254b4250868f0b716ad4c43e" },
 
   {"UID":"GHOST-CONTEXT-INTEGRATION-STAGE-4","_LINK":"GHOST-CONTEXT-INTEGRATION-STAGE-4" },
 
@@ -4065,7 +4501,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-Scope-and-Current-Implementation-Map" },
 
-  {"_LINK":"b664ec278e694e70a1519368906b89ad" },
+  {"_LINK":"4d292a8adfa34baeb4634cac7067bf06" },
 
   {"UID":"GHOST-SP-PROJECTION-ROOT","_LINK":"GHOST-SP-PROJECTION-ROOT" },
 
@@ -4075,7 +4511,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-SuperPrompt-Projection-State-Contract" },
 
-  {"_LINK":"4c09fd2ce7d94a23b61b152d68c390b8" },
+  {"_LINK":"488a4b2ae8dc4259848768d6d76b0236" },
 
   {"UID":"GHOST-SP-PROJECTION-AUTHORITATIVE-STATE","_LINK":"GHOST-SP-PROJECTION-AUTHORITATIVE-STATE" },
 
@@ -4111,7 +4547,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Retrieval-Query-Projection" },
 
-  {"_LINK":"d7e49da1be61470bacb71f8d24551459" },
+  {"_LINK":"3777a0bed036448eb9f1e642fc0c3ada" },
 
   {"UID":"GHOST-SP-PROJECTION-QUERY-INPUTS","_LINK":"GHOST-SP-PROJECTION-QUERY-INPUTS" },
 
@@ -4129,7 +4565,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-A3-Comparison-Prompt-Projection" },
 
-  {"_LINK":"27f0fcbf0d2e4cdcb485072ce5d9975d" },
+  {"_LINK":"d176368a2c394d5f9d5c8a22cc8b9a5b" },
 
   {"UID":"GHOST-SP-PROJECTION-A3-WRAPPER","_LINK":"GHOST-SP-PROJECTION-A3-WRAPPER" },
 
@@ -4169,7 +4605,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-Supporting-Context-Rendering" },
 
-  {"_LINK":"4e93956c9c484bf7b57323577a476df4" },
+  {"_LINK":"d7dfd6c7cfbf441db8af69fe4ad67f32" },
 
   {"UID":"GHOST-SP-PROJECTION-SUPPORT-SECTION","_LINK":"GHOST-SP-PROJECTION-SUPPORT-SECTION" },
 
@@ -4215,7 +4651,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-Current-Prompt-Builder-Runner" },
 
-  {"_LINK":"d506179ea33e4a2dba240e2f6fde192b" },
+  {"_LINK":"fca282fdbc40400b8a15d3a808a73f46" },
 
   {"UID":"GHOST-SP-PROJECTION-RUNNER-STEPS","_LINK":"GHOST-SP-PROJECTION-RUNNER-STEPS" },
 
@@ -4279,7 +4715,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-Scope-and-Current-Boundary" },
 
-  {"_LINK":"daab330e5c9647aaa83ea41f43eef1ea" },
+  {"_LINK":"e23594e28335462bb923308708cb992f" },
 
   {"UID":"GHOST-CONTEXT-VALIDATION-ROOT","_LINK":"GHOST-CONTEXT-VALIDATION-ROOT" },
 
@@ -4299,7 +4735,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-Current-Within-Path-Repetition-Handling" },
 
-  {"_LINK":"257b8e88412e4c6fa71f3256bd9cbb5b" },
+  {"_LINK":"efe3878454ba4bb3a4d6a3724a3cc9c0" },
 
   {"UID":"GHOST-CONTEXT-VALIDATION-A4-REPETITION","_LINK":"GHOST-CONTEXT-VALIDATION-A4-REPETITION" },
 
@@ -4327,7 +4763,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-Approved-Future-Validation-Direction" },
 
-  {"_LINK":"1e4134e9efeb484893b811f8ca7ebd7a" },
+  {"_LINK":"cd8533bad0f4438aab1ec523521b733b" },
 
   {"UID":"GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK","_LINK":"GHOST-CONTEXT-VALIDATION-FUTURE-INTEGRATION-CHECK" },
 
@@ -4359,7 +4795,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-Scope-and-Current-Status" },
 
-  {"_LINK":"84a72e9579fc4710b56ae62196501fe9" },
+  {"_LINK":"3476ed4e00f8498e86ffec2e37d3235b" },
 
   {"UID":"GHOST-HARD-RULES-ROOT","_LINK":"GHOST-HARD-RULES-ROOT" },
 
@@ -4381,7 +4817,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-Per-Agent-Static-Hard-Rules-Boundary" },
 
-  {"_LINK":"48aee863fe53433a858f9b619b664477" },
+  {"_LINK":"a771279dbdba42aeb4ee6f6322d21f3f" },
 
   {"UID":"GHOST-HARD-RULES-AGENT-STATIC","_LINK":"GHOST-HARD-RULES-AGENT-STATIC" },
 
@@ -4403,7 +4839,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-Approved-Future-Hard-Rule-Direction" },
 
-  {"_LINK":"8978a9d5319f4ea299b908defe32898f" },
+  {"_LINK":"a46db87a4485438294cd91668adfd6a2" },
 
   {"UID":"GHOST-HARD-RULES-FUTURE-BEFORE-SEND","_LINK":"GHOST-HARD-RULES-FUTURE-BEFORE-SEND" },
 
@@ -4445,7 +4881,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-and-Scope" },
 
-  {"_LINK":"835abd110017480f8943f2530d6cdaed" },
+  {"_LINK":"c27b1e734dc943d3830a1fb109a2ba64" },
 
   {"UID":"GHOST-UI-ROOT","_LINK":"GHOST-UI-ROOT" },
 
@@ -4475,7 +4911,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose" },
 
-  {"_LINK":"61cb783f349445e0a788d7ec962c6a7c" },
+  {"_LINK":"a06894e663ac4b97be770d6c2b937a8e" },
 
   {"_LINK":"2-2-Scope-and-Boundary" },
 
@@ -4485,59 +4921,59 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1-3-1-Main-Tab" },
 
-  {"_LINK":"3ecf686145a24b3a82e54ee0eaccee2c" },
+  {"_LINK":"bea12326fc1342c18dc0da0d185f3ffa" },
 
   {"_LINK":"3.2-3-2-Files-Tab" },
 
-  {"_LINK":"d21129aadd9e41ee891e148e8502fb67" },
+  {"_LINK":"a56c41bb5ddf402bb4d8618985ddd085" },
 
   {"_LINK":"3.3-3-3-Hard-Rules-Placeholder-Tab" },
 
-  {"_LINK":"2c1a6b88dbbd4684b57c581cd920bfe7" },
+  {"_LINK":"999c8d0b712843a1a7bb31ef8ae4f548" },
 
   {"_LINK":"3.4-3-4-Metrics-Demo-Tab" },
 
-  {"_LINK":"5eb5af7f160346c0b5068e7d96832aa5" },
+  {"_LINK":"b5a25973947f4db0b504ca3eafe845b1" },
 
   {"_LINK":"3.5-3-5-General-Settings-Placeholder" },
 
-  {"_LINK":"c4837ce9cb8a4102839f53a51cc12685" },
+  {"_LINK":"71329dd7a71a43719d63441711fede1f" },
 
   {"_LINK":"3.6-3-6-Prompt-Builder-UI" },
 
-  {"_LINK":"2479758caa9b449f8c80c6abb9707e7c" },
+  {"_LINK":"b610055f76284df59886e95ec62a8fbc" },
 
   {"_LINK":"3.7-3-7-Advanced-Manual-Pipeline-Buttons" },
 
-  {"_LINK":"e749c9c951f244b08e9a42215fabbeb4" },
+  {"_LINK":"2f6d4f672b184a7a8e0cdc2fe0a566ff" },
 
   {"_LINK":"3.8-3-8-Project-Context-UI" },
 
-  {"_LINK":"5e709f78a3d7410d872a235da10949fc" },
+  {"_LINK":"67ef7bb40f8d4c95b67efa2001e58106" },
 
   {"_LINK":"3.9-3-9-Memory-Cards-and-Right-Panel" },
 
-  {"_LINK":"70bbaf35b048481ab70ac479964d4929" },
+  {"_LINK":"4694a5ab471c40ceacbd02ae86bda2ce" },
 
   {"_LINK":"3.10-3-10-Manual-Memory-Feed-Row" },
 
-  {"_LINK":"f0733d16fad44fd186f87284120b435c" },
+  {"_LINK":"b81faa91f5b245de8061b15b5ee1ba3a" },
 
   {"_LINK":"3.11-3-11-Runtime-Log-UI" },
 
-  {"_LINK":"34e011fae3fe479298ea0717bb78e659" },
+  {"_LINK":"91dcd57194a54c289bd379da74662675" },
 
   {"_LINK":"3.12-3-12-Files-Tab-Memory-History-Management" },
 
-  {"_LINK":"0a0f10b41ba041599a476020022b6c9d" },
+  {"_LINK":"aa77f8fad8d446eca989bdd66f4bb320" },
 
   {"_LINK":"3.13-3-13-ChatGPT-Shared-Link-Import-UI" },
 
-  {"_LINK":"d15d6f54de3342f99064c8fae27d618c" },
+  {"_LINK":"157c9ad8c83e468e82dd2f9256cb2734" },
 
   {"_LINK":"3.14-3-14-Current-Streamlit-Session-State-Boundaries" },
 
-  {"_LINK":"e0b995a52e2349afaf8fc38ee8aaef81" }, ],
+  {"_LINK":"2dac385dc21b49fd8a470a01b75a0dc6" }, ],
  "strictdoc/72_react_fastapi_interface_future.html": [
 
 
@@ -4545,7 +4981,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose" },
 
-  {"_LINK":"f7dff50bb24e439f84fb75cc0cd8ddee" },
+  {"_LINK":"d9218ee34481494689c9cc18dc2afb4d" },
 
   {"_LINK":"2-2-Scope-and-Boundary" },
 
@@ -4555,215 +4991,39 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1-3-1-React-TypeScript-Frontend-Direction" },
 
-  {"_LINK":"f08645fd69864e15a6de3af883c16117" },
+  {"_LINK":"b9105330b4734c94bbd169808e443ac2" },
 
   {"_LINK":"3.2-3-2-FastAPI-Backend-Direction" },
 
-  {"_LINK":"a6fe37fbae224bc4b2421ee310ae3d46" },
+  {"_LINK":"6b2bffb2f2d746d8a4979777a226be1b" },
 
   {"_LINK":"3.3-3-3-Frontend-Backend-API-Boundary" },
 
-  {"_LINK":"397c04cfd0fe4d2c8a66430243043c1b" },
+  {"_LINK":"b9a1a9ab6ecf454ebbf16c8583d04f0a" },
 
   {"_LINK":"3.4-3-4-Session-and-State-Ownership-Direction" },
 
-  {"_LINK":"354408b1829948ed9d5eabff6b0c3f09" },
+  {"_LINK":"b231eae815d7407889a80f73aa47c9fa" },
 
   {"_LINK":"3.5-3-5-Future-Prompt-Builder-Screen" },
 
-  {"_LINK":"6263c0e36190440d93ab8ee337609be2" },
+  {"_LINK":"a57c4719a74a49d59626cd44e58dbf35" },
 
   {"_LINK":"3.6-3-6-Future-Memory-Files-Screen" },
 
-  {"_LINK":"fcd9cda6a9a3425da42d253c5a878b37" },
+  {"_LINK":"0ee0996619284111a6041fd5b64cb12e" },
 
   {"_LINK":"3.7-3-7-Future-Metrics-Observability-Screen" },
 
-  {"_LINK":"2cb5c3f2489e47f9971538a540f6d36c" },
+  {"_LINK":"e1fa97de87d04661b9524d48eab9ad97" },
 
   {"_LINK":"3.8-3-8-Future-Hard-Rules-Screen" },
 
-  {"_LINK":"e2fff65cacd0448891b3beb3fa5b37f5" },
+  {"_LINK":"f086a27b44464c22ba561351d5522026" },
 
   {"_LINK":"3.9-3-9-Migration-Constraints-from-Streamlit-to-Web-App" },
 
-  {"_LINK":"3da7df251e9d4ea8930605719e3faf53" }, ],
- "strictdoc/73_mcp_interface.html": [
-
-
-  {"UID":"GHOST-UI-MCP","_LINK":"GHOST-UI-MCP" },
-
-  {"_LINK":"1-1-Purpose-and-Scope" },
-
-  {"_LINK":"15a0942a02c14a25b8524ef47f083e4c" },
-
-  {"UID":"GHOST-MCP-ROOT","_LINK":"GHOST-MCP-ROOT" },
-
-  {"UID":"GHOST-MCP-APPROVED-FLOW","_LINK":"GHOST-MCP-APPROVED-FLOW" },
-
-  {"UID":"GHOST-MCP-INTERFACE-OWNERSHIP","_LINK":"GHOST-MCP-INTERFACE-OWNERSHIP" },
-
-  {"UID":"GHOST-MCP-PRODUCT-PACKAGE-BOUNDARY","_LINK":"GHOST-MCP-PRODUCT-PACKAGE-BOUNDARY" },
-
-  {"_LINK":"2-2-MCP-Communication-Contract" },
-
-  {"_LINK":"54e1baa2a7fa417986e4663e7cf40459" },
-
-  {"_LINK":"2.1-2-1-Client-and-Transport-Contract" },
-
-  {"UID":"GHOST-MCP-CLIENT-COMPATIBILITY","_LINK":"GHOST-MCP-CLIENT-COMPATIBILITY" },
-
-  {"UID":"GHOST-MCP-REMOTE-STREAMABLE-HTTP","_LINK":"GHOST-MCP-REMOTE-STREAMABLE-HTTP" },
-
-  {"UID":"GHOST-MCP-EXTERNAL-HTTPS","_LINK":"GHOST-MCP-EXTERNAL-HTTPS" },
-
-  {"UID":"GHOST-MCP-PROTOCOL-INITIALIZATION","_LINK":"GHOST-MCP-PROTOCOL-INITIALIZATION" },
-
-  {"UID":"GHOST-MCP-TOOLS-LIST","_LINK":"GHOST-MCP-TOOLS-LIST" },
-
-  {"UID":"GHOST-MCP-TOOLS-CALL","_LINK":"GHOST-MCP-TOOLS-CALL" },
-
-  {"UID":"GHOST-MCP-EXPLICIT-CLIENT-INVOCATION","_LINK":"GHOST-MCP-EXPLICIT-CLIENT-INVOCATION" },
-
-  {"UID":"GHOST-MCP-STATELESS-REQUEST-CONTRACT","_LINK":"GHOST-MCP-STATELESS-REQUEST-CONTRACT" },
-
-  {"_LINK":"2.2-2-2-Authorization-and-Transport-Protection" },
-
-  {"UID":"GHOST-MCP-PROTECTED-ACCESS","_LINK":"GHOST-MCP-PROTECTED-ACCESS" },
-
-  {"UID":"GHOST-MCP-OAUTH-PROTECTED-RESOURCE-METADATA","_LINK":"GHOST-MCP-OAUTH-PROTECTED-RESOURCE-METADATA" },
-
-  {"UID":"GHOST-MCP-BEARER-TOKEN-TRANSPORT","_LINK":"GHOST-MCP-BEARER-TOKEN-TRANSPORT" },
-
-  {"UID":"GHOST-MCP-TOKEN-RESOURCE-VALIDATION","_LINK":"GHOST-MCP-TOKEN-RESOURCE-VALIDATION" },
-
-  {"UID":"GHOST-MCP-AUTHENTICATION-FAILURE","_LINK":"GHOST-MCP-AUTHENTICATION-FAILURE" },
-
-  {"UID":"GHOST-MCP-AUTHORIZATION-FAILURE","_LINK":"GHOST-MCP-AUTHORIZATION-FAILURE" },
-
-  {"UID":"GHOST-MCP-ORIGIN-VALIDATION","_LINK":"GHOST-MCP-ORIGIN-VALIDATION" },
-
-  {"UID":"GHOST-MCP-TOOL-RATE-LIMITING","_LINK":"GHOST-MCP-TOOL-RATE-LIMITING" },
-
-  {"_LINK":"3-3-Prompt-Engineering-Capability" },
-
-  {"_LINK":"3.1-3-1-MCP-Tool-Definition" },
-
-  {"UID":"GHOST-MCP-ENGINEER-PROMPT-TOOL","_LINK":"GHOST-MCP-ENGINEER-PROMPT-TOOL" },
-
-  {"UID":"GHOST-MCP-ENGINEER-PROMPT-TITLE","_LINK":"GHOST-MCP-ENGINEER-PROMPT-TITLE" },
-
-  {"UID":"GHOST-MCP-ENGINEER-PROMPT-DESCRIPTION","_LINK":"GHOST-MCP-ENGINEER-PROMPT-DESCRIPTION" },
-
-  {"UID":"GHOST-MCP-ENGINEER-PROMPT-SAFETY-ANNOTATIONS","_LINK":"GHOST-MCP-ENGINEER-PROMPT-SAFETY-ANNOTATIONS" },
-
-  {"_LINK":"3.2-3-2-Input-Contract" },
-
-  {"UID":"GHOST-MCP-PROMPT-INPUT-SCHEMA","_LINK":"GHOST-MCP-PROMPT-INPUT-SCHEMA" },
-
-  {"UID":"GHOST-MCP-PROMPT-INPUT-NONEMPTY","_LINK":"GHOST-MCP-PROMPT-INPUT-NONEMPTY" },
-
-  {"UID":"GHOST-MCP-PROMPT-INPUT-UNICODE","_LINK":"GHOST-MCP-PROMPT-INPUT-UNICODE" },
-
-  {"UID":"GHOST-MCP-NO-CONVERSATION-PAYLOAD","_LINK":"GHOST-MCP-NO-CONVERSATION-PAYLOAD" },
-
-  {"_LINK":"3.3-3-3-Processing-Sequence" },
-
-  {"UID":"GHOST-MCP-FRESH-SUPERPROMPT","_LINK":"GHOST-MCP-FRESH-SUPERPROMPT" },
-
-  {"UID":"GHOST-MCP-EXISTING-PROMPT-SCHEMA","_LINK":"GHOST-MCP-EXISTING-PROMPT-SCHEMA" },
-
-  {"UID":"GHOST-MCP-PREPROCESS-CALL","_LINK":"GHOST-MCP-PREPROCESS-CALL" },
-
-  {"UID":"GHOST-MCP-PREPROCESS-STAGE-GATE","_LINK":"GHOST-MCP-PREPROCESS-STAGE-GATE" },
-
-  {"UID":"GHOST-MCP-A2-CALL","_LINK":"GHOST-MCP-A2-CALL" },
-
-  {"UID":"GHOST-MCP-A2-LLM-MODE","_LINK":"GHOST-MCP-A2-LLM-MODE" },
-
-  {"UID":"GHOST-MCP-A2-COMPLETION-GATE","_LINK":"GHOST-MCP-A2-COMPLETION-GATE" },
-
-  {"UID":"GHOST-MCP-ENGINEERED-PROMPT-SOURCE","_LINK":"GHOST-MCP-ENGINEERED-PROMPT-SOURCE" },
-
-  {"UID":"GHOST-MCP-NO-ANSWER-GENERATION","_LINK":"GHOST-MCP-NO-ANSWER-GENERATION" },
-
-  {"UID":"GHOST-MCP-REQUEST-ISOLATION","_LINK":"GHOST-MCP-REQUEST-ISOLATION" },
-
-  {"_LINK":"3.4-3-4-Output-Contract" },
-
-  {"UID":"GHOST-MCP-SUCCESS-RESULT","_LINK":"GHOST-MCP-SUCCESS-RESULT" },
-
-  {"UID":"GHOST-MCP-OUTPUT-SCHEMA","_LINK":"GHOST-MCP-OUTPUT-SCHEMA" },
-
-  {"UID":"GHOST-MCP-OUTPUT-BACKWARD-COMPATIBILITY","_LINK":"GHOST-MCP-OUTPUT-BACKWARD-COMPATIBILITY" },
-
-  {"UID":"GHOST-MCP-OUTPUT-NO-PREFIX-SUFFIX","_LINK":"GHOST-MCP-OUTPUT-NO-PREFIX-SUFFIX" },
-
-  {"UID":"GHOST-MCP-OUTPUT-NO-INTERNALS","_LINK":"GHOST-MCP-OUTPUT-NO-INTERNALS" },
-
-  {"UID":"GHOST-MCP-NO-PERSISTENCE-SIDE-EFFECT","_LINK":"GHOST-MCP-NO-PERSISTENCE-SIDE-EFFECT" },
-
-  {"_LINK":"4-4-Interface-Data-Errors-and-Acceptance" },
-
-  {"_LINK":"4.1-4-1-Error-Contract" },
-
-  {"UID":"GHOST-MCP-MALFORMED-REQUEST-ERROR","_LINK":"GHOST-MCP-MALFORMED-REQUEST-ERROR" },
-
-  {"UID":"GHOST-MCP-INPUT-VALIDATION-ERROR","_LINK":"GHOST-MCP-INPUT-VALIDATION-ERROR" },
-
-  {"UID":"GHOST-MCP-PREPROCESS-EXECUTION-ERROR","_LINK":"GHOST-MCP-PREPROCESS-EXECUTION-ERROR" },
-
-  {"UID":"GHOST-MCP-A2-EXECUTION-ERROR","_LINK":"GHOST-MCP-A2-EXECUTION-ERROR" },
-
-  {"UID":"GHOST-MCP-ERROR-SANITIZATION","_LINK":"GHOST-MCP-ERROR-SANITIZATION" },
-
-  {"_LINK":"4.2-4-2-Protocol-Acceptance" },
-
-  {"UID":"GHOST-MCP-PROTOCOL-ACCEPTANCE","_LINK":"GHOST-MCP-PROTOCOL-ACCEPTANCE" },
-
-  {"UID":"GHOST-MCP-TOOL-INVENTORY-ACCEPTANCE","_LINK":"GHOST-MCP-TOOL-INVENTORY-ACCEPTANCE" },
-
-  {"UID":"GHOST-MCP-PROCESSING-ORDER-ACCEPTANCE","_LINK":"GHOST-MCP-PROCESSING-ORDER-ACCEPTANCE" },
-
-  {"UID":"GHOST-MCP-ISOLATION-ACCEPTANCE","_LINK":"GHOST-MCP-ISOLATION-ACCEPTANCE" },
-
-  {"_LINK":"4.3-4-3-Real-Client-Acceptance" },
-
-  {"UID":"GHOST-MCP-CHATGPT-ACCEPTANCE","_LINK":"GHOST-MCP-CHATGPT-ACCEPTANCE" },
-
-  {"UID":"GHOST-MCP-CLAUDE-ACCEPTANCE","_LINK":"GHOST-MCP-CLAUDE-ACCEPTANCE" },
-
-  {"UID":"GHOST-MCP-CROSS-CLIENT-CONSISTENCY","_LINK":"GHOST-MCP-CROSS-CLIENT-CONSISTENCY" },
-
-  {"_LINK":"5-5-Ownership-Boundaries-and-Future-Extension" },
-
-  {"_LINK":"5.1-5-1-Requirement-Ownership-Boundaries" },
-
-  {"UID":"GHOST-MCP-PREPROCESSING-OWNERSHIP-REFERENCE","_LINK":"GHOST-MCP-PREPROCESSING-OWNERSHIP-REFERENCE" },
-
-  {"UID":"GHOST-MCP-AGENT-STACK-OWNERSHIP-REFERENCE","_LINK":"GHOST-MCP-AGENT-STACK-OWNERSHIP-REFERENCE" },
-
-  {"UID":"GHOST-MCP-PROJECTION-OWNERSHIP-REFERENCE","_LINK":"GHOST-MCP-PROJECTION-OWNERSHIP-REFERENCE" },
-
-  {"UID":"GHOST-MCP-AWS-OWNERSHIP-REFERENCE","_LINK":"GHOST-MCP-AWS-OWNERSHIP-REFERENCE" },
-
-  {"UID":"GHOST-MCP-UI-OWNERSHIP-BOUNDARY","_LINK":"GHOST-MCP-UI-OWNERSHIP-BOUNDARY" },
-
-  {"_LINK":"5.2-5-2-Excluded-Capabilities" },
-
-  {"UID":"GHOST-MCP-CURRENT-EXCLUSIONS","_LINK":"GHOST-MCP-CURRENT-EXCLUSIONS" },
-
-  {"UID":"GHOST-MCP-NO-PREVIOUS-RESPONSE-CAPTURE","_LINK":"GHOST-MCP-NO-PREVIOUS-RESPONSE-CAPTURE" },
-
-  {"UID":"GHOST-MCP-NO-SHARED-BLACKBOARD","_LINK":"GHOST-MCP-NO-SHARED-BLACKBOARD" },
-
-  {"_LINK":"5.3-5-3-Controlled-Future-Extension" },
-
-  {"_LINK":"d821a0bd09004d8d8522b88b55f8652f" },
-
-  {"UID":"GHOST-MCP-EXTENSION-APPROVAL","_LINK":"GHOST-MCP-EXTENSION-APPROVAL" },
-
-  {"UID":"GHOST-MCP-CONTRACT-CHANGE-CONTROL","_LINK":"GHOST-MCP-CONTRACT-CHANGE-CONTROL" }, ],
+  {"_LINK":"b8c33f33829a4efb85326dc7b4f01c91" }, ],
  "strictdoc/80_runtime_platform_and_operations.html": [
 
 
@@ -4771,7 +5031,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose-Scope-and-Status-Boundary" },
 
-  {"_LINK":"5c089171805e4fcf93b94edc72974781" },
+  {"_LINK":"aaed7bff852a4ad29011546e9a59c336" },
 
   {"UID":"GHOST-RUN-OPS-CAPABILITY","_LINK":"GHOST-RUN-OPS-CAPABILITY" },
 
@@ -4783,7 +5043,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-Current-AWS-Runtime-Capability" },
 
-  {"_LINK":"b32558779083444fb9e0f5c17194f2f6" },
+  {"_LINK":"e64b8d8ca7244add91fc4bde17ad5535" },
 
   {"UID":"GHOST-RUN-CUR-HTTPS-REQUEST-PATH","_LINK":"GHOST-RUN-CUR-HTTPS-REQUEST-PATH" },
 
@@ -4801,7 +5061,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-Target-Remote-MCP-Extension" },
 
-  {"_LINK":"4c1879487341489b849f363216770ea5" },
+  {"_LINK":"5faeefabc7d048c993634c4c45c82450" },
 
   {"UID":"GHOST-RUN-TGT-MCP-SEPARATE-CONTAINER","_LINK":"GHOST-RUN-TGT-MCP-SEPARATE-CONTAINER" },
 
@@ -4817,7 +5077,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-Ownership-and-Explicit-Exclusions" },
 
-  {"_LINK":"30ce86f2ba1245d39d5824bce6b86c9d" },
+  {"_LINK":"81e798e41f0747a79123bbe8665493e7" },
 
   {"UID":"GHOST-RUN-OPS-AWS-CHILD-OWNERSHIP","_LINK":"GHOST-RUN-OPS-AWS-CHILD-OWNERSHIP" },
 
@@ -4831,7 +5091,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Scope-Evidence-and-Environment-Profile" },
 
-  {"_LINK":"ee8a09426bc045c198b37727b474d551" },
+  {"_LINK":"907fd22d94a1490fb171b86a045db95f" },
 
   {"UID":"GHOST-AWS-DEPLOYMENT-CAPABILITY","_LINK":"GHOST-AWS-DEPLOYMENT-CAPABILITY" },
 
@@ -4845,7 +5105,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"2-2-CURRENT-AWS-Network-and-HTTPS-Entry" },
 
-  {"_LINK":"26f01ec223304ecbb20ade3e99e1302a" },
+  {"_LINK":"8c4e100ed0a54f7183f8705b9248e309" },
 
   {"UID":"GHOST-AWS-CUR-EC2-HOST","_LINK":"GHOST-AWS-CUR-EC2-HOST" },
 
@@ -4881,7 +5141,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3-3-CURRENT-Docker-Image-and-ECR-Delivery" },
 
-  {"_LINK":"c816c92292bb400fb6d1b9dc9605c1a9" },
+  {"_LINK":"559b7816fab644aeaed1952abea7541f" },
 
   {"UID":"GHOST-AWS-CUR-DOCKER-BASE-IMAGE","_LINK":"GHOST-AWS-CUR-DOCKER-BASE-IMAGE" },
 
@@ -4911,7 +5171,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"4-4-CURRENT-EC2-Activation-and-Persistent-Data" },
 
-  {"_LINK":"123007ac19d242679ae069d326d3a042" },
+  {"_LINK":"7cbc894e9f0b491681047d5e3d42beb5" },
 
   {"UID":"GHOST-AWS-CUR-START-SCRIPT","_LINK":"GHOST-AWS-CUR-START-SCRIPT" },
 
@@ -4945,7 +5205,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"5-5-CURRENT-IAM-Secret-Handling-Verification-and-Non-Goals" },
 
-  {"_LINK":"f1cc808472e2493b8a38c8a99f573a64" },
+  {"_LINK":"b11cc5ad3f2e4a28aa3b751eff3f77d7" },
 
   {"UID":"GHOST-AWS-CUR-EC2-ROLE-PERMISSIONS","_LINK":"GHOST-AWS-CUR-EC2-ROLE-PERMISSIONS" },
 
@@ -4967,7 +5227,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"6-6-TARGET-MCP-Hosting-and-Network-Topology" },
 
-  {"_LINK":"8c9ec504d8a84606a0601d9659c6aad6" },
+  {"_LINK":"4e1fb29d89b54cd7aac912b2fb6d27ec" },
 
   {"UID":"GHOST-AWS-TGT-MCP-SAME-EC2","_LINK":"GHOST-AWS-TGT-MCP-SAME-EC2" },
 
@@ -5009,7 +5269,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"7-7-TARGET-MCP-Streamable-HTTP-and-nginx-Proxy-Contract" },
 
-  {"_LINK":"49212db1dde8408691ed4de65a52a52f" },
+  {"_LINK":"b5ee7ef2bdc74c4ba6d7318f5e13e70a" },
 
   {"UID":"GHOST-AWS-TGT-MCP-STREAMABLE-HTTP","_LINK":"GHOST-AWS-TGT-MCP-STREAMABLE-HTTP" },
 
@@ -5027,7 +5287,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"8-8-TARGET-MCP-OAuth-Interoperability" },
 
-  {"_LINK":"19a14d34679d40e9ae091e085cb1d113" },
+  {"_LINK":"2816a2c911594679a2a37acdb3f4045a" },
 
   {"UID":"GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE","_LINK":"GHOST-AWS-TGT-MCP-OAUTH-PROTECTED-RESOURCE" },
 
@@ -5059,7 +5319,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"9-9-TARGET-MCP-Tool-and-Existing-Code-Boundary" },
 
-  {"_LINK":"54d33dccf359489bada4c57496629696" },
+  {"_LINK":"f5d4d6704d9e46f59fe358440767b40f" },
 
   {"UID":"GHOST-AWS-TGT-MCP-PROMPT-ENGINEERING-TOOL","_LINK":"GHOST-AWS-TGT-MCP-PROMPT-ENGINEERING-TOOL" },
 
@@ -5073,7 +5333,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"10-10-TARGET-MCP-Deployment-Completion-and-Acceptance" },
 
-  {"_LINK":"8b11d6d0d59b48bcac17aee7370e6841" },
+  {"_LINK":"9d3ebc3886374513a13341a7fbc85702" },
 
   {"UID":"GHOST-AWS-TGT-MCP-RUNTIME-VALUES","_LINK":"GHOST-AWS-TGT-MCP-RUNTIME-VALUES" },
 
@@ -5091,7 +5351,55 @@ window.StrictDoc.project.map = {
 
   {"UID":"GHOST-AWS-TGT-MCP-SCOPE-ACCEPTANCE","_LINK":"GHOST-AWS-TGT-MCP-SCOPE-ACCEPTANCE" },
 
-  {"UID":"GHOST-AWS-TGT-MCP-PROMOTION-GATE","_LINK":"GHOST-AWS-TGT-MCP-PROMOTION-GATE" }, ],
+  {"UID":"GHOST-AWS-TGT-MCP-PROMOTION-GATE","_LINK":"GHOST-AWS-TGT-MCP-PROMOTION-GATE" },
+
+  {"_LINK":"11-11-TARGET-Serverless-EC2-Runtime-Control" },
+
+  {"_LINK":"5e290c977fcd46278af0f1b435333972" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-RUNTIME-CONTROL","_LINK":"GHOST-AWS-TGT-EC2-RUNTIME-CONTROL" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-CONTROL-INDEPENDENT","_LINK":"GHOST-AWS-TGT-EC2-CONTROL-INDEPENDENT" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-CONTROL-AUTH","_LINK":"GHOST-AWS-TGT-EC2-CONTROL-AUTH" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-CONTROL-IAM","_LINK":"GHOST-AWS-TGT-EC2-CONTROL-IAM" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-CONTROL-FIXED-INSTANCE","_LINK":"GHOST-AWS-TGT-EC2-CONTROL-FIXED-INSTANCE" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-RUNTIME-PROFILES","_LINK":"GHOST-AWS-TGT-EC2-RUNTIME-PROFILES" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-PROFILE-WHILE-STOPPED","_LINK":"GHOST-AWS-TGT-EC2-PROFILE-WHILE-STOPPED" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-IDLE-TIMEOUT","_LINK":"GHOST-AWS-TGT-EC2-IDLE-TIMEOUT" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-CONTROL-STATE","_LINK":"GHOST-AWS-TGT-EC2-CONTROL-STATE" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-START-SEQUENCE","_LINK":"GHOST-AWS-TGT-EC2-START-SEQUENCE" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-READINESS","_LINK":"GHOST-AWS-TGT-EC2-READINESS" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-STATUS","_LINK":"GHOST-AWS-TGT-EC2-STATUS" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-STOP","_LINK":"GHOST-AWS-TGT-EC2-STOP" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-QUALIFYING-ACTIVITY","_LINK":"GHOST-AWS-TGT-EC2-QUALIFYING-ACTIVITY" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-NON-ACTIVITY","_LINK":"GHOST-AWS-TGT-EC2-NON-ACTIVITY" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-ACTIVITY-PUBLISH","_LINK":"GHOST-AWS-TGT-EC2-ACTIVITY-PUBLISH" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-INFLIGHT-PROTECTION","_LINK":"GHOST-AWS-TGT-EC2-INFLIGHT-PROTECTION" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-LAMBDA-WATCHDOG","_LINK":"GHOST-AWS-TGT-EC2-LAMBDA-WATCHDOG" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-LOCAL-WATCHDOG","_LINK":"GHOST-AWS-TGT-EC2-LOCAL-WATCHDOG" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-LOCAL-WATCHDOG-INDEPENDENCE","_LINK":"GHOST-AWS-TGT-EC2-LOCAL-WATCHDOG-INDEPENDENCE" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-CONTROL-PROFILE-VALUES","_LINK":"GHOST-AWS-TGT-EC2-CONTROL-PROFILE-VALUES" },
+
+  {"UID":"GHOST-AWS-TGT-EC2-CONTROL-ACCEPTANCE","_LINK":"GHOST-AWS-TGT-EC2-CONTROL-ACCEPTANCE" }, ],
  "strictdoc/90_quality_governance_and_observability.html": [
 
 
@@ -5099,7 +5407,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose" },
 
-  {"_LINK":"eec33b792cdd4f4fa769f3fe085f76ce" },
+  {"_LINK":"299734c50bf64683a64c5fceec740fcb" },
 
   {"_LINK":"2-2-Scope-and-Boundary" },
 
@@ -5109,59 +5417,59 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1-3-1-Cross-Cutting-FR-NFR-Scope" },
 
-  {"_LINK":"c8d55dd373c144ca96670510d0dd3a6b" },
+  {"_LINK":"274b84799d8941468c48910ac6817242" },
 
   {"_LINK":"3.2-3-2-Quality-Model" },
 
-  {"_LINK":"66466dd2bfbf4c76a787bd6e42ded682" },
+  {"_LINK":"75b425ffe9d8412ba8b47b6c7303f576" },
 
   {"_LINK":"3.3-3-3-Testing-Strategy" },
 
-  {"_LINK":"6cc2e791bf5f46d3a2e95bd46edd4b59" },
+  {"_LINK":"3a14d284ffb04451abbb1eed236784db" },
 
   {"_LINK":"3.4-3-4-Evaluation-Strategy" },
 
-  {"_LINK":"1f1d962b910d4ac5b73ecafa4c1617f2" },
+  {"_LINK":"fc7f168c868f409380c4bd6d77b5ef59" },
 
   {"_LINK":"3.5-3-5-Benchmarking-Strategy" },
 
-  {"_LINK":"c222edb3ab4b4c389c546f0d831cfab8" },
+  {"_LINK":"7bb28b3e1c474331860e77722f7719c6" },
 
   {"_LINK":"3.6-3-6-Observability-Strategy" },
 
-  {"_LINK":"523e4de6bcd546219b75c2ef2602bbf4" },
+  {"_LINK":"00cd2bc67e01462a9e1c4ca2f10c7f16" },
 
   {"_LINK":"3.7-3-7-Metrics-Strategy" },
 
-  {"_LINK":"8bbadeb920154cc4a6ad135574be619a" },
+  {"_LINK":"4f089d406c1048cf990a894e4aacc573" },
 
   {"_LINK":"3.8-3-8-Security-Hardening" },
 
-  {"_LINK":"ebaad975251e41c99aeb827d6bc03fc9" },
+  {"_LINK":"d6d7f9771dc448e1bc12a7f0fb45816d" },
 
   {"_LINK":"3.9-3-9-Source-of-Truth-Governance" },
 
-  {"_LINK":"d4319e27724d4fb88facaa467c3b8b90" },
+  {"_LINK":"f57475e9efb44fb9a15753d81ff07771" },
 
   {"_LINK":"3.10-3-10-Change-Control" },
 
-  {"_LINK":"cc3dfe5d5ee64c07814f6d29e4a5cdea" },
+  {"_LINK":"8faaf6ed98874b9e9cc630a73110d8e3" },
 
   {"_LINK":"3.11-3-11-Requirement-Traceability-Rules" },
 
-  {"_LINK":"80a14368eb304306bc62f67d0e4ba561" },
+  {"_LINK":"d093d26bd4eb489b8dd5056f2e1aa8b7" },
 
   {"_LINK":"3.12-3-12-Child-File-Logging" },
 
-  {"_LINK":"f3fdc3284c3e4ca8bfc86400ccc02ef5" },
+  {"_LINK":"5bc1645b76724f369dcc63e7f410ca2d" },
 
   {"_LINK":"3.13-3-13-Child-File-Metrics-Evaluation-Benchmarking" },
 
-  {"_LINK":"de68693f239d4bd0841db82fcb9ab4ec" },
+  {"_LINK":"d8a73f61bebd4e96a965e8a34a3d8679" },
 
   {"_LINK":"3.14-3-14-Child-File-Quality-Security-Traceability-Governance" },
 
-  {"_LINK":"11301c5a9fe34620bc3542ac118500de" }, ],
+  {"_LINK":"d61c78ec3cdc49118763d9bcb3c98205" }, ],
  "strictdoc/91_logging_textforge_raglog.html": [
 
 
@@ -5169,7 +5477,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose" },
 
-  {"_LINK":"2fe073e87f12451abfacaa4c246cf308" },
+  {"_LINK":"14bb5e8635ac4f27ba55cb20581fe0d8" },
 
   {"_LINK":"2-2-Scope-and-Boundary" },
 
@@ -5179,71 +5487,71 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1-3-1-TextForge-RagLog-Functional-Logging-Subsystem" },
 
-  {"_LINK":"d1bd12e2001048518589fbb8f7a7c40d" },
+  {"_LINK":"20a17f1a226e4c5db07bc45ced872b59" },
 
   {"_LINK":"3.2-3-2-TextForge-Facade" },
 
-  {"_LINK":"5595b9106e434e3bb9759765addc4ab9" },
+  {"_LINK":"f677465a5c1b495cbcd858f72be70098" },
 
   {"_LINK":"3.3-3-3-TextSink-Base" },
 
-  {"_LINK":"3755d9f1a26f4be3a2af8f063ffe8f2d" },
+  {"_LINK":"317920460615458c944007cad2491667" },
 
   {"_LINK":"3.4-3-4-FileSink" },
 
-  {"_LINK":"5a3f6b37d34141a1a70db4c9fe86c500" },
+  {"_LINK":"dcb6193b863f445d8017f8fa4265b917" },
 
   {"_LINK":"3.5-3-5-CliSink" },
 
-  {"_LINK":"f5abbd546f06434d93ce6b1f7db81921" },
+  {"_LINK":"32ce1d2ee3984cbabf9fc0832c083139" },
 
   {"_LINK":"3.6-3-6-GUISink" },
 
-  {"_LINK":"d5356d8fe3364657a20f7014abb8dd99" },
+  {"_LINK":"f077f45abe634979b2642e23fb17443d" },
 
   {"_LINK":"3.7-3-7-RagLog-Public-Functions" },
 
-  {"_LINK":"3757afc8d0174cbca53802d757a27991" },
+  {"_LINK":"1d3d64985bfa4c39a39ada1197585ae1" },
 
   {"_LINK":"3.8-3-8-LogALL" },
 
-  {"_LINK":"c11722aa9d224c2e941197ee5e25c07c" },
+  {"_LINK":"bb5411d9821947ef82004da2fa9ac06e" },
 
   {"_LINK":"3.9-3-9-LogNoGUI" },
 
-  {"_LINK":"973c44c5881943a99e37706075ad5adc" },
+  {"_LINK":"921e528daaef4c70b4ce618417c033e2" },
 
   {"_LINK":"3.10-3-10-LogConf" },
 
-  {"_LINK":"b37113a01c4f4f1c9da5070490e05f08" },
+  {"_LINK":"14c62466d6dc4c8b85b9893110d6961f" },
 
   {"_LINK":"3.11-3-11-LogDeveloper" },
 
-  {"_LINK":"21008aeeeb5d4572b6b8f8965b72be7f" },
+  {"_LINK":"f708beefbdb94e79aad418771d6807e4" },
 
   {"_LINK":"3.12-3-12-GUI-CLI-File-Archive-Sink-Routing" },
 
-  {"_LINK":"976a19f51c35414bbd63321b7c002c04" },
+  {"_LINK":"f51d807175fc454f93bb5f93c395b9ea" },
 
   {"_LINK":"3.13-3-13-Type-and-Sensitivity-Filtering" },
 
-  {"_LINK":"2378dafd21dc4c9f9b3f280f475a6199" },
+  {"_LINK":"9d8b9df30ce24c88b8e62c8991084e56" },
 
   {"_LINK":"3.14-3-14-Developer-Diagnostics" },
 
-  {"_LINK":"eb113f86e3ed4aa8b3eb0dc3996b4fa1" },
+  {"_LINK":"8b86cf1490374e9896be6a1422a7672d" },
 
   {"_LINK":"3.15-3-15-Runtime-Log-Display-Support" },
 
-  {"_LINK":"e622ab30b4194d0bbf32c3cdf449c7cf" },
+  {"_LINK":"45a397ada25347beb932fd6cf2893408" },
 
   {"_LINK":"3.16-3-16-Retention-Rotation-Future-Hardening" },
 
-  {"_LINK":"9b483f12cd7f4eb099c39d9ac3a4c421" },
+  {"_LINK":"a478dfadec7b40339844d30d914136d9" },
 
   {"_LINK":"3.17-3-17-AWS-Persistence-Future-Hardening" },
 
-  {"_LINK":"513b8238468a4527ac77c3c95258584e" }, ],
+  {"_LINK":"3988c6d9ccdb4f6ca585c33a9cf120ac" }, ],
  "strictdoc/92_metrics_evaluation_benchmarking.html": [
 
 
@@ -5251,7 +5559,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose" },
 
-  {"_LINK":"85492a56a7064b048de1a223c6b4361f" },
+  {"_LINK":"a5973769325b4915a07a4e509c087730" },
 
   {"_LINK":"2-2-Scope-and-Boundary" },
 
@@ -5261,47 +5569,47 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1-3-1-Current-Metrics-Tab-Demo-Boundary" },
 
-  {"_LINK":"d99437d1b0e2458c9088ab56075fabc5" },
+  {"_LINK":"d9d19868053e409fa1a08097cde98177" },
 
   {"_LINK":"3.2-3-2-Future-Real-Metrics-Backend" },
 
-  {"_LINK":"a96bca5f0e4e4befa55b31033c797da2" },
+  {"_LINK":"3228b2bfe78848f6aeada210795aeae5" },
 
   {"_LINK":"3.3-3-3-Token-Usage" },
 
-  {"_LINK":"9802c237a6384c648503e73c2fc32ea3" },
+  {"_LINK":"25f59df2fddc4169a5c6f6ca54747c5f" },
 
   {"_LINK":"3.4-3-4-Cost-Metrics" },
 
-  {"_LINK":"07578391072a42caae6a783af30e166e" },
+  {"_LINK":"e01b1b26f66e4496ad9e01bce05a2b20" },
 
   {"_LINK":"3.5-3-5-Latency-Metrics" },
 
-  {"_LINK":"7984bae726b94b36b5b766b73d664c75" },
+  {"_LINK":"0e20009c4f154076b478e4d79bb73065" },
 
   {"_LINK":"3.6-3-6-Retrieval-Counts" },
 
-  {"_LINK":"d825dfe822bc4fa1824aa1ca74bca4ec" },
+  {"_LINK":"e2d6a82256e547c794d98659eee61356" },
 
   {"_LINK":"3.7-3-7-Memory-Diagnostics" },
 
-  {"_LINK":"9e559c27e6a246378b14253f39a15d99" },
+  {"_LINK":"321f6bbc1e9b46a4ab798c2dce22600b" },
 
   {"_LINK":"3.8-3-8-A3-A4-Quality-Evaluation" },
 
-  {"_LINK":"bc44215e36fd4494b77f19194de85ae5" },
+  {"_LINK":"85b0e7d0d38d421fb905aab200ff9b65" },
 
   {"_LINK":"3.9-3-9-SPLADE-ReRanker-Evaluation" },
 
-  {"_LINK":"14aba987ba884fe3809d6859c831c005" },
+  {"_LINK":"ead188abd7e24dc5a3096665718fa4ef" },
 
   {"_LINK":"3.10-3-10-Benchmark-Datasets" },
 
-  {"_LINK":"77b294ec3ae74b4f89fedd2e42bea5b9" },
+  {"_LINK":"34ccbd20bb0b48cdaa7ca97702632753" },
 
   {"_LINK":"3.11-3-11-Regression-Checks" },
 
-  {"_LINK":"b16a13618ec94148a6277c5310b45f38" }, ],
+  {"_LINK":"2e08c68f73bc4f99b76ee33bfa7fd1fa" }, ],
  "strictdoc/93_quality_security_traceability_governance.html": [
 
 
@@ -5309,7 +5617,7 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"1-1-Purpose" },
 
-  {"_LINK":"484eca053c5046bfa6a94cd14748861f" },
+  {"_LINK":"c6548fd7485c4665981fa135e3a4075d" },
 
   {"_LINK":"2-2-Scope-and-Boundary" },
 
@@ -5319,37 +5627,37 @@ window.StrictDoc.project.map = {
 
   {"_LINK":"3.1-3-1-Testing-Strategy" },
 
-  {"_LINK":"646822884c624d0babb89dd29befe512" },
+  {"_LINK":"e3d81b042f284dd6b32e64980e71eed1" },
 
   {"_LINK":"3.2-3-2-Regression-Tests" },
 
-  {"_LINK":"e19d3446619646e6ba37a4f5d5dd5f06" },
+  {"_LINK":"ed95784402fc45a381d9e1cecdbe93be" },
 
   {"_LINK":"3.3-3-3-Security-Hardening" },
 
-  {"_LINK":"aa2c6625f1f74faeb550b7a5ef473f01" },
+  {"_LINK":"61c2ece411264007ac8ec9d88080d397" },
 
   {"_LINK":"3.4-3-4-Secrets-and-Configuration-Governance" },
 
-  {"_LINK":"a96356232d0f47a1bdbc31543d8922d5" },
+  {"_LINK":"6fcc967a30514fda9109890d81935d1e" },
 
   {"_LINK":"3.5-3-5-Source-of-Truth-Governance" },
 
-  {"_LINK":"05c0b0f2f876440cb59e6d4e938dba71" },
+  {"_LINK":"e095c79a3dee43d88b9a3833e000655c" },
 
   {"_LINK":"3.6-3-6-StrictDoc-UID-Rules" },
 
-  {"_LINK":"ccb21063b0ce49448970b012b0ba4d84" },
+  {"_LINK":"7cfe9a4dfcdf439ea0526a36fd1db4be" },
 
   {"_LINK":"3.7-3-7-Requirement-Versioning" },
 
-  {"_LINK":"0febe6d82750468184ae9d8a978cf094" },
+  {"_LINK":"919be52c8aa44483a7a9d00da0796952" },
 
   {"_LINK":"3.8-3-8-Change-Approval" },
 
-  {"_LINK":"37a4bd93dc8245e4acd92bea2fb3b624" },
+  {"_LINK":"4ea191b5ba3245ad8a1216340d1cd4fa" },
 
   {"_LINK":"3.9-3-9-Architecture-Code-Test-Traceability-Direction" },
 
-  {"_LINK":"5c143cbfcb754e7b96c3d290de8d3a21" }, ],
+  {"_LINK":"33ab5b35b82d4ff5b424c1e487c93041" }, ],
 };

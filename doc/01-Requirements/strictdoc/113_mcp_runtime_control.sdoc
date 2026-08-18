@@ -1,0 +1,438 @@
+[DOCUMENT]
+TITLE: GHOST MCP Runtime Control Requirements
+UID: GHOST-MCP-RUNTIME-CONTROL
+VERSION: 0.1-draft
+OPTIONS:
+  MARKUP: Text
+  AUTO_LEVELS: On
+  NODE_IN_TOC: True
+
+[[SECTION]]
+TITLE: 1. Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This document owns the MCP-visible GHOST runtime-control capability.
+
+The capability provides a small, always-available control surface for the designated GHOST AWS EC2 runtime. It exists specifically so the user can start, inspect, and stop GHOST even while the EC2-hosted GHOST MCP server itself is offline.
+
+The AWS Lambda, IAM, EC2, SSM, readiness, and watchdog realization is owned by 81_aws_deployment_and_operations.sdoc.
+
+All requirements in this document are TARGET requirements until the capability is implemented and accepted.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-ROOT
+STATUS: Draft
+TITLE: Runtime-Control MCP Capability
+STATEMENT: >>>
+GHOST shall expose an authenticated MCP runtime-control capability through which the user can start the designated GHOST EC2 runtime, inspect its current state, and stop it.
+
+The runtime-control capability shall remain operational independently of the EC2-hosted GHOST MCP service that it controls.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-SEPARATE-ENDPOINT
+STATUS: Draft
+TITLE: Separate Always-Available Runtime-Control Endpoint
+STATEMENT: >>>
+Runtime-control tools shall be exposed by an MCP endpoint whose execution path does not depend on the managed GHOST EC2 instance being running.
+
+The runtime-control endpoint shall therefore remain callable while the managed GHOST EC2 instance is stopped.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 2. Runtime-Control Tool Inventory and Access
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-TOOLS
+STATUS: Draft
+TITLE: Runtime-Control Tool Inventory
+STATEMENT: >>>
+The runtime-control MCP endpoint shall expose exactly the following approved lifecycle tools unless this requirement is later revised:
+
+- ghost_ec2_start
+- ghost_ec2_status
+- ghost_ec2_stop
+
+The runtime-control endpoint shall not expose arbitrary general-purpose AWS administration tools.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-AUTH
+STATUS: Draft
+TITLE: Runtime-Control Authentication
+STATEMENT: >>>
+Every runtime-control tool invocation shall require successful authentication through the approved GHOST Cognito identity environment and shall follow the common MCP authentication and authorization contract owned by 110_mcp.sdoc.
+
+The existing approved GHOST Cognito user identity shall be usable for the runtime-control endpoint; the capability shall not require a second end-user account solely for EC2 control.
+
+An unauthenticated caller shall not be able to invoke start, status, or stop.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-FIXED-TARGET
+STATUS: Draft
+TITLE: Fixed Managed EC2 Target
+STATEMENT: >>>
+The runtime-control tool interface shall target only the configured GHOST EC2 instance.
+
+The tools shall not accept an arbitrary EC2 instance ID or other caller-selected AWS resource identifier.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 3. Start Tool
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-START-TOOL
+STATUS: Draft
+TITLE: EC2 Start Tool
+STATEMENT: >>>
+The runtime-control endpoint shall expose:
+
+ghost_ec2_start
+
+The operation shall start the configured GHOST EC2 instance from the stopped state using the selected approved runtime profile and effective idle timeout.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-TOOLS
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-PROFILE-INPUT
+STATUS: Draft
+TITLE: Start Runtime Profile Input
+STATEMENT: >>>
+ghost_ec2_start shall accept an optional runtime profile selector with exactly the following approved values:
+
+1. Profile 1: t3.medium.
+2. Profile 2: m7i-flex.xlarge.
+
+When the user does not provide a runtime profile, the tool shall use Profile 1.
+
+A runtime profile value other than 1 or 2 shall not select another EC2 instance type.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-START-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-IDLE-INPUT
+STATUS: Draft
+TITLE: Start Idle Timeout Input
+STATEMENT: >>>
+ghost_ec2_start shall accept an optional idle timeout in minutes.
+
+When the user does not provide a value, the effective timeout shall be 20 minutes.
+
+The effective timeout shall be constrained to the range 10 through 120 minutes inclusive. A requested value below 10 shall result in an effective value of 10 minutes, and a requested value above 120 shall result in an effective value of 120 minutes.
+
+The tool result shall state the effective timeout actually applied.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-START-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-START-STOPPED-ONLY
+STATUS: Draft
+TITLE: Start Uses Stopped-Instance Configuration
+STATEMENT: >>>
+The normal ghost_ec2_start workflow shall assume the managed EC2 instance is stopped.
+
+While the instance is stopped, the controller shall apply the selected approved instance type and then start the same instance.
+
+If the instance is not stopped, ghost_ec2_start shall not silently stop or restart it merely to satisfy a different runtime-profile request. The tool shall instead return the observed state and a clear non-ready or no-change result as appropriate.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-START-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-START-READINESS
+STATUS: Draft
+TITLE: Start Waits for GHOST Readiness
+STATEMENT: >>>
+ghost_ec2_start shall not complete with ready=true solely because AWS reports the EC2 instance as running.
+
+The operation shall wait through the bounded startup sequence until the actual GHOST service health check succeeds or startup readiness fails.
+
+A failed or timed-out readiness check shall be returned as not ready and shall not be represented as successful startup readiness.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-START-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-START-RESULT
+STATUS: Draft
+TITLE: Start Result Contract
+STATEMENT: >>>
+A successful ghost_ec2_start result shall identify at least:
+
+- the observed EC2 state;
+- the selected runtime profile;
+- the concrete EC2 instance type;
+- the effective idle timeout; and
+- whether GHOST readiness was successfully verified.
+
+The result shall make the applied profile and timeout explicit so the user does not need to infer them from defaults.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-START-READINESS
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 4. Status Tool
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-STATUS-TOOL
+STATUS: Draft
+TITLE: EC2 Status Tool
+STATEMENT: >>>
+The runtime-control endpoint shall expose:
+
+ghost_ec2_status
+
+The operation shall inspect the configured GHOST EC2 runtime without starting or stopping it.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-TOOLS
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-STATUS-RESULT
+STATUS: Draft
+TITLE: Runtime Status Result
+STATEMENT: >>>
+When the information is available, ghost_ec2_status shall report:
+
+- current EC2 state;
+- current approved runtime profile or concrete instance type;
+- GHOST readiness state when the instance is running;
+- effective idle timeout for the current run; and
+- elapsed time since the latest qualifying GHOST MCP activity.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-STATUS-TOOL
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-STATUS-NO-ACTIVITY
+STATUS: Draft
+TITLE: Status Does Not Keep EC2 Alive
+STATEMENT: >>>
+Calling ghost_ec2_status shall not refresh the managed EC2 instance's GHOST inactivity timer.
+
+Repeated status polling shall therefore not prevent the inactivity watchdogs from stopping an otherwise unused instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-STATUS-TOOL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 5. Stop Tool
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-STOP-TOOL
+STATUS: Draft
+TITLE: EC2 Stop Tool
+STATEMENT: >>>
+The runtime-control endpoint shall expose:
+
+ghost_ec2_stop
+
+The operation shall request a normal stop of the configured GHOST EC2 instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-TOOLS
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-STOP-SAFE
+STATUS: Draft
+TITLE: Safe and Idempotent Stop Behavior
+STATEMENT: >>>
+ghost_ec2_stop shall be safe to call when the managed instance is already stopped and shall not terminate the EC2 instance.
+
+The stop tool shall not change the configured runtime profile as a side effect of stopping the instance.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-STOP-TOOL
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 6. Inactivity Shutdown Contract
+
+[TEXT]
+STATEMENT: >>>
+The inactivity policy exists to prevent an accidentally started or forgotten GHOST EC2 instance from remaining chargeable for long periods.
+
+The policy is intentionally based on real GHOST MCP tool use rather than generic host activity.
+<<<
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-IDLE-POLICY
+STATUS: Draft
+TITLE: Per-Run Idle Shutdown Policy
+STATEMENT: >>>
+Every successful EC2 start shall establish one effective idle timeout for that run.
+
+If no qualifying GHOST MCP activity occurs for the effective timeout and no qualifying MCP tool call is still executing, the managed EC2 instance shall be stopped by the runtime-control watchdog design defined in 81_aws_deployment_and_operations.sdoc.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-ROOT
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-ACTIVITY-DEFINITION
+STATUS: Draft
+TITLE: Qualifying Activity Is an Authenticated GHOST Tool Call
+STATEMENT: >>>
+A qualifying activity shall be a real authenticated tools/call invocation accepted for execution by the EC2-hosted GHOST MCP service.
+
+Examples include approved prompt-engineering, retrieval, memory, Blackboard, and other GHOST functional tool calls executed on the managed EC2 runtime.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-IDLE-POLICY
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-ACTIVITY-EXCLUSIONS
+STATUS: Draft
+TITLE: Background and Control Traffic Is Not Qualifying Activity
+STATEMENT: >>>
+The following shall not refresh the GHOST inactivity timer merely by occurring:
+
+- GHOST health checks;
+- startup readiness polling;
+- OAuth or discovery traffic;
+- MCP initialization;
+- tools/list;
+- ghost_ec2_status polling;
+- watchdog execution;
+- Docker activity;
+- operating-system activity;
+- CPU usage;
+- unrelated network background traffic; or
+- other activity that is not an authenticated GHOST functional tools/call invocation on the managed EC2 runtime.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-ACTIVITY-DEFINITION
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-INFLIGHT
+STATUS: Draft
+TITLE: Active Tool Calls Prevent Idle Shutdown
+STATEMENT: >>>
+The runtime-control inactivity mechanism shall not stop the EC2 instance while a qualifying authenticated GHOST MCP tool call is actively executing.
+
+The post-call idle period shall begin from the refreshed completion activity time after the final active qualifying call completes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-IDLE-POLICY
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-REDUNDANT-WATCHDOG
+STATUS: Draft
+TITLE: Redundant Idle-Shutdown Enforcement
+STATEMENT: >>>
+The inactivity policy shall be enforced by both:
+
+1. a serverless AWS watchdog; and
+2. an independent EC2-local watchdog.
+
+The local watchdog shall remain capable of stopping an idle run when the Lambda watchdog execution path is unavailable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-IDLE-POLICY
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 7. Error and Safety Behavior
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-NO-FALSE-READY
+STATUS: Draft
+TITLE: No False Ready Result
+STATEMENT: >>>
+A runtime-control operation shall not report GHOST as ready when the readiness health verification has not succeeded.
+
+AWS running state, Docker startup activity, or an attempted health request alone shall not be represented as successful GHOST readiness.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-START-READINESS
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-NO-ARBITRARY-AWS
+STATUS: Draft
+TITLE: No General AWS Control Surface
+STATEMENT: >>>
+The runtime-control MCP capability shall remain limited to the approved GHOST EC2 lifecycle operations and approved runtime profiles.
+
+It shall not become a generic MCP interface for arbitrary AWS resources, arbitrary instance types, EC2 termination, IAM modification, security-group modification, or other unrelated cloud-administration actions.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-ROOT
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: 8. Acceptance
+
+[REQUIREMENT]
+UID: GHOST-MCP-RUNTIME-ACCEPTANCE
+STATUS: Draft
+TITLE: Runtime-Control MCP Acceptance
+STATEMENT: >>>
+The runtime-control capability shall not be treated as implemented until acceptance demonstrates at least that:
+
+1. the runtime-control MCP endpoint remains callable while the managed GHOST EC2 instance is stopped;
+2. unauthenticated control invocations are rejected;
+3. ghost_ec2_start with no optional values selects Profile 1 t3.medium and a 20-minute effective idle timeout;
+4. ghost_ec2_start can select Profile 2 m7i-flex.xlarge while the same EC2 instance is stopped;
+5. the effective idle timeout remains within 10 through 120 minutes;
+6. ghost_ec2_start reports ready only after actual GHOST health verification succeeds;
+7. ghost_ec2_status reports state without resetting idle activity;
+8. ghost_ec2_stop stops but does not terminate the managed EC2 instance;
+9. real authenticated EC2-hosted GHOST tools/call activity refreshes the idle timer;
+10. health checks, polling, and background activity do not refresh the idle timer;
+11. the serverless watchdog stops the instance after qualifying inactivity; and
+12. the EC2-local watchdog independently stops the instance after qualifying inactivity when the serverless watchdog path is unavailable.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: GHOST-MCP-RUNTIME-ROOT
+
+[[/SECTION]]
