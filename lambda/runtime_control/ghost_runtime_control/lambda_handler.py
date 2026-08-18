@@ -268,7 +268,37 @@ class RuntimeControlApplication:
         self,
         event: Mapping[str, Any],
     ) -> dict[str, Any]:
-        """Redirect the unchanged authorization request to Cognito."""
+        """Validate the resource and redirect the request to Cognito."""
+
+        from urllib.parse import parse_qsl, urlencode
+
+        parameters = parse_qsl(
+            self._encoded_query_string(event),
+            keep_blank_values=True,
+        )
+
+        requested_resources = [
+            value
+            for name, value in parameters
+            if name == "resource"
+        ]
+        if any(
+            resource != self._auth_config.resource
+            for resource in requested_resources
+        ):
+            return self._http_response(
+                400,
+                {"error": "invalid_target"},
+            )
+
+        # Cognito rejects resource-binding because its custom scope uses a
+        # different resource-server identifier. The facade validates resource,
+        # then removes it before forwarding the request.
+        cognito_parameters = [
+            (name, value)
+            for name, value in parameters
+            if name != "resource"
+        ]
 
         try:
             metadata = _load_cognito_oidc_metadata(
@@ -279,7 +309,6 @@ class RuntimeControlApplication:
                 metadata,
                 "authorization_endpoint",
             )
-            query_string = self._encoded_query_string(event)
         except (OSError, ValueError, json.JSONDecodeError):
             LOGGER.exception("Unable to prepare Cognito authorization redirect")
             return self._http_response(
@@ -287,6 +316,7 @@ class RuntimeControlApplication:
                 {"error": "authorization_server_unavailable"},
             )
 
+        query_string = urlencode(cognito_parameters)
         location = endpoint
         if query_string:
             location = f"{endpoint}?{query_string}"
