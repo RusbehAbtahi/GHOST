@@ -380,7 +380,7 @@ class RuntimeControlApplication:
                 {"error": "token_endpoint_unavailable"},
             )
 
-        LOGGER.info(
+        LOGGER.warning(
             "GHOST OAuth token exchange: status=%s error=%s",
             status_code,
             payload.get("error"),
@@ -812,7 +812,7 @@ def lambda_handler(
         response = _build_application().handle(event)
 
         if _is_api_gateway_event(event):
-            LOGGER.info(
+            LOGGER.warning(
                 "GHOST HTTP response: method=%s path=%s status=%s",
                 RuntimeControlApplication._http_method(event),
                 RuntimeControlApplication._request_path(event),
