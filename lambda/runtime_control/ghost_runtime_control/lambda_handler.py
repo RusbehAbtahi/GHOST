@@ -291,14 +291,9 @@ class RuntimeControlApplication:
                 {"error": "invalid_target"},
             )
 
-        # Cognito rejects resource-binding because its custom scope uses a
-        # different resource-server identifier. The facade validates resource,
-        # then removes it before forwarding the request.
-        cognito_parameters = [
-            (name, value)
-            for name, value in parameters
-            if name != "resource"
-        ]
+        # The runtime-control MCP now has its own matching Cognito resource
+        # server. Preserve the validated resource parameter so Cognito can bind
+        # the resulting access token to this MCP audience.
 
         try:
             metadata = _load_cognito_oidc_metadata(
@@ -316,7 +311,7 @@ class RuntimeControlApplication:
                 {"error": "authorization_server_unavailable"},
             )
 
-        query_string = urlencode(cognito_parameters)
+        query_string = self._encoded_query_string(event)
         location = endpoint
         if query_string:
             location = f"{endpoint}?{query_string}"
@@ -338,7 +333,11 @@ class RuntimeControlApplication:
         """Forward the unchanged public-client token request to Cognito."""
 
         try:
-            request_body = self._cognito_token_request_body(event)
+            request_body = self._request_body(event)
+            if not isinstance(request_body, str):
+                raise ValueError(
+                    "OAuth token body must be form-encoded text"
+                )
             metadata = _load_cognito_oidc_metadata(
                 self._auth_config.issuer,
                 self._auth_config.required_scope,
@@ -387,28 +386,6 @@ class RuntimeControlApplication:
         )
 
         return self._http_response(status_code, payload)
-
-    def _cognito_token_request_body(
-        self,
-        event: Mapping[str, Any],
-    ) -> str:
-        """Remove MCP-only parameters before forwarding to Cognito."""
-
-        request_body = self._request_body(event)
-
-        if not isinstance(request_body, str):
-            raise ValueError("OAuth token body must be form-encoded text")
-
-        return urlencode(
-            [
-                (name, value)
-                for name, value in parse_qsl(
-                    request_body,
-                    keep_blank_values=True,
-                )
-                if name != "resource"
-            ]
-        )
 
     @staticmethod
     def _encoded_query_string(
