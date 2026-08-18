@@ -1,0 +1,448 @@
+"""Connect API Gateway and the scheduled watchdog to runtime-control logic.
+
+This module is the AWS Lambda entry point. It creates the application once per
+warm Lambda environment, converts API Gateway events into MCP requests, exposes
+OAuth Protected Resource Metadata, and invokes the idle watchdog for scheduled
+events.
+
+Main class:
+    RuntimeControlApplication: Routes HTTP and scheduled Lambda invocations.
+
+Main function:
+    lambda_handler(): Function configured as the Lambda Handler in SAM.
+"""
+
+from __future__ import annotations
+
+import base64
+import binascii
+import json
+import logging
+from functools import lru_cache
+from typing import Any, Mapping
+from urllib.parse import urlsplit
+
+from ragstream.mcp.auth import AuthConfig, CognitoTokenVerifier
+
+from .config import RuntimeControlConfig
+from .ec2_controller import Ec2Controller
+from .mcp_server import McpResponse, RuntimeControlMcpServer
+from .runtime_state import RuntimeStateStore
+
+
+LOGGER = logging.getLogger(__name__)
+
+MCP_PATH = "/mcp"
+OAUTH_METADATA_PATH = "/.well-known/oauth-protected-resource/mcp"
+
+
+class RuntimeControlApplication:
+    """Route API Gateway and watchdog events to the correct service.
+
+    controller:
+        Executes the scheduled idle check and all EC2 lifecycle operations.
+    mcp_server:
+        Authenticates and executes MCP JSON-RPC requests.
+    auth_config:
+        Provides the OAuth resource, issuer, and scope published to clients.
+    """
+
+    def __init__(
+        self,
+        controller: Ec2Controller,
+        mcp_server: RuntimeControlMcpServer,
+        auth_config: AuthConfig,
+    ) -> None:
+        self._controller = controller
+        self._mcp_server = mcp_server
+        self._auth_config = auth_config
+        self._resource_metadata_url = self._build_metadata_url(
+            auth_config.resource
+        )
+
+    def handle(
+        self,
+        event: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """Handle one API Gateway request or scheduled watchdog invocation."""
+
+        if _is_api_gateway_event(event):
+            return self._handle_http(event)
+
+        return self._handle_watchdog()
+
+    def _handle_http(
+        self,
+        event: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """Route one API Gateway request without exposing AWS event details."""
+
+        method = self._http_method(event)
+        path = self._request_path(event)
+
+        if (
+            method == "GET"
+            and path.endswith(OAUTH_METADATA_PATH)
+        ):
+            return self._oauth_metadata_response()
+
+        if not path.endswith(MCP_PATH):
+            return self._http_response(
+                404,
+                {"error": "not_found"},
+            )
+
+        # This Lambda returns JSON responses rather than a server-sent event
+        # stream. MCP permits GET to return 405 when SSE is not provided.
+        if method != "POST":
+            return self._http_response(
+                405,
+                {"error": "method_not_allowed"},
+                {"Allow": "POST"},
+            )
+
+        try:
+            request_body = self._request_body(event)
+        except ValueError:
+            return self._http_response(
+                400,
+                {"error": "invalid_request_body"},
+            )
+
+        request_headers = self._request_headers(event)
+        authorization_header = request_headers.get(
+            "authorization"
+        )
+
+        mcp_response = self._mcp_server.handle(
+            request_body,
+            authorization_header,
+        )
+
+        return self._mcp_http_response(
+            mcp_response,
+            authorization_header,
+        )
+
+    def _handle_watchdog(
+        self,
+    ) -> dict[str, Any]:
+        """Run one scheduled idle check without starting a stopped instance."""
+
+        result = self._controller.stop_if_idle()
+
+        LOGGER.info(
+            "GHOST runtime-control watchdog completed: %s",
+            result,
+        )
+
+        # EventBridge Scheduler ignores the Lambda result. Keep it small and
+        # JSON-safe while CloudWatch receives the detailed result in the log.
+        return {
+            "watchdog_checked": True,
+        }
+
+    def _oauth_metadata_response(
+        self,
+    ) -> dict[str, Any]:
+        """Publish discovery metadata for the existing Cognito environment."""
+
+        return self._http_response(
+            200,
+            {
+                "resource": self._auth_config.resource,
+                "authorization_servers": [
+                    self._auth_config.issuer
+                ],
+                "scopes_supported": [
+                    self._auth_config.required_scope
+                ],
+            },
+        )
+
+    def _mcp_http_response(
+        self,
+        response: McpResponse,
+        authorization_header: str | None,
+    ) -> dict[str, Any]:
+        """Convert McpResponse and add the complete OAuth challenge."""
+
+        headers = dict(response.headers)
+
+        if response.status_code == 401:
+            error = (
+                "invalid_token"
+                if authorization_header
+                else None
+            )
+            headers["WWW-Authenticate"] = (
+                self._authorization_challenge(error)
+            )
+
+        elif response.status_code == 403:
+            headers["WWW-Authenticate"] = (
+                self._authorization_challenge(
+                    "insufficient_scope"
+                )
+            )
+
+        return self._http_response(
+            response.status_code,
+            response.body,
+            headers,
+        )
+
+    def _authorization_challenge(
+        self,
+        error: str | None,
+    ) -> str:
+        """Build the Bearer challenge used by MCP OAuth clients."""
+
+        parameters = [
+            (
+                'resource_metadata="'
+                f'{self._resource_metadata_url}"'
+            ),
+            f'scope="{self._auth_config.required_scope}"',
+        ]
+
+        if error:
+            parameters.append(
+                f'error="{error}"'
+            )
+
+        return "Bearer " + ", ".join(parameters)
+
+    @staticmethod
+    def _request_headers(
+        event: Mapping[str, Any],
+    ) -> dict[str, str]:
+        """Normalize API Gateway headers for case-insensitive lookup."""
+
+        raw_headers = event.get("headers")
+
+        if not isinstance(raw_headers, Mapping):
+            return {}
+
+        return {
+            str(name).lower(): str(value)
+            for name, value in raw_headers.items()
+            if value is not None
+        }
+
+    @staticmethod
+    def _http_method(
+        event: Mapping[str, Any],
+    ) -> str:
+        """Read the HTTP method from REST API or HTTP API event formats."""
+
+        method = event.get("httpMethod")
+
+        if isinstance(method, str):
+            return method.upper()
+
+        request_context = event.get("requestContext")
+
+        if isinstance(request_context, Mapping):
+            http_context = request_context.get("http")
+
+            if isinstance(http_context, Mapping):
+                nested_method = http_context.get("method")
+
+                if isinstance(nested_method, str):
+                    return nested_method.upper()
+
+        return ""
+
+    @staticmethod
+    def _request_path(
+        event: Mapping[str, Any],
+    ) -> str:
+        """Read the public path from REST API or HTTP API events."""
+
+        for field_name in ("rawPath", "path"):
+            path = event.get(field_name)
+
+            if isinstance(path, str):
+                return path
+
+        request_context = event.get("requestContext")
+
+        if isinstance(request_context, Mapping):
+            http_context = request_context.get("http")
+
+            if isinstance(http_context, Mapping):
+                path = http_context.get("path")
+
+                if isinstance(path, str):
+                    return path
+
+        return ""
+
+    @staticmethod
+    def _request_body(
+        event: Mapping[str, Any],
+    ) -> str | bytes | Mapping[str, Any]:
+        """Decode an API Gateway request body, including base64 events."""
+
+        body = event.get("body", "")
+
+        if isinstance(body, Mapping):
+            return body
+
+        if not isinstance(body, str):
+            raise ValueError(
+                "API Gateway body must be text"
+            )
+
+        if not event.get("isBase64Encoded", False):
+            return body
+
+        try:
+            return base64.b64decode(
+                body,
+                validate=True,
+            ).decode("utf-8")
+
+        except (
+            binascii.Error,
+            UnicodeDecodeError,
+        ) as exc:
+            raise ValueError(
+                "invalid base64 request body"
+            ) from exc
+
+    @staticmethod
+    def _http_response(
+        status_code: int,
+        body: Mapping[str, Any] | None,
+        headers: Mapping[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """Create the proxy response expected by API Gateway."""
+
+        response_headers = {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+        }
+
+        if headers:
+            response_headers.update(headers)
+
+        response_body = (
+            ""
+            if body is None
+            else json.dumps(
+                body,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+        )
+
+        return {
+            "statusCode": status_code,
+            "headers": response_headers,
+            "body": response_body,
+            "isBase64Encoded": False,
+        }
+
+    @staticmethod
+    def _build_metadata_url(
+        resource: str,
+    ) -> str:
+        """Build the RFC 9728 metadata URL for the MCP resource."""
+
+        parsed = urlsplit(resource)
+
+        if (
+            parsed.scheme != "https"
+            or not parsed.netloc
+        ):
+            raise ValueError(
+                "GHOST MCP resource must be an absolute HTTPS URL"
+            )
+
+        return (
+            f"{parsed.scheme}://{parsed.netloc}"
+            f"{OAUTH_METADATA_PATH}"
+        )
+
+
+@lru_cache(maxsize=1)
+def _build_application() -> RuntimeControlApplication:
+    """Create and cache services reused by warm Lambda invocations."""
+
+    runtime_config = (
+        RuntimeControlConfig.from_environment()
+    )
+    auth_config = AuthConfig.from_environment()
+
+    state_store = RuntimeStateStore(
+        runtime_config
+    )
+
+    controller = Ec2Controller(
+        runtime_config,
+        state_store,
+    )
+
+    token_verifier = CognitoTokenVerifier(
+        auth_config
+    )
+
+    mcp_server = RuntimeControlMcpServer(
+        controller=controller,
+        token_verifier=token_verifier,
+        allowed_subject=(
+            runtime_config.allowed_cognito_subject
+        ),
+    )
+
+    return RuntimeControlApplication(
+        controller=controller,
+        mcp_server=mcp_server,
+        auth_config=auth_config,
+    )
+
+
+def _is_api_gateway_event(
+    event: Mapping[str, Any],
+) -> bool:
+    """Distinguish HTTP events from scheduled watchdog events."""
+
+    if isinstance(event.get("httpMethod"), str):
+        return True
+
+    request_context = event.get("requestContext")
+
+    return (
+        isinstance(request_context, Mapping)
+        and isinstance(
+            request_context.get("http"),
+            Mapping,
+        )
+    )
+
+
+def lambda_handler(
+    event: Mapping[str, Any],
+    _context: Any,
+) -> dict[str, Any]:
+    """AWS Lambda entry point configured in the SAM stack."""
+
+    try:
+        return _build_application().handle(event)
+
+    except Exception:
+        LOGGER.exception(
+            "GHOST runtime-control Lambda invocation failed"
+        )
+
+        # Scheduled failures must remain visible to Scheduler retry and alarm
+        # handling. HTTP callers receive only a sanitized error response.
+        if not _is_api_gateway_event(event):
+            raise
+
+        return RuntimeControlApplication._http_response(
+            500,
+            {"error": "internal_server_error"},
+        )

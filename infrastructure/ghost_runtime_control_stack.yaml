@@ -1,0 +1,582 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+# SAM extends CloudFormation with concise definitions for Lambda,
+# API Gateway, and scheduled serverless operations.
+Transform: AWS::Serverless-2016-10-31
+
+Description: >-
+  Deploys the always-available GHOST Runtime Control MCP endpoint.
+  The stack creates the Lambda runtime, Regional API Gateway endpoint,
+  TLS certificate, Route 53 record, least-privilege IAM role,
+  SSM runtime state, and scheduled idle-shutdown watchdog.
+
+
+# ---------------------------------------------------------------------------
+# Deployment parameters
+# ---------------------------------------------------------------------------
+#
+# These values differ between AWS accounts or environments.
+# SAM asks for them during the first deployment with "sam deploy --guided".
+#
+# None of these parameters contains a password or private key.
+
+Parameters:
+
+  ManagedInstanceId:
+    Type: String
+    Description: >-
+      The fixed EC2 instance controlled by the Runtime Control MCP server.
+    AllowedPattern: "^i-[0-9a-fA-F]+$"
+    ConstraintDescription: >-
+      Enter a valid EC2 instance ID, for example i-0123456789abcdef0.
+
+  RuntimeControlDomainName:
+    Type: String
+    Default: control.ghost.rusbehabtahi.com
+    Description: >-
+      The public DNS name used by ChatGPT to reach the Runtime Control
+      MCP endpoint.
+
+  Route53HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: >-
+      The Route 53 public hosted-zone ID that owns the domain name.
+
+  CognitoIssuer:
+    Type: String
+    Description: >-
+      The issuer URL of the existing approved GHOST Cognito user pool.
+      Example:
+      https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_Example
+
+  CognitoAppClientId:
+    Type: String
+    Description: >-
+      The existing Cognito OAuth application-client ID accepted by GHOST.
+
+  CognitoRequiredScope:
+    Type: String
+    Description: >-
+      The OAuth scope that a token must contain before it may call
+      the Runtime Control MCP tools.
+
+  AllowedCognitoSubject:
+    Type: String
+    Description: >-
+      The Cognito "sub" claim belonging to the owner who is allowed
+      to control the GHOST EC2 instance.
+
+  GhostReadinessUrl:
+    Type: String
+    Default: https://ghost.rusbehabtahi.com/health
+    Description: >-
+      The health endpoint checked after EC2 starts. The start tool succeeds
+      only after this URL reports that the GHOST application is ready.
+
+  StartupWaitSeconds:
+    Type: Number
+    Default: 300
+    MinValue: 60
+    MaxValue: 300
+    Description: >-
+      Maximum time the Lambda waits for real GHOST application readiness
+      after starting EC2.
+
+  RuntimeStateParameterPrefix:
+    Type: String
+    Default: /ghost/runtime-control
+    Description: >-
+      SSM Parameter Store path used for non-secret runtime-control state.
+
+
+# ---------------------------------------------------------------------------
+# AWS resources
+# ---------------------------------------------------------------------------
+
+Resources:
+
+  # Stores the effective inactivity timeout for the current EC2 run.
+  # The default is 20 minutes. The Lambda code will enforce the allowed
+  # range of 10 to 120 minutes.
+  EffectiveIdleTimeoutParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${RuntimeStateParameterPrefix}/effective-idle-timeout-minutes"
+      Type: String
+      Value: "20"
+      Tier: Standard
+      Description: Effective inactivity timeout for the current EC2 run.
+      Tags:
+        Product: GHOST
+        Component: RuntimeControl
+
+  # Stores the Unix timestamp of the latest qualifying GHOST activity.
+  # Both the cloud watchdog and the EC2-local watchdog can read this value.
+  LastActivityEpochParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${RuntimeStateParameterPrefix}/last-activity-epoch"
+      Type: String
+      Value: "0"
+      Tier: Standard
+      Description: Unix timestamp of the latest qualifying GHOST MCP activity.
+      Tags:
+        Product: GHOST
+        Component: RuntimeControl
+
+  # Stores how many qualifying MCP tool calls are currently executing.
+  # The watchdog must not stop EC2 while this value is greater than zero.
+  ActiveToolCallsParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${RuntimeStateParameterPrefix}/active-tool-calls"
+      Type: String
+      Value: "0"
+      Tier: Standard
+      Description: Number of qualifying MCP tool calls currently executing.
+      Tags:
+        Product: GHOST
+        Component: RuntimeControl
+
+  # Stores the selected runtime profile:
+  #   1 = t3.medium
+  #   2 = m7i-flex.xlarge
+  RuntimeProfileParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${RuntimeStateParameterPrefix}/runtime-profile"
+      Type: String
+      Value: "1"
+      Tier: Standard
+      Description: Runtime profile selected for the current or latest EC2 run.
+      Tags:
+        Product: GHOST
+        Component: RuntimeControl
+
+
+  # -------------------------------------------------------------------------
+  # Lambda execution role
+  # -------------------------------------------------------------------------
+  #
+  # Lambda assumes this IAM role whenever it runs.
+  #
+  # Describe operations require Resource "*" because AWS does not support
+  # resource-level restrictions for these particular EC2 read operations.
+  #
+  # Start, stop, and instance-type changes are restricted to the single
+  # configured GHOST instance.
+  #
+  # ec2:TerminateInstances is intentionally absent.
+
+  RuntimeControlLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: >-
+        Least-privilege execution role for the GHOST Runtime Control Lambda.
+
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+
+      # This AWS-managed policy permits Lambda to write normal execution
+      # logs to CloudWatch Logs.
+      ManagedPolicyArns:
+        - !Sub >-
+          arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+      Policies:
+
+        - PolicyName: ControlFixedGhostInstance
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+
+              # These read operations let the Lambda determine the instance
+              # state, instance type, and AWS health status.
+              - Sid: ReadEc2State
+                Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeInstanceStatus
+                Resource: "*"
+
+              # These write operations apply only to the configured instance.
+              # ModifyInstanceAttribute is required to switch between the two
+              # approved instance-type profiles while EC2 is stopped.
+              - Sid: ControlOnlyTheConfiguredInstance
+                Effect: Allow
+                Action:
+                  - ec2:StartInstances
+                  - ec2:StopInstances
+                  - ec2:ModifyInstanceAttribute
+                Resource: !Sub >-
+                  arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/${ManagedInstanceId}
+
+        - PolicyName: ReadAndUpdateRuntimeControlState
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+
+              # Lambda may read and update only the four SSM parameters
+              # created by this stack.
+              - Sid: ManageRuntimeControlState
+                Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                  - ssm:PutParameter
+                Resource:
+                  - !Sub >-
+                    arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${EffectiveIdleTimeoutParameter}
+                  - !Sub >-
+                    arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${LastActivityEpochParameter}
+                  - !Sub >-
+                    arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${ActiveToolCallsParameter}
+                  - !Sub >-
+                    arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${RuntimeProfileParameter}
+
+      Tags:
+        - Key: Product
+          Value: GHOST
+        - Key: Component
+          Value: RuntimeControl
+
+
+  # -------------------------------------------------------------------------
+  # Runtime Control Lambda
+  # -------------------------------------------------------------------------
+  #
+  # This Lambda contains:
+  #   - the second MCP server;
+  #   - the three EC2 tools;
+  #   - Cognito token validation;
+  #   - EC2 start, status, and stop logic;
+  #   - the cloud-side idle-shutdown watchdog.
+  #
+  # API Gateway invokes it for HTTPS MCP requests.
+  # EventBridge Scheduler invokes it once per minute for the watchdog check.
+
+  RuntimeControlFunction:
+    Type: AWS::Serverless::Function
+
+    # Instructs SAM to build this Lambda using:
+    # lambda/runtime_control/Makefile
+    Metadata:
+      BuildMethod: makefile
+
+    Properties:
+      FunctionName: ghost-runtime-control
+      Description: >-
+        Authenticated MCP server controlling the fixed GHOST EC2 runtime.
+
+      # This path is relative to this YAML file.
+      # The Python package will therefore live in:
+      # RAGstream/lambda/runtime_control/
+      CodeUri: ..
+
+      # This expects the following Python function:
+      # ghost_runtime_control/lambda_handler.py
+      #     def lambda_handler(event, context): ...
+      Handler: ghost_runtime_control.lambda_handler.lambda_handler
+
+      Runtime: python3.12
+
+      Architectures:
+        - x86_64
+
+      MemorySize: 256
+
+      # The start operation may wait several minutes for the application
+      # health endpoint, so the standard short Lambda timeout is insufficient.
+      Timeout: 360
+
+      Role: !GetAtt RuntimeControlLambdaRole.Arn
+
+      Environment:
+        Variables:
+
+          # The only EC2 instance this Lambda is permitted to control.
+          GHOST_MANAGED_INSTANCE_ID: !Ref ManagedInstanceId
+
+          # The two approved runtime profiles.
+          GHOST_PROFILE_1_INSTANCE_TYPE: t3.medium
+          GHOST_PROFILE_2_INSTANCE_TYPE: m7i-flex.xlarge
+          GHOST_DEFAULT_PROFILE: "1"
+
+          # Idle-timeout policy.
+          GHOST_DEFAULT_IDLE_TIMEOUT_MINUTES: "20"
+          GHOST_MIN_IDLE_TIMEOUT_MINUTES: "10"
+          GHOST_MAX_IDLE_TIMEOUT_MINUTES: "120"
+
+          # Application readiness check.
+          GHOST_READINESS_URL: !Ref GhostReadinessUrl
+          GHOST_STARTUP_WAIT_SECONDS: !Ref StartupWaitSeconds
+
+          # Existing Cognito configuration used to authenticate ChatGPT.
+          GHOST_COGNITO_ISSUER: !Ref CognitoIssuer
+          GHOST_COGNITO_APP_CLIENT_ID: !Ref CognitoAppClientId
+          GHOST_COGNITO_REQUIRED_SCOPE: !Ref CognitoRequiredScope
+          GHOST_ALLOWED_COGNITO_SUBJECT: !Ref AllowedCognitoSubject
+
+          # OAuth protected-resource identifier for this MCP endpoint.
+          GHOST_MCP_RESOURCE: !Sub >-
+            https://${RuntimeControlDomainName}/mcp
+
+          # Exact SSM parameter names used by the Lambda code.
+          GHOST_SSM_IDLE_TIMEOUT_PARAMETER: !Ref EffectiveIdleTimeoutParameter
+          GHOST_SSM_LAST_ACTIVITY_PARAMETER: !Ref LastActivityEpochParameter
+          GHOST_SSM_ACTIVE_CALLS_PARAMETER: !Ref ActiveToolCallsParameter
+          GHOST_SSM_RUNTIME_PROFILE_PARAMETER: !Ref RuntimeProfileParameter
+
+      Events:
+
+        # EventBridge Scheduler invokes the same Lambda once every minute.
+        # The event body allows the handler to distinguish a watchdog call
+        # from an API Gateway MCP request.
+        IdleShutdownWatchdog:
+          Type: ScheduleV2
+          Properties:
+            Name: ghost-runtime-control-watchdog
+            Description: >-
+              Checks every minute whether the GHOST EC2 instance is idle.
+            ScheduleExpression: rate(1 minute)
+            State: ENABLED
+
+            # OFF means AWS invokes the watchdog at the specified time rather
+            # than selecting a flexible execution time.
+            FlexibleTimeWindow:
+              Mode: "OFF"
+
+            Input: >-
+              {"source":"ghost.runtime-control.watchdog","operation":"evaluate_idle_shutdown"}
+
+            # The next scheduled check occurs one minute later, so repeated
+            # retries are unnecessary for this watchdog.
+            RetryPolicy:
+              MaximumRetryAttempts: 0
+
+      Tags:
+        Product: GHOST
+        Component: RuntimeControl
+
+
+  # -------------------------------------------------------------------------
+  # CloudWatch log retention
+  # -------------------------------------------------------------------------
+  #
+  # Declaring the log group explicitly lets us set a retention period.
+  # Without this resource, Lambda logs would remain indefinitely by default.
+
+  RuntimeControlLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${RuntimeControlFunction}"
+      RetentionInDays: 30
+      Tags:
+        - Key: Product
+          Value: GHOST
+        - Key: Component
+          Value: RuntimeControl
+
+
+  # -------------------------------------------------------------------------
+  # TLS certificate
+  # -------------------------------------------------------------------------
+  #
+  # ACM creates the HTTPS certificate for the Runtime Control subdomain.
+  # DNS validation uses the existing Route 53 hosted zone.
+  #
+  # Because this is a Regional API Gateway endpoint, the stack must be
+  # deployed in the same AWS Region where the certificate will be used.
+
+  RuntimeControlCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref RuntimeControlDomainName
+      ValidationMethod: DNS
+
+      DomainValidationOptions:
+        - DomainName: !Ref RuntimeControlDomainName
+          HostedZoneId: !Ref Route53HostedZoneId
+
+      Tags:
+        - Key: Product
+          Value: GHOST
+        - Key: Component
+          Value: RuntimeControl
+
+
+  # -------------------------------------------------------------------------
+  # API Gateway and Route 53
+  # -------------------------------------------------------------------------
+  #
+  # API Gateway is the public HTTPS listener in front of Lambda.
+  #
+  # Lambda performs Cognito validation so it can return the OAuth metadata
+  # and MCP-specific authentication challenge expected by ChatGPT.
+  #
+  # The custom-domain configuration also creates the Route 53 alias record
+  # that maps RuntimeControlDomainName to the Regional API Gateway endpoint.
+
+  RuntimeControlApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: ghost-runtime-control-api
+      Description: >-
+        Public HTTPS entry point for the GHOST Runtime Control MCP server.
+
+      StageName: prod
+      EndpointConfiguration: REGIONAL
+      OpenApiVersion: 3.0.1
+
+      # Only the custom domain is exposed. The standard execute-api URL
+      # cannot be used to bypass the intended public endpoint.
+      DisableExecuteApiEndpoint: true
+
+      Domain:
+        DomainName: !Ref RuntimeControlDomainName
+        CertificateArn: !Ref RuntimeControlCertificate
+        EndpointConfiguration: REGIONAL
+        SecurityPolicy: TLS_1_2
+
+        Route53:
+          HostedZoneId: !Ref Route53HostedZoneId
+          EvaluateTargetHealth: false
+
+      # Conservative throttling protects this administrative endpoint
+      # from accidental request loops or unnecessary cost.
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          ThrottlingBurstLimit: 10
+          ThrottlingRateLimit: 5
+
+      # This OpenAPI document defines the public HTTP routes and maps each
+      # route to the Runtime Control Lambda.
+      DefinitionBody:
+        openapi: 3.0.1
+
+        info:
+          title: GHOST Runtime Control MCP
+          version: "1.0"
+
+        paths:
+
+          /mcp:
+
+            # GET is used when the MCP client requests the HTTP transport
+            # stream or transport-level information.
+            get:
+              responses:
+                "200":
+                  description: MCP Streamable HTTP response.
+
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub >-
+                  arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
+                timeoutInMillis: 350000
+
+            # POST carries MCP JSON-RPC requests, including tools/list
+            # and tools/call.
+            post:
+              responses:
+                "200":
+                  description: MCP Streamable HTTP response.
+
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub >-
+                  arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
+                timeoutInMillis: 350000
+
+            # DELETE allows the MCP client to close a transport session
+            # when session handling is enabled by the Python implementation.
+            delete:
+              responses:
+                "200":
+                  description: MCP Streamable HTTP response.
+
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub >-
+                  arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
+                timeoutInMillis: 350000
+
+          # ChatGPT can use this standard endpoint to discover which
+          # authorization server and OAuth scopes protect the MCP resource.
+          "/.well-known/oauth-protected-resource/mcp":
+            get:
+              responses:
+                "200":
+                  description: >-
+                    OAuth protected-resource metadata for this MCP endpoint.
+
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub >-
+                  arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
+                timeoutInMillis: 29000
+
+      Tags:
+        Product: GHOST
+        Component: RuntimeControl
+
+
+  # API Gateway requires explicit permission to invoke the Lambda because
+  # the Lambda integration is defined directly inside the OpenAPI document.
+  RuntimeControlApiInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RuntimeControlFunction
+      Principal: apigateway.amazonaws.com
+
+      # This restriction allows invocation only through this API Gateway API.
+      SourceArn: !Sub >-
+        arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${RuntimeControlApi}/*/*/*
+
+
+# ---------------------------------------------------------------------------
+# Deployment outputs
+# ---------------------------------------------------------------------------
+#
+# CloudFormation displays these values after a successful deployment.
+# The MCP endpoint output is the URL that will later be registered in ChatGPT.
+
+Outputs:
+
+  RuntimeControlMcpEndpoint:
+    Description: Public MCP endpoint to register in ChatGPT.
+    Value: !Sub "https://${RuntimeControlDomainName}/mcp"
+
+  RuntimeControlOAuthMetadataEndpoint:
+    Description: OAuth protected-resource metadata endpoint.
+    Value: !Sub >-
+      https://${RuntimeControlDomainName}/.well-known/oauth-protected-resource/mcp
+
+  RuntimeControlFunctionName:
+    Description: Name of the deployed Runtime Control Lambda.
+    Value: !Ref RuntimeControlFunction
+
+  RuntimeControlApiId:
+    Description: API Gateway REST API identifier.
+    Value: !Ref RuntimeControlApi
+
+  RuntimeControlCertificateArn:
+    Description: ACM certificate used by the custom API domain.
+    Value: !Ref RuntimeControlCertificate
+
+  RuntimeControlStatePrefix:
+    Description: SSM path containing the runtime-control state parameters.
+    Value: !Ref RuntimeStateParameterPrefix

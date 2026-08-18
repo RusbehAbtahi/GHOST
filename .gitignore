@@ -287,3 +287,7 @@ doc/01-Requirements/strictdoc-html/
 
 # Private deployment profiles
 /doc-private/
+
+# Local SAM and test artifacts
+.aws-sam/
+.strictdoc-test/

@@ -1,3 +1,4 @@
+wsl
 source /home/rusbeh_ab/venvs/ragstream/bin/activate   %Activate your virtual Environment
 cd /home/rusbeh_ab/project/RAGstream
 
@@ -16,3 +17,7 @@ powershell -ExecutionPolicy Bypass -File "C:\Users\roosb\Start-RAG.ps1"
 pkill -f "streamlit run"
 
 pkill -f "python -m streamlit"
+
+
+[deploy]
+[deploy-runtime]
