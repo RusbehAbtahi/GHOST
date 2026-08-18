@@ -21,7 +21,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Mapping
 from urllib.error import HTTPError
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 from ragstream.mcp.auth import AuthConfig, CognitoTokenVerifier
@@ -136,7 +136,7 @@ class RuntimeControlApplication:
             )
 
         try:
-            request_body = self._request_body(event)
+            request_body = self._cognito_token_request_body(event)
         except ValueError:
             return self._http_response(
                 400,
@@ -351,6 +351,28 @@ class RuntimeControlApplication:
             )
 
         return self._http_response(status_code, payload)
+
+    def _cognito_token_request_body(
+        self,
+        event: Mapping[str, Any],
+    ) -> str:
+        """Remove MCP-only parameters before forwarding to Cognito."""
+
+        request_body = self._request_body(event)
+
+        if not isinstance(request_body, str):
+            raise ValueError("OAuth token body must be form-encoded text")
+
+        return urlencode(
+            [
+                (name, value)
+                for name, value in parse_qsl(
+                    request_body,
+                    keep_blank_values=True,
+                )
+                if name != "resource"
+            ]
+        )
 
     @staticmethod
     def _encoded_query_string(
