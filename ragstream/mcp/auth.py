@@ -20,6 +20,7 @@ Important dependency:
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 from typing import Mapping
@@ -28,10 +29,15 @@ import jwt
 from jwt import PyJWKClient
 from jwt.exceptions import (
     ExpiredSignatureError,
+    InvalidAudienceError,
     InvalidTokenError,
+    MissingRequiredClaimError,
     PyJWKClientConnectionError,
     PyJWKClientError,
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class AuthenticationError(Exception):
@@ -237,12 +243,33 @@ class CognitoTokenVerifier:
                 "expired bearer token"
             ) from exc
 
+        except MissingRequiredClaimError as exc:
+            LOGGER.warning(
+                "GHOST Cognito JWT rejected: missing_required_claim=%s",
+                exc.claim,
+            )
+            raise AuthenticationError(
+                "invalid bearer token"
+            ) from exc
+
+        except InvalidAudienceError as exc:
+            LOGGER.warning(
+                "GHOST Cognito JWT rejected: audience_mismatch"
+            )
+            raise AuthenticationError(
+                "invalid bearer token"
+            ) from exc
+
         except (
             PyJWKClientError,
             InvalidTokenError,
             TypeError,
             ValueError,
         ) as exc:
+            LOGGER.warning(
+                "GHOST Cognito JWT rejected: validation_error=%s",
+                type(exc).__name__,
+            )
             raise AuthenticationError(
                 "invalid bearer token"
             ) from exc
