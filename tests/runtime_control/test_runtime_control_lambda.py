@@ -422,10 +422,7 @@ def test_oauth_metadata_publishes_cognito_and_scope(
     assert response["statusCode"] == 200
     assert body["resource"] == "https://runtime.ghost.example/mcp"
     assert body["authorization_servers"] == [
-        (
-            "https://cognito-idp.eu-central-1.amazonaws.com/"
-            "eu-central-1_example"
-        )
+        "https://runtime.ghost.example"
     ]
     assert body["scopes_supported"] == ["ghost/runtime.control"]
     assert fake_server.calls == []
