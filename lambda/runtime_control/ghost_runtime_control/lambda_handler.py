@@ -136,7 +136,7 @@ class RuntimeControlApplication:
             )
 
         try:
-            request_body = self._cognito_token_request_body(event)
+            request_body = self._request_body(event)
         except ValueError:
             return self._http_response(
                 400,
@@ -308,7 +308,7 @@ class RuntimeControlApplication:
         """Forward the unchanged public-client token request to Cognito."""
 
         try:
-            request_body = self._request_body(event)
+            request_body = self._cognito_token_request_body(event)
             metadata = _load_cognito_oidc_metadata(
                 self._auth_config.issuer,
                 self._auth_config.required_scope,
