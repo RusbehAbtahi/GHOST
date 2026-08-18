@@ -482,7 +482,7 @@ Resources:
                 httpMethod: POST
                 uri: !Sub >-
                   arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
-                timeoutInMillis: 350000
+                timeoutInMillis: 29000
 
             # POST carries MCP JSON-RPC requests, including tools/list
             # and tools/call.
@@ -496,7 +496,7 @@ Resources:
                 httpMethod: POST
                 uri: !Sub >-
                   arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
-                timeoutInMillis: 350000
+                timeoutInMillis: 29000
 
             # DELETE allows the MCP client to close a transport session
             # when session handling is enabled by the Python implementation.
@@ -510,7 +510,7 @@ Resources:
                 httpMethod: POST
                 uri: !Sub >-
                   arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
-                timeoutInMillis: 350000
+                timeoutInMillis: 29000
 
           # ChatGPT can use this standard endpoint to discover which
           # authorization server and OAuth scopes protect the MCP resource.
