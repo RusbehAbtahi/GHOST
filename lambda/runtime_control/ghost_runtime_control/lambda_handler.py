@@ -20,7 +20,8 @@ import json
 import logging
 from functools import lru_cache
 from typing import Any, Mapping
-from urllib.parse import urlsplit
+from urllib.error import HTTPError
+from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 from ragstream.mcp.auth import AuthConfig, CognitoTokenVerifier
@@ -35,6 +36,9 @@ LOGGER = logging.getLogger(__name__)
 
 MCP_PATH = "/mcp"
 OAUTH_METADATA_PATH = "/.well-known/oauth-protected-resource/mcp"
+OAUTH_SERVER_METADATA_PATH = "/.well-known/oauth-authorization-server"
+OAUTH_AUTHORIZE_PATH = "/oauth/authorize"
+OAUTH_TOKEN_PATH = "/oauth/token"
 OIDC_METADATA_PATH = "/.well-known/openid-configuration"
 OIDC_FETCH_TIMEOUT_SECONDS = 5.0
 
@@ -60,6 +64,9 @@ class RuntimeControlApplication:
         self._mcp_server = mcp_server
         self._auth_config = auth_config
         self._resource_metadata_url = self._build_metadata_url(
+            auth_config.resource
+        )
+        self._authorization_server = self._build_authorization_server(
             auth_config.resource
         )
 
@@ -88,6 +95,24 @@ class RuntimeControlApplication:
             and path.endswith(OAUTH_METADATA_PATH)
         ):
             return self._oauth_metadata_response()
+
+        if (
+            method == "GET"
+            and path.endswith(OAUTH_SERVER_METADATA_PATH)
+        ):
+            return self._oauth_server_metadata_response()
+
+        if (
+            method == "GET"
+            and path.endswith(OAUTH_AUTHORIZE_PATH)
+        ):
+            return self._oauth_authorization_redirect(event)
+
+        if (
+            method == "POST"
+            and path.endswith(OAUTH_TOKEN_PATH)
+        ):
+            return self._oauth_token_response(event)
 
         if (
             method == "GET"
@@ -161,7 +186,7 @@ class RuntimeControlApplication:
             {
                 "resource": self._auth_config.resource,
                 "authorization_servers": [
-                    self._auth_config.issuer
+                    self._authorization_server
                 ],
                 "scopes_supported": [
                     self._auth_config.required_scope
@@ -189,6 +214,176 @@ class RuntimeControlApplication:
             )
 
         return self._http_response(200, metadata)
+
+    def _oauth_server_metadata_response(
+        self,
+    ) -> dict[str, Any]:
+        """Publish a ChatGPT-compatible OAuth facade for Cognito."""
+
+        try:
+            metadata = dict(
+                _load_cognito_oidc_metadata(
+                    self._auth_config.issuer,
+                    self._auth_config.required_scope,
+                )
+            )
+        except (OSError, ValueError, json.JSONDecodeError):
+            LOGGER.exception(
+                "Unable to load Cognito authorization-server metadata"
+            )
+            return self._http_response(
+                502,
+                {"error": "authorization_server_metadata_unavailable"},
+            )
+
+        metadata.update(
+            {
+                "issuer": self._authorization_server,
+                "authorization_endpoint": (
+                    f"{self._authorization_server}{OAUTH_AUTHORIZE_PATH}"
+                ),
+                "token_endpoint": (
+                    f"{self._authorization_server}{OAUTH_TOKEN_PATH}"
+                ),
+                "response_types_supported": ["code"],
+                "grant_types_supported": [
+                    "authorization_code",
+                    "refresh_token",
+                ],
+                "token_endpoint_auth_methods_supported": ["none"],
+                "code_challenge_methods_supported": ["S256"],
+                "scopes_supported": [
+                    self._auth_config.required_scope
+                ],
+            }
+        )
+        metadata.pop(
+            "authorization_response_iss_parameter_supported",
+            None,
+        )
+
+        return self._http_response(200, metadata)
+
+    def _oauth_authorization_redirect(
+        self,
+        event: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """Redirect the unchanged authorization request to Cognito."""
+
+        try:
+            metadata = _load_cognito_oidc_metadata(
+                self._auth_config.issuer,
+                self._auth_config.required_scope,
+            )
+            endpoint = _required_https_metadata_url(
+                metadata,
+                "authorization_endpoint",
+            )
+            query_string = self._encoded_query_string(event)
+        except (OSError, ValueError, json.JSONDecodeError):
+            LOGGER.exception("Unable to prepare Cognito authorization redirect")
+            return self._http_response(
+                502,
+                {"error": "authorization_server_unavailable"},
+            )
+
+        location = endpoint
+        if query_string:
+            location = f"{endpoint}?{query_string}"
+
+        return {
+            "statusCode": 302,
+            "headers": {
+                "Location": location,
+                "Cache-Control": "no-store",
+            },
+            "body": "",
+            "isBase64Encoded": False,
+        }
+
+    def _oauth_token_response(
+        self,
+        event: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """Forward the unchanged public-client token request to Cognito."""
+
+        try:
+            request_body = self._request_body(event)
+            metadata = _load_cognito_oidc_metadata(
+                self._auth_config.issuer,
+                self._auth_config.required_scope,
+            )
+            endpoint = _required_https_metadata_url(
+                metadata,
+                "token_endpoint",
+            )
+            request = Request(
+                endpoint,
+                data=request_body.encode("utf-8"),
+                headers={
+                    "Accept": "application/json",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                method="POST",
+            )
+
+            try:
+                with urlopen(
+                    request,
+                    timeout=OIDC_FETCH_TIMEOUT_SECONDS,
+                ) as response:
+                    status_code = response.status
+                    payload = json.load(response)
+            except HTTPError as error:
+                status_code = error.code
+                payload = json.loads(
+                    error.read().decode("utf-8")
+                )
+
+            if not isinstance(payload, dict):
+                raise ValueError("Cognito token response must be an object")
+
+        except (OSError, ValueError, json.JSONDecodeError):
+            LOGGER.exception("Unable to exchange OAuth code with Cognito")
+            return self._http_response(
+                502,
+                {"error": "token_endpoint_unavailable"},
+            )
+
+        return self._http_response(status_code, payload)
+
+    @staticmethod
+    def _encoded_query_string(
+        event: Mapping[str, Any],
+    ) -> str:
+        """Preserve OAuth query parameters across API Gateway versions."""
+
+        raw_query = event.get("rawQueryString")
+        if isinstance(raw_query, str) and raw_query:
+            return raw_query
+
+        multi_value = event.get("multiValueQueryStringParameters")
+        if isinstance(multi_value, Mapping):
+            return urlencode(
+                {
+                    str(key): value
+                    for key, value in multi_value.items()
+                    if value is not None
+                },
+                doseq=True,
+            )
+
+        single_value = event.get("queryStringParameters")
+        if isinstance(single_value, Mapping):
+            return urlencode(
+                {
+                    str(key): str(value)
+                    for key, value in single_value.items()
+                    if value is not None
+                }
+            )
+
+        return ""
 
     def _mcp_http_response(
         self,
@@ -376,6 +571,21 @@ class RuntimeControlApplication:
         }
 
     @staticmethod
+    def _build_authorization_server(
+        resource: str,
+    ) -> str:
+        """Return the public origin that hosts the OAuth facade."""
+
+        parsed = urlsplit(resource)
+
+        if parsed.scheme != "https" or not parsed.netloc:
+            raise ValueError(
+                "GHOST MCP resource must be an absolute HTTPS URL"
+            )
+
+        return f"{parsed.scheme}://{parsed.netloc}"
+
+    @staticmethod
     def _build_metadata_url(
         resource: str,
     ) -> str:
@@ -515,6 +725,23 @@ def _load_cognito_oidc_metadata(
         )
 
     return metadata
+
+
+def _required_https_metadata_url(
+    metadata: Mapping[str, Any],
+    field_name: str,
+) -> str:
+    """Read and validate one HTTPS endpoint from discovery metadata."""
+
+    value = metadata.get(field_name)
+    if not isinstance(value, str):
+        raise ValueError(f"Missing metadata endpoint: {field_name}")
+
+    parsed = urlsplit(value)
+    if parsed.scheme != "https" or not parsed.netloc:
+        raise ValueError(f"Invalid metadata endpoint: {field_name}")
+
+    return value
 
 
 def lambda_handler(
