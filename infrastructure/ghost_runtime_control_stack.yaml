@@ -328,6 +328,9 @@ Resources:
           GHOST_RUNTIME_CONTROL_RESOURCE: !Sub >-
             https://${RuntimeControlDomainName}/mcp
 
+          GHOST_MCP_RESOURCE: !Sub >-
+            https://${RuntimeControlDomainName}/mcp
+
           # Exact SSM parameter names used by the Lambda code.
           GHOST_SSM_IDLE_TIMEOUT_PARAMETER: !Ref EffectiveIdleTimeoutParameter
           GHOST_SSM_LAST_ACTIVITY_PARAMETER: !Ref LastActivityEpochParameter
