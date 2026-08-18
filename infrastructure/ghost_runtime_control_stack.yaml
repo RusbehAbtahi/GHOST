@@ -531,6 +531,20 @@ Resources:
                   arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
                 timeoutInMillis: 29000
 
+          # Completes Cognito metadata for ChatGPT OAuth validation.
+          "/.well-known/openid-configuration":
+            get:
+              responses:
+                "200":
+                  description: ChatGPT-compatible Cognito OIDC metadata.
+
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub >-
+                  arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
+                timeoutInMillis: 29000
+
       Tags:
         Product: GHOST
         Component: RuntimeControl
@@ -567,6 +581,11 @@ Outputs:
     Description: OAuth protected-resource metadata endpoint.
     Value: !Sub >-
       https://${RuntimeControlDomainName}/.well-known/oauth-protected-resource/mcp
+
+  RuntimeControlOidcMetadataEndpoint:
+    Description: ChatGPT-compatible Cognito OIDC metadata.
+    Value: !Sub >-
+      https://${RuntimeControlDomainName}/.well-known/openid-configuration
 
   RuntimeControlFunctionName:
     Description: Name of the deployed Runtime Control Lambda.

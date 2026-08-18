@@ -21,6 +21,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Mapping
 from urllib.parse import urlsplit
+from urllib.request import Request, urlopen
 
 from ragstream.mcp.auth import AuthConfig, CognitoTokenVerifier
 
@@ -34,6 +35,8 @@ LOGGER = logging.getLogger(__name__)
 
 MCP_PATH = "/mcp"
 OAUTH_METADATA_PATH = "/.well-known/oauth-protected-resource/mcp"
+OIDC_METADATA_PATH = "/.well-known/openid-configuration"
+OIDC_FETCH_TIMEOUT_SECONDS = 5.0
 
 
 class RuntimeControlApplication:
@@ -85,6 +88,12 @@ class RuntimeControlApplication:
             and path.endswith(OAUTH_METADATA_PATH)
         ):
             return self._oauth_metadata_response()
+
+        if (
+            method == "GET"
+            and path.endswith(OIDC_METADATA_PATH)
+        ):
+            return self._oidc_metadata_response()
 
         if not path.endswith(MCP_PATH):
             return self._http_response(
@@ -159,6 +168,27 @@ class RuntimeControlApplication:
                 ],
             },
         )
+
+    def _oidc_metadata_response(
+        self,
+    ) -> dict[str, Any]:
+        """Publish Cognito metadata with missing MCP declarations."""
+
+        try:
+            metadata = _load_cognito_oidc_metadata(
+                self._auth_config.issuer,
+                self._auth_config.required_scope,
+            )
+        except (OSError, ValueError):
+            LOGGER.exception(
+                "Unable to load Cognito OIDC discovery metadata"
+            )
+            return self._http_response(
+                502,
+                {"error": "authorization_server_metadata_unavailable"},
+            )
+
+        return self._http_response(200, metadata)
 
     def _mcp_http_response(
         self,
@@ -421,6 +451,70 @@ def _is_api_gateway_event(
             Mapping,
         )
     )
+
+
+
+
+@lru_cache(maxsize=4)
+def _load_cognito_oidc_metadata(
+    issuer: str,
+    required_scope: str,
+) -> dict[str, Any]:
+    """Complete Cognito metadata for current MCP OAuth validation."""
+
+    canonical_issuer = issuer.rstrip("/")
+    parsed = urlsplit(canonical_issuer)
+
+    if parsed.scheme != "https" or not parsed.netloc:
+        raise ValueError(
+            "Cognito issuer must be an absolute HTTPS URL"
+        )
+
+    request = Request(
+        (
+            f"{canonical_issuer}"
+            "/.well-known/openid-configuration"
+        ),
+        headers={"Accept": "application/json"},
+    )
+
+    with urlopen(
+        request,
+        timeout=OIDC_FETCH_TIMEOUT_SECONDS,
+    ) as response:
+        metadata = json.load(response)
+
+    if not isinstance(metadata, dict):
+        raise ValueError(
+            "Cognito OIDC metadata must be a JSON object"
+        )
+
+    if metadata.get("issuer") != canonical_issuer:
+        raise ValueError(
+            "Cognito OIDC metadata issuer mismatch"
+        )
+
+    required_values = (
+        ("code_challenge_methods_supported", "S256"),
+        ("token_endpoint_auth_methods_supported", "none"),
+        ("grant_types_supported", "authorization_code"),
+        ("response_types_supported", "code"),
+        ("scopes_supported", required_scope),
+    )
+
+    for field_name, value in required_values:
+        values = metadata.get(field_name, [])
+
+        if not isinstance(values, list):
+            raise ValueError(
+                f"Invalid Cognito metadata field: {field_name}"
+            )
+
+        metadata[field_name] = list(
+            dict.fromkeys([*values, value])
+        )
+
+    return metadata
 
 
 def lambda_handler(
