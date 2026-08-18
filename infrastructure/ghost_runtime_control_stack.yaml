@@ -325,7 +325,7 @@ Resources:
           GHOST_ALLOWED_COGNITO_SUBJECT: !Ref AllowedCognitoSubject
 
           # OAuth protected-resource identifier for this MCP endpoint.
-          GHOST_MCP_RESOURCE: !Sub >-
+          GHOST_RUNTIME_CONTROL_RESOURCE: !Sub >-
             https://${RuntimeControlDomainName}/mcp
 
           # Exact SSM parameter names used by the Lambda code.
