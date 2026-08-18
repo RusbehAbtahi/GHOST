@@ -531,6 +531,46 @@ Resources:
                   arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
                 timeoutInMillis: 29000
 
+          # OAuth authorization-server facade required by ChatGPT.
+          "/.well-known/oauth-authorization-server":
+            get:
+              responses:
+                "200":
+                  description: ChatGPT-compatible OAuth server metadata.
+
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub >-
+                  arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
+                timeoutInMillis: 29000
+
+          "/oauth/authorize":
+            get:
+              responses:
+                "302":
+                  description: Redirect to the Cognito authorization endpoint.
+
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub >-
+                  arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
+                timeoutInMillis: 29000
+
+          "/oauth/token":
+            post:
+              responses:
+                "200":
+                  description: Cognito OAuth token response.
+
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub >-
+                  arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RuntimeControlFunction.Arn}/invocations
+                timeoutInMillis: 29000
+
           # Completes Cognito metadata for ChatGPT OAuth validation.
           "/.well-known/openid-configuration":
             get:
