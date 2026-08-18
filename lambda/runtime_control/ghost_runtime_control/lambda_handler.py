@@ -380,6 +380,12 @@ class RuntimeControlApplication:
                 {"error": "token_endpoint_unavailable"},
             )
 
+        LOGGER.info(
+            "GHOST OAuth token exchange: status=%s error=%s",
+            status_code,
+            payload.get("error"),
+        )
+
         return self._http_response(status_code, payload)
 
     def _cognito_token_request_body(
@@ -803,7 +809,17 @@ def lambda_handler(
     """AWS Lambda entry point configured in the SAM stack."""
 
     try:
-        return _build_application().handle(event)
+        response = _build_application().handle(event)
+
+        if _is_api_gateway_event(event):
+            LOGGER.info(
+                "GHOST HTTP response: method=%s path=%s status=%s",
+                RuntimeControlApplication._http_method(event),
+                RuntimeControlApplication._request_path(event),
+                response.get("statusCode"),
+            )
+
+        return response
 
     except Exception:
         LOGGER.exception(
