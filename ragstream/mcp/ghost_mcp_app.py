@@ -20,7 +20,8 @@ Main methods:
 Important notes:
     Prompt engineering keeps its strict internal-result validation. Shared
     memory, Collection, and Clipboard tools use one storage root and SQLite
-    index. Persistent Chat uses its dedicated MCP policy store.
+    index. Persistent Chat uses its dedicated MCP policy store. CLI execution
+    delegates to the owner-scoped command service.
 """
 
 from __future__ import annotations
@@ -32,6 +33,15 @@ from typing import Any
 import mcp.types as types
 from mcp.shared.exceptions import McpError
 
+from ragstream.cli.command_service import CommandService
+from ragstream.mcp.ghost_cli import (
+    ASYNC_TOOL_NAME as CLI_ASYNC_TOOL_NAME,
+    CLI_SERVER_INSTRUCTIONS,
+    RUN_TOOL_NAME as CLI_RUN_TOOL_NAME,
+    GhostCliTool,
+    async_tool_metadata as cli_async_tool_metadata,
+    run_tool_metadata as cli_run_tool_metadata,
+)
 from ragstream.mcp.ghost_engineer_prompt import (
     ANSWER_PROMPT_MODE,
     ANSWER_PROMPT_WITH_MEMORY_MODE,
@@ -82,6 +92,18 @@ from ragstream.mcp.ghost_persistent_chat import (
     init_tool_metadata as persistent_chat_init_tool_metadata,
     resume_tool_metadata as persistent_chat_resume_tool_metadata,
 )
+from ragstream.mcp.mcp_skill_loader import (
+    SERVER_INSTRUCTIONS as SKILL_LOADER_SERVER_INSTRUCTIONS,
+    McpSkillLoaderTool,
+    TOOL_NAME as SKILL_LOADER_TOOL_NAME,
+    tool_metadata as skill_loader_tool_metadata,
+)
+from ragstream.mcp.mcp_skill_maker import (
+    SERVER_INSTRUCTIONS as SKILL_MAKER_SERVER_INSTRUCTIONS,
+    McpSkillMakerTool,
+    TOOL_NAME as SKILL_MAKER_TOOL_NAME,
+    tool_metadata as skill_maker_tool_metadata,
+)
 from ragstream.mcp.prompt_engineering_runner import (
     PromptEngineeringRunner,
 )
@@ -112,6 +134,12 @@ SERVER_INSTRUCTIONS = (
     + " "
     + PERSISTENT_CHAT_SERVER_INSTRUCTIONS
     + " "
+    + CLI_SERVER_INSTRUCTIONS
+    + " "
+    + SKILL_LOADER_SERVER_INSTRUCTIONS
+    + " "
+    + SKILL_MAKER_SERVER_INSTRUCTIONS
+    + " "
     + PROMPT_SERVER_INSTRUCTIONS
 )
 
@@ -126,6 +154,10 @@ GHOST_TOOL_NAMES = frozenset(
         PERSISTENT_CHAT_INIT_TOOL_NAME,
         PERSISTENT_CHAT_APPEND_TOOL_NAME,
         PERSISTENT_CHAT_RESUME_TOOL_NAME,
+        CLI_RUN_TOOL_NAME,
+        CLI_ASYNC_TOOL_NAME,
+        SKILL_LOADER_TOOL_NAME,
+        SKILL_MAKER_TOOL_NAME,
     }
 )
 
@@ -144,6 +176,7 @@ class GhostMcpApplication:
             McpMemoryCollectionRetriever | None
         ) = None,
         clipboard_store: McpClipboardStore | None = None,
+        cli_service: CommandService | None = None,
     ) -> None:
         """Create production tools or accept injected test dependencies."""
         if tool is None:
@@ -213,6 +246,15 @@ class GhostMcpApplication:
             persistent_chat_store
         )
 
+        self.cli_tool = GhostCliTool(
+            cli_service or CommandService()
+        )
+
+        # Each Skill tool creates its own request-scoped SkillManager. The MCP
+        # application owns only the stateless adapters.
+        self.skill_loader_tool = McpSkillLoaderTool()
+        self.skill_maker_tool = McpSkillMakerTool()
+
         self.required_scope = required_scope
 
     def cleanup_expired_clipboard(self) -> dict[str, Any]:
@@ -240,6 +282,10 @@ class GhostMcpApplication:
             persistent_chat_resume_tool_metadata(
                 self.required_scope
             ),
+            cli_run_tool_metadata(self.required_scope),
+            cli_async_tool_metadata(self.required_scope),
+            skill_loader_tool_metadata(self.required_scope),
+            skill_maker_tool_metadata(self.required_scope),
         )
 
         return [
@@ -310,6 +356,34 @@ class GhostMcpApplication:
 
         if name == PERSISTENT_CHAT_RESUME_TOOL_NAME:
             result = self.persistent_chat_tool.resume_sanitized(
+                owner_sub or "",
+                arguments,
+            )
+            return self._to_memory_mcp_result(result)
+
+        if name == CLI_RUN_TOOL_NAME:
+            result = self.cli_tool.run_sanitized(
+                owner_sub or "",
+                arguments,
+            )
+            return self._to_memory_mcp_result(result)
+
+        if name == CLI_ASYNC_TOOL_NAME:
+            result = self.cli_tool.async_sanitized(
+                owner_sub or "",
+                arguments,
+            )
+            return self._to_memory_mcp_result(result)
+
+        if name == SKILL_LOADER_TOOL_NAME:
+            result = self.skill_loader_tool.call_sanitized(
+                owner_sub or "",
+                arguments,
+            )
+            return self._to_memory_mcp_result(result)
+
+        if name == SKILL_MAKER_TOOL_NAME:
+            result = self.skill_maker_tool.call_sanitized(
                 owner_sub or "",
                 arguments,
             )

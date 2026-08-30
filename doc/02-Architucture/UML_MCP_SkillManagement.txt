@@ -1,0 +1,148 @@
+@startuml GHOST_Skill_Architecture
+
+left to right direction
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide empty members
+
+'──────────────────────────────────────────────────────────────
+' 1) AI / MCP INTERFACE - CONTEXT ONLY
+'──────────────────────────────────────────────────────────────
+package "AI / MCP Interface (conceptual)" {
+
+    class "ChatGPT Plugin" as ChatGPTPlugin
+    class "server.py" as MCPServer
+    class "ghost_cli.py" as GhostCli
+    class "mcp_skill_maker.py" as McpSkillMaker
+    class "mcp_skill_loader.py" as McpSkillLoader
+}
+
+'──────────────────────────────────────────────────────────────
+' 2) SKILLMANAGER FAMILY - IMPLEMENTATION FOCUS
+'──────────────────────────────────────────────────────────────
+package "SkillManager Family" {
+
+    class Skill {
+        + skill_id : str
+        + skill_name : str
+        + skill_title : str
+        + skill_description : str
+        + folder_name : str
+        + instruction_text : str
+        + ragmem_title : str
+        + ragmem_description : str
+        + ragmem_q : str
+        + ragmem_a : str
+        + ragmem_record_id : str
+        + ragmem_recall_key : str
+        + skill_status : str
+        + notes : List
+        + validate() : List[str]
+    }
+
+    class SkillManager {
+        + create_or_replace_skill(
+            skill:Skill,
+            archive_ids:List[str],
+            related_ids:List[str]
+          ) : Result
+
+        + retrieve_candidates(
+            query:str
+          ) : List
+
+        + load_selected_skills(
+            skill_ids:List[str]
+          ) : List[str]
+    }
+
+    class SkillCreator {
+        + create_skill(
+            skill:Skill
+          ) : Path
+
+        + update_skill_metadata(
+            skill_id:str,
+            status:str,
+            notes:List
+          ) : None
+    }
+
+    class SkillRetrieval {
+        + search(
+            query:str,
+            k:int=10,
+            threshold:float=0.2
+          ) : List
+
+        + load_markdown(
+            skill_ids:List[str]
+          ) : List[str]
+    }
+}
+
+'──────────────────────────────────────────────────────────────
+' 3) SKILL ARTIFACTS / EXISTING PERSISTENCE
+'──────────────────────────────────────────────────────────────
+package "Skill Artifacts / Persistence" {
+
+    class "SKILL.md *" as SkillMd
+
+    class "CLI_SKILL.ragmem\none Skill = one Episode" as CliSkillRagMem
+
+    class "CLI_SKILL.ragmeta.json\nstatus + notes" as CliSkillMeta
+
+    class "Description Vectors\nChroma" as SkillVectors
+}
+
+'──────────────────────────────────────────────────────────────
+' 4) KNOWLEDGE MANAGER - FUTURE / CONCEPTUAL
+'──────────────────────────────────────────────────────────────
+package "Knowledge Manager (future)" {
+
+    class KnowledgeManager {
+        + evaluate_skill_links(
+            skill_id:str
+          ) : None
+
+        + expand(
+            candidate_ids:List[str]
+          ) : List[str]
+    }
+
+    class "Neo4j\nKnowledge Graph" as Neo4j
+}
+
+'──────────────────────────────────────────────────────────────
+' 5) HIGH-LEVEL FLOW
+'──────────────────────────────────────────────────────────────
+
+ChatGPTPlugin <--> MCPServer
+
+MCPServer <--> GhostCli
+MCPServer --> McpSkillLoader
+MCPServer --> McpSkillMaker
+
+McpSkillLoader <--> SkillManager
+McpSkillMaker <--> SkillManager
+
+SkillManager --> Skill
+SkillManager --> SkillCreator
+SkillManager --> SkillRetrieval
+
+SkillCreator --> SkillMd
+SkillCreator --> CliSkillMeta
+
+SkillManager --> CliSkillRagMem
+SkillManager --> CliSkillMeta
+
+SkillRetrieval --> SkillVectors
+SkillRetrieval --> SkillMd
+
+CliSkillRagMem --> SkillVectors
+
+SkillManager <..> KnowledgeManager
+KnowledgeManager --> Neo4j
+
+@enduml

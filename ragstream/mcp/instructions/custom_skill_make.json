@@ -1,0 +1,69 @@
+{
+  "tool_description": [
+    "Persist one complete model-prepared GHOST CLI Skill as a new Skill or an immutable replacement.",
+    "Call once for each Skill action selected by the parent CLI policy; the parent may select zero to three sequential actions.",
+    "A Skill action may be justified by factual execution learning or by an explicit Skill-saving instruction included in the user's original task."
+  ],
+
+  "server_instruction": [
+    "This tool creates exactly one Skill per call. If the parent CLI policy selected multiple independent Skill actions, call this tool sequentially once for each action and never more than three times for the complete user task.",
+
+    "The decision must be exactly CREATE_NEW_SKILL or UPDATE_EXISTING_SKILL. For NO_CHANGE, do not call this tool.",
+
+    "Use factual Layer-1 execution feedback from the completed CLI task as the automatic learning source. Instructions explicitly provided by the user in the original task may also control what is saved, how details are grouped, and whether a task-specific Skill is wanted.",
+
+    "Automatic learning from new user feedback provided only after the completed task remains outside the current implementation scope.",
+
+    "The user's explicit saving structure has priority. If the user requests every detail in one named Skill, create or update one complete Skill and do not split it. If the user requests separation, preserve the requested boundaries within the parent limit of three Skill actions.",
+
+    "A neutral Skill should contain reusable operational methods. A deliberately task-specific Skill may contain exact targets, paths, named content, or a user-defined workflow when the user explicitly requests that information to be saved.",
+
+    "Without an explicit Skill-saving instruction, do not save one-off paths, named files, media choices, or other task-specific details merely because they appeared during execution.",
+
+    "Without an explicit Skill-saving instruction, create or update a Skill only when execution demonstrated concrete reusable knowledge, such as a successful method, failed method, recovery step, environment rule, missing capability, or necessary correction.",
+
+    "Choose UPDATE_EXISTING_SKILL only when the relevant active Skill is wrong, incomplete, ambiguous, or missing a concrete rule justified by the task. Pass every exact affected Skill ID returned by ghost_skill_loader.",
+
+    "Choose CREATE_NEW_SKILL only when no appropriate loaded Skill represents the intended reusable or explicitly requested capability. Pass an empty affected_skill_ids list.",
+
+    "An update is immutable. Provide one complete replacement Skill, preserving all proven correct instructions and changing only what the evidence or explicit original user instruction justifies.",
+
+    "Do not add generic best practices, speculative improvements, unrelated architecture, invented failures, or invented environment facts.",
+
+    "Provide a clear human-readable title. Provide a compact but informative description, normally one strong semantic paragraph explaining both what the Skill does and when it is relevant. Do not weaken a useful description into a few vague words and do not copy the complete procedure into the description.",
+
+    "Only skill_description is embedded for candidate retrieval. The complete procedure belongs in skill_text and is loaded only after candidate selection.",
+
+    "The complete skill_text must remain within the 10000-token hard limit. This is a maximum, not a target; keep each Skill focused on one coherent responsibility.",
+
+    "GHOST owns the internal Skill ID, timestamped folder path, SKILL.md path, Memory record ID, Recall Key, and lifecycle status. Never invent those values.",
+
+    "If GHOST returns SKILL_NAME_ALREADY_EXISTS, do not retry CREATE_NEW_SKILL with another body or name casing. Use the returned existing_skill_id to load the existing Skill and decide between NO_CHANGE and a justified UPDATE_EXISTING_SKILL.",
+
+    "If GHOST returns SKILL_UPDATE_BUSY, do not wait, retry repeatedly, or create a duplicate. Report that this Skill action was skipped because another task currently holds its deterministic lock.",
+
+    "If GHOST reports a corrupted Skill registry or failed rollback, stop Skill creation and report the integrity failure. Do not attempt another CREATE request."
+  ],
+
+  "field_descriptions": {
+    "decision": "Exactly CREATE_NEW_SKILL or UPDATE_EXISTING_SKILL. For NO_CHANGE, do not call this tool.",
+
+    "skill_name": "Stable semantic Skill name containing only letters, numbers, period, underscore, or hyphen. Name matching is owner-scoped, trimmed, and case-insensitive for ACTIVE uniqueness.",
+
+    "skill_title": "Clear human-readable title of the capability. This is returned with retrieval candidates and written into SKILL.md.",
+
+    "skill_description": "One compact, informative semantic paragraph describing what the Skill does and when it should be loaded. This value alone is embedded for retrieval.",
+
+    "skill_text": "Complete final Markdown instruction body for SKILL.md without the YAML header or repeated title. Preserve correct existing rules during an update. Maximum 10000 tokens.",
+
+    "yaml_metadata": "Optional additional YAML-compatible metadata. GHOST supplies name and description when absent.",
+
+    "ragmem_title": "Semantic Episode Title for the corresponding CLI_SKILL RagMeta and SQLite representation.",
+
+    "ragmem_description": "Semantic Episode Description for the corresponding CLI_SKILL Memory episode.",
+
+    "affected_skill_ids": "For UPDATE_EXISTING_SKILL, exact active Skill IDs returned and loaded through ghost_skill_loader. For CREATE_NEW_SKILL, an empty list.",
+
+    "notes": "Optional factual lifecycle or implementation notes. Do not add speculative notes."
+  }
+}
