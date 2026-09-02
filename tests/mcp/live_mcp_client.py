@@ -7,7 +7,7 @@ This script connects through the real Streamable HTTP network path:
     -> Uvicorn
     -> Starlette
     -> GhostMcpRuntime
-    -> ghost_engineer_prompt
+    -> ghost_prompt_show
 
 The GHOST MCP server must already be running in a separate terminal.
 """
@@ -27,8 +27,8 @@ from mcp.client.streamable_http import streamable_http_client
 
 DEFAULT_SERVER_URL: Final[str] = "http://127.0.0.1:8000/mcp"
 DEFAULT_PROMPT: Final[str] = "Explain the GHOST MCP server architecture."
-EXPECTED_TOOL_NAME: Final[str] = "ghost_engineer_prompt"
-EXPECTED_STAGE: Final[str] = "a2"
+EXPECTED_TOOL_NAME: Final[str] = "ghost_prompt_show"
+EXPECTED_MODE: Final[str] = "show_prompt"
 
 
 class SmokeTestError(RuntimeError):
@@ -47,7 +47,7 @@ def _parse_arguments(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--prompt",
         default=DEFAULT_PROMPT,
-        help="Prompt text sent to ghost_engineer_prompt.",
+        help="Prompt text sent to ghost_prompt_show.",
     )
     return parser.parse_args(argv)
 
@@ -92,24 +92,24 @@ def _validate_call_result(result: types.CallToolResult) -> str:
     if not isinstance(structured, dict):
         raise SmokeTestError("The tool result has no structuredContent object.")
 
-    expected_keys = {"engineered_prompt", "stage"}
+    expected_keys = {"status", "mode", "prompt", "clarification_question", "general_skill_candidates", "receipt"}
     if set(structured) != expected_keys:
         raise SmokeTestError(
             "Unexpected structuredContent keys: "
             f"expected {sorted(expected_keys)!r}, received {sorted(structured)!r}."
         )
 
-    engineered_prompt = structured.get("engineered_prompt")
-    stage = structured.get("stage")
+    engineered_prompt = structured.get("prompt")
+    mode = structured.get("mode")
 
     if engineered_prompt != text:
         raise SmokeTestError(
             "Text content and structured engineered_prompt are not identical."
         )
 
-    if stage != EXPECTED_STAGE:
+    if mode != EXPECTED_MODE:
         raise SmokeTestError(
-            f"Expected stage {EXPECTED_STAGE!r}, received {stage!r}."
+            f"Expected mode {EXPECTED_MODE!r}, received {mode!r}."
         )
 
     return text

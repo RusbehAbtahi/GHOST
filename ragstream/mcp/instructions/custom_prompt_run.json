@@ -1,0 +1,25 @@
+{
+  "tool_description": [
+    "Build one final GHOST prompt through the same central prompt builder used by ghost_prompt_show and run it exactly once through the calling MCP client. Enabled document retrieval uses the existing dense embedding Retriever with SPLADE disabled and no reranker, followed by the real A3 usefulness gate, real A4 condenser, and S_CTX_MD composition. Memory retrieval uses the normal GHOST MemoryRetriever and MemoryMergeSynthesizer. Complete clarification or General Skill selection before execution."
+  ],
+  "server_instruction": [
+    "Use ghost_prompt_run when the user explicitly asks to run or execute a request through the GHOST prompt builder. Copy only the current requested prompt into prompt_text. The tool uses the authenticated owner's persistent settings. Never supply setting_overrides unless the current user explicitly asks to change the exact setting(s) being overridden. Unspecified settings MUST inherit the owner's persistent values unchanged; never infer, disable, enable, or reset an unspecified flag from task type, examples, prior turns, project_name, ragmem_path, or assistant preference. Context token controls are request-local MCP inputs. When the user does not explicitly change them, use these defaults: document_context_tokens=1200, document_max_output_tokens=4000, memory_context_tokens=1200, memory_max_output_tokens=3500. Supply a token-control input only when the current user explicitly asks to override that exact value; unspecified token controls keep their defaults.",
+    "For clarification_required, call this same tool with only the returned receipt.build_id and the clarified prompt_text. A single General Skill candidate is continued automatically by the tool. For selection_required (multiple candidates), call it with only receipt.build_id and exact general_skill_ids. Never repeat or replace flags, project, RagMem, or query during continuation.",
+    "When status=complete, execute the returned prompt exactly once without displaying or describing it. Do not summarize, truncate, paraphrase, replace sections with placeholders, independently compress results, or omit document context, memory context, or Skill instructions unless the current user explicitly requested that omission."
+  ],
+  "field_descriptions": {
+    "prompt_text": "The current request that GHOST must build and the MCP client must execute once.",
+    "build_id": "Exact owner-scoped build identifier returned in receipt.build_id for one clarification or Skill-selection continuation.",
+    "setting_overrides": "Optional request-local prompt settings. Supply only settings the current user explicitly asked to change. Omit this object entirely when no exact flag change was requested. Unspecified settings inherit the owner's persistent JSON values unchanged.",
+    "project_name": "Optional explicit GHOST project used when document retrieval is enabled.",
+    "ragmem_path": "Optional explicit .ragmem path used when memory retrieval is enabled. Accepted forms include /home/... and WSL paths beginning with \\\\wsl.localhost\\<distro>\\... or \\wsl.localhost\\<distro>\\....",
+    "general_skill_ids": "Exact General Skill IDs selected after a selection_required response.",
+    "general_skill_query": "Optional explicit query used to discover General Skills instead of the builder-derived retrieval query.",
+    "prompt": "Accepted alias for prompt_text. The MCP adapter normalizes it to prompt_text.",
+    "document_project_name": "Accepted alias for project_name. The MCP adapter normalizes it to project_name.",
+    "document_context_tokens": "Optional request-local strict visible-token maximum for final document S_CTX_MD. Default 1200 when omitted.",
+    "document_max_output_tokens": "Optional request-local API max_output_tokens ceiling for the A4 final condenser, including reasoning tokens. Default 4000 when omitted.",
+    "memory_context_tokens": "Optional request-local strict visible-token maximum for synthesized memory_context. Default 1200 when omitted.",
+    "memory_max_output_tokens": "Optional request-local API max_output_tokens ceiling for the MemoryMergeSynthesizer, including reasoning tokens. Default 3500 when omitted."
+  }
+}

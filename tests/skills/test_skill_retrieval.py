@@ -55,18 +55,21 @@ def test_search_applies_status_threshold_and_limit(
         candidates=[
             {
                 "skill_id": "skill-a",
+                "skill_title": "Relevant Skill",
                 "skill_description": "Relevant",
                 "skill_status": "ACTIVE",
                 "cosine_similarity": 0.8,
             },
             {
                 "skill_id": "skill-b",
+                "skill_title": "Excluded Skill",
                 "skill_description": "Excluded",
                 "skill_status": "EXCLUDED",
                 "cosine_similarity": 0.9,
             },
             {
                 "skill_id": "skill-c",
+                "skill_title": "Weak Skill",
                 "skill_description": "Weak",
                 "skill_status": "ACTIVE",
                 "cosine_similarity": 0.1,
@@ -82,7 +85,9 @@ def test_search_applies_status_threshold_and_limit(
     assert retrieval.search("find folders") == [
         {
             "skill_id": "skill-a",
+            "skill_title": "Relevant Skill",
             "skill_description": "Relevant",
+            "skill_tags": ["STANDARD"],
             "cosine_similarity": 0.8,
         }
     ]
@@ -135,4 +140,4 @@ def test_load_skills_rejects_unknown_id(
         ValueError,
         match="Active Skill was not found",
     ):
-        retrieval.load_skills(["missing"])
+        retrieval.load_skills(["missing"])

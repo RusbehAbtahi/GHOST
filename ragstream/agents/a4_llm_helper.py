@@ -111,6 +111,7 @@ class A4LLMHelper:
         class_groups: str,
         effective_output_token_limit: int,
         decision_targets_text: str,
+        max_output_tokens: int | None = None,
     ) -> JsonDict:
         inputs: Dict[str, Any] = {
             "user_prompt_under_evaluation": user_prompt_under_evaluation,
@@ -121,7 +122,10 @@ class A4LLMHelper:
                 '{\n'
                 '  "s_ctx_md": "one coherent condensed context text"\n'
                 '}\n'
-                f"\nKeep s_ctx_md at or below about {int(effective_output_token_limit)} tokens."
+                f"\nThe visible s_ctx_md content MUST NOT exceed "
+                f"{int(effective_output_token_limit)} tokens. "
+                f"{int(effective_output_token_limit)} tokens is a strict "
+                "maximum, not a target or approximation."
             ),
         }
 
@@ -130,6 +134,7 @@ class A4LLMHelper:
             agent_prompt=agent_prompt,
             input_payload=inputs,
             prompt_cache_key="a4_condenser_shared_prefix",  # Added: same stable cache key to maximize hit rate for the identical A4 prefix family.
+            max_output_tokens=max_output_tokens,
         )
 
     def _run_agent_call(
@@ -139,6 +144,7 @@ class A4LLMHelper:
         agent_prompt: AgentPrompt,
         input_payload: Dict[str, Any],
         prompt_cache_key: str,
+        max_output_tokens: int | None = None,
     ) -> JsonDict:
         """
         Shared LLM path for all 3 A4 calls.
@@ -156,7 +162,11 @@ class A4LLMHelper:
         response = self._llm_client.responses(
             messages=messages,
             model_name=agent_prompt.model_name,
-            max_output_tokens=agent_prompt.max_output_tokens,
+            max_output_tokens=(
+                agent_prompt.max_output_tokens
+                if max_output_tokens is None
+                else int(max_output_tokens)
+            ),
             reasoning_effort="minimal",
             return_metadata=True,
             prompt_cache_key=prompt_cache_key,  # Added: explicit cache-routing key for shared A4 prefix family.

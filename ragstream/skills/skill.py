@@ -6,6 +6,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from ragstream.skills.skill_tags import (
+    STANDARD_SKILL_TAG,
+    normalize_skill_tags,
+)
+
 
 ACTIVE_SKILL_STATUS = "ACTIVE"
 EXCLUDED_SKILL_STATUS = "EXCLUDED"
@@ -24,6 +29,9 @@ class Skill:
     skill_name: str = ""
     skill_title: str = ""
     skill_description: str = ""
+    skill_tags: list[str] = field(
+        default_factory=lambda: [STANDARD_SKILL_TAG]
+    )
 
     folder_path: str = ""
     skill_md_path: str = ""
@@ -58,6 +66,15 @@ class Skill:
             errors.append("yaml_metadata must be a dictionary.")
         if not isinstance(self.notes, list):
             errors.append("notes must be a list.")
+        try:
+            normalized_tags = normalize_skill_tags(
+                self.skill_tags,
+                default_to_standard=True,
+            )
+            if self.skill_tags != normalized_tags:
+                errors.append("skill_tags must be normalized.")
+        except ValueError as error:
+            errors.append(str(error) + ".")
 
         if (
             self.instruction_text

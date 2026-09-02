@@ -247,17 +247,12 @@ class GhostMcpRuntime:
         )
 
         structured_content = result.structuredContent or {}
-        engineered_prompt = structured_content.get("engineered_prompt")
-        context_appended = (
-            isinstance(engineered_prompt, str)
-            and "## Supportive Context" in engineered_prompt
-        )
-
         print(
             "[GHOST MCP RESULT]"
+            f" tool={request.params.name!r}"
+            f" status={structured_content.get('status')!r}"
             f" mode={structured_content.get('mode')!r}"
-            f" stage={structured_content.get('stage')!r}"
-            f" context_appended={context_appended}",
+            f" is_error={bool(result.isError)}",
             flush=True,
         )
 

@@ -102,7 +102,7 @@
     "enabled": true,
     "agent_id": "memory_synthesizer",
     "agent_version": "memory_synthesizer_001",
-    "target_context_tokens": 700,
+    "target_context_tokens": 1200,
     "max_episodic_records": 3,
     "max_semantic_chunks": 5,
     "prompt_cache_key": "memory_synthesizer"
@@ -136,7 +136,7 @@
     "hard_embedding_floor": 0.2
   },
   "a4_condenser": {
-    "max_output_tokens": 5000
+    "max_output_tokens": 4000
   },
   "hard_rules": {
     "enabled": false,

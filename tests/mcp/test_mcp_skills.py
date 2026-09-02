@@ -7,7 +7,7 @@ import fcntl
 from pathlib import Path
 from typing import Any
 
-from ragstream.mcp.ghost_engineer_prompt import GhostToolResult
+from ragstream.mcp.mcp_tool_contracts import GhostToolResult
 from ragstream.mcp.ghost_mcp_app import GhostMcpApplication
 from ragstream.mcp.mcp_skill_loader import (
     TOOL_NAME as SKILL_LOADER_TOOL_NAME,
@@ -36,6 +36,7 @@ class FakeSkillManager:
         self.candidates = [
             {
                 "skill_id": "skill-old",
+                "skill_title": "Safe Search",
                 "skill_description": "Search folders safely.",
                 "cosine_similarity": 0.91,
             }
@@ -57,12 +58,20 @@ class FakeSkillManager:
         self.created_skill = skill
         return skill, True
 
-    def persist_skill_memory(self, skill: Skill) -> Skill:
+    def persist_skill_memory(
+        self,
+        skill: Skill,
+        replacing_skill_ids: list[str] | None = None,
+    ) -> Skill:
         skill.ragmem_record_id = "record-new"
         skill.ragmem_recall_key = skill.skill_id
         return skill
 
-    def archive_replaced_skills(self, skill_ids: list[str]) -> None:
+    def archive_replaced_skills(
+        self,
+        skill_ids: list[str],
+        replacement_skill_id: str = "",
+    ) -> None:
         self.archived_ids = list(skill_ids)
 
 
@@ -71,18 +80,26 @@ class RecordingManagerFactory:
 
     def __init__(self) -> None:
         self.managers: list[FakeSkillManager] = []
+        self.domains: list[str] = []
 
-    def __call__(self, owner_sub: str) -> FakeSkillManager:
+    def __call__(
+        self,
+        owner_sub: str,
+        domain_config: Any,
+    ) -> FakeSkillManager:
         manager = FakeSkillManager(owner_sub)
         self.managers.append(manager)
+        self.domains.append(domain_config.skill_domain)
         return manager
 
 
 def _maker_arguments(
     decision: str = CREATE_NEW_SKILL,
     affected_skill_ids: list[str] | None = None,
+    skill_domain: str = "CLI",
 ) -> dict[str, Any]:
     return {
+        "skill_domain": skill_domain,
         "decision": decision,
         "skill_name": "safe_search",
         "skill_title": "Safe Search",
@@ -102,19 +119,23 @@ def test_loader_search_returns_description_candidates() -> None:
 
     result = tool.call_sanitized(
         "owner-1",
-        {"query": "search folders"},
+        {"skill_domain": "CLI", "query": "search folders"},
     )
 
     assert result.isError is False
     assert result.structuredContent == {
+        "skill_domain": "CLI",
         "workflow_state": "selection_required",
         "query": "search folders",
         "candidate_count": 1,
+            "include_tags": [],
+            "exclude_tags": [],
         "candidates": factory.managers[0].candidates,
     }
     assert [manager.owner_sub for manager in factory.managers] == [
         "owner-1"
     ]
+    assert factory.domains == ["CLI"]
 
 
 def test_loader_loads_exact_selected_skill_ids() -> None:
@@ -123,7 +144,7 @@ def test_loader_loads_exact_selected_skill_ids() -> None:
 
     result = tool.call_sanitized(
         "owner-1",
-        {"skill_ids": ["skill-old", "skill-second"]},
+        {"skill_domain": "CLI", "skill_ids": ["skill-old", "skill-second"]},
     )
 
     assert result.isError is False
@@ -148,8 +169,8 @@ def test_loader_creates_a_fresh_manager_for_every_call() -> None:
     factory = RecordingManagerFactory()
     tool = McpSkillLoaderTool(manager_factory=factory)  # type: ignore[arg-type]
 
-    tool.call_sanitized("owner-1", {"query": "search folders"})
-    tool.call_sanitized("owner-1", {"query": "search folders"})
+    tool.call_sanitized("owner-1", {"skill_domain": "CLI", "query": "search folders"})
+    tool.call_sanitized("owner-1", {"skill_domain": "CLI", "query": "search folders"})
 
     assert len(factory.managers) == 2
     assert factory.managers[0] is not factory.managers[1]
@@ -161,6 +182,7 @@ def test_loader_rejects_mixed_search_and_load_input() -> None:
     result = tool.call_sanitized(
         "owner-1",
         {
+            "skill_domain": "CLI",
             "query": "search folders",
             "skill_ids": ["skill-old"],
         },
@@ -182,6 +204,7 @@ def test_maker_creates_new_skill_without_archiving() -> None:
     manager = factory.managers[0]
     assert result.isError is False
     assert result.structuredContent["created"] is True
+    assert result.structuredContent["skill_domain"] == "CLI"
     assert result.structuredContent["skill_id"] == "skill-new"
     assert result.structuredContent["affected_skill_ids"] == []
     assert manager.created_skill is not None
@@ -197,7 +220,7 @@ def test_maker_validates_then_archives_exact_replaced_ids(
     factory = RecordingManagerFactory()
     tool = McpSkillMakerTool(
         manager_factory=factory,  # type: ignore[arg-type]
-        skills_root=tmp_path,
+        skills_base_root=tmp_path,
     )
 
     result = tool.call_sanitized(
@@ -214,7 +237,13 @@ def test_maker_validates_then_archives_exact_replaced_ids(
     assert manager.archived_ids == ["skill-old"]
 
     # The stable file remains, but the adapter released Linux's lock state.
-    lock_path = tmp_path / ".locks" / "owner-1_skill-old.lock"
+    lock_path = (
+        tmp_path
+        / "MCP_CLI"
+        / ".locks"
+        / "owner-1"
+        / "id_skill-old.lock"
+    )
     assert lock_path.is_file()
     with lock_path.open("a+", encoding="utf-8") as lock_file:
         fcntl.flock(
@@ -227,13 +256,15 @@ def test_maker_validates_then_archives_exact_replaced_ids(
 def test_maker_aborts_immediately_when_replacement_is_locked(
     tmp_path: Path,
 ) -> None:
-    lock_root = tmp_path / ".locks"
+    lock_root = (
+        tmp_path / "MCP_CLI" / ".locks" / "owner-1"
+    )
     lock_root.mkdir(parents=True)
-    lock_path = lock_root / "owner-1_skill-old.lock"
+    lock_path = lock_root / "id_skill-old.lock"
     factory = RecordingManagerFactory()
     tool = McpSkillMakerTool(
         manager_factory=factory,  # type: ignore[arg-type]
-        skills_root=tmp_path,
+        skills_base_root=tmp_path,
     )
 
     with lock_path.open("a+", encoding="utf-8") as held_lock:
@@ -262,6 +293,29 @@ def test_maker_rejects_incoherent_decision_and_ids() -> None:
 
     assert result.isError is True
     assert "requires empty" in result.structuredContent["reason"]
+
+
+def test_skill_tools_reject_missing_or_invalid_domain() -> None:
+    loader = McpSkillLoaderTool()
+    maker = McpSkillMakerTool()
+
+    missing = loader.call_sanitized(
+        "owner-1",
+        {"query": "search folders"},
+    )
+    invalid = maker.call_sanitized(
+        "owner-1",
+        _maker_arguments(skill_domain="UNKNOWN"),
+    )
+
+    assert missing.isError is True
+    assert missing.structuredContent["reason"] == (
+        "missing required input: skill_domain"
+    )
+    assert invalid.isError is True
+    assert invalid.structuredContent["reason"] == (
+        "skill_domain must be CLI or GENERAL"
+    )
 
 
 def test_skill_metadata_has_expected_read_and_write_hints() -> None:
@@ -310,7 +364,7 @@ def test_application_dispatches_skill_loader_with_authenticated_owner() -> None:
 
     result = application.call_tool(
         SKILL_LOADER_TOOL_NAME,
-        {"query": "search folders"},
+        {"skill_domain": "CLI", "query": "search folders"},
         owner_sub="owner-1",
     )
 
@@ -318,5 +372,5 @@ def test_application_dispatches_skill_loader_with_authenticated_owner() -> None:
     assert result.structuredContent == {"workflow_state": "complete"}
     assert recording_tool.call == (
         "owner-1",
-        {"query": "search folders"},
+        {"skill_domain": "CLI", "query": "search folders"},
     )

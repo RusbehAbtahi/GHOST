@@ -60,7 +60,7 @@ class A4Condenser:
         llm_client: LLMClient,
         *,
         max_candidates: int = 30,
-        default_max_output_tokens: int = 3000,
+        default_max_output_tokens: int = 1200,
     ) -> None:
         self._llm_client = llm_client
         self._max_candidates = int(max_candidates)
@@ -71,6 +71,7 @@ class A4Condenser:
         sp: SuperPrompt,
         *,
         effective_output_token_limit: Optional[int] = None,
+        max_output_tokens: Optional[int] = None,
     ) -> SuperPrompt:
         """
         Main entry point for A4.
@@ -152,6 +153,7 @@ class A4Condenser:
             class_groups=grouped_chunk_package["class_groups_text"],
             effective_output_token_limit=grouped_chunk_package["effective_output_token_limit"],
             decision_targets_text=grouped_chunk_package["decision_targets_text"],
+            max_output_tokens=max_output_tokens,
         )
 
         # ------------------------------------------------------------------

@@ -15,6 +15,7 @@ class FakeMemoryStore:
         *,
         owner_sub: str,
         skill_data: dict[str, Any],
+        replacing_skill_ids: list[str] | None = None,
     ) -> dict[str, str]:
         self.saved[skill_data["skill_id"]] = dict(
             skill_data
@@ -139,4 +140,4 @@ def test_manager_archives_artifact_and_excludes_memory(
     assert skill.skill_status == "EXCLUDED"
     assert manager.affected_skill_ids == [
         skill.skill_id
-    ]
+    ]

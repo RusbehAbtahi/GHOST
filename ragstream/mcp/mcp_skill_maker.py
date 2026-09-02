@@ -29,7 +29,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any, TextIO
 
-from ragstream.mcp.ghost_engineer_prompt import (
+from ragstream.mcp.mcp_tool_contracts import (
     DEFAULT_REQUIRED_SCOPE,
     GhostToolResult,
 )
@@ -37,14 +37,18 @@ from ragstream.mcp.memory_tool_instructions import (
     load_memory_tool_instructions,
 )
 from ragstream.memory.mcp_skill_memory_store import (
+    CLI_SKILL_DOMAIN,
+    DEFAULT_SKILLS_BASE_ROOT,
+    GENERAL_SKILL_DOMAIN,
+    McpSkillMemoryStore,
+    SkillDomainConfig,
     SkillNameAlreadyExistsError,
     SkillRegistryIntegrityError,
+    resolve_skill_domain,
 )
 from ragstream.skills.skill import Skill
-from ragstream.skills.skill_manager import (
-    DEFAULT_SKILLS_ROOT,
-    SkillManager,
-)
+from ragstream.skills.skill_tags import normalize_skill_tags
+from ragstream.skills.skill_manager import SkillManager
 
 
 TOOL_NAME = "ghost_skill_make"
@@ -70,6 +74,13 @@ SERVER_INSTRUCTIONS = _INSTRUCTIONS.server_instruction
 INPUT_SCHEMA = {
     "type": "object",
     "properties": {
+        "skill_domain": {
+            "type": "string",
+            "enum": [CLI_SKILL_DOMAIN, GENERAL_SKILL_DOMAIN],
+            "description": _INSTRUCTIONS.field_descriptions[
+                "skill_domain"
+            ],
+        },
         "decision": {
             "type": "string",
             "enum": [CREATE_NEW_SKILL, UPDATE_EXISTING_SKILL],
@@ -131,12 +142,22 @@ INPUT_SCHEMA = {
                 "affected_skill_ids"
             ],
         },
+        "skill_tags": {
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "enum": ["STANDARD", "GHOST"],
+            },
+            "description": _INSTRUCTIONS.field_descriptions["skill_tags"],
+        },
         "notes": {
             "type": "array",
             "description": _INSTRUCTIONS.field_descriptions["notes"],
         },
     },
     "required": [
+        "skill_domain",
         "decision",
         "skill_name",
         "skill_title",
@@ -157,6 +178,10 @@ OUTPUT_SCHEMA = {
             "type": "string",
             "enum": [WORKFLOW_COMPLETE],
         },
+        "skill_domain": {
+            "type": "string",
+            "enum": [CLI_SKILL_DOMAIN, GENERAL_SKILL_DOMAIN],
+        },
         "decision": {
             "type": "string",
             "enum": [CREATE_NEW_SKILL, UPDATE_EXISTING_SKILL],
@@ -165,6 +190,15 @@ OUTPUT_SCHEMA = {
         "skill_name": {"type": "string", "minLength": 1},
         "skill_title": {"type": "string", "minLength": 1},
         "skill_description": {"type": "string", "minLength": 1},
+        "skill_tags": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "enum": ["STANDARD", "GHOST"],
+            },
+        },
         "folder_path": {"type": "string", "minLength": 1},
         "skill_md_path": {"type": "string", "minLength": 1},
         "ragmem_record_id": {"type": "string", "minLength": 1},
@@ -191,7 +225,7 @@ OUTPUT_SCHEMA = {
     "additionalProperties": False,
 }
 
-ManagerFactory = Callable[[str], SkillManager]
+ManagerFactory = Callable[[str, SkillDomainConfig], SkillManager]
 
 
 class McpSkillMakerTool:
@@ -200,9 +234,9 @@ class McpSkillMakerTool:
     def __init__(
         self,
         manager_factory: ManagerFactory | None = None,
-        skills_root: str | Path = DEFAULT_SKILLS_ROOT,
+        skills_base_root: str | Path = DEFAULT_SKILLS_BASE_ROOT,
     ) -> None:
-        self._skills_root = Path(skills_root)
+        self._skills_base_root = Path(skills_base_root)
         self._manager_factory = (
             manager_factory or self._create_manager
         )
@@ -222,6 +256,9 @@ class McpSkillMakerTool:
         assert arguments is not None
 
         try:
+            domain_config = resolve_skill_domain(
+                arguments["skill_domain"]
+            )
             decision = str(arguments["decision"])
             affected_skill_ids = self._clean_affected_skill_ids(
                 arguments["affected_skill_ids"]
@@ -232,18 +269,19 @@ class McpSkillMakerTool:
             return self._failure(str(error))
 
         lock_files = self._acquire_locks(
+            domain_config.skills_root(self._skills_base_root),
             owner_sub,
             skill.skill_name,
             affected_skill_ids,
         )
         if lock_files is None:
             return self._failure(
-                "another CLI task is changing this Skill name or version",
+                "another task is changing this Skill name or version",
                 error_code=SKILL_UPDATE_BUSY,
             )
 
         try:
-            manager = self._manager_factory(owner_sub)
+            manager = self._manager_factory(owner_sub, domain_config)
 
             # Validate every replacement ID before creating a new artifact.
             # This prevents an invented or stale ID from producing a new Skill.
@@ -282,6 +320,7 @@ class McpSkillMakerTool:
                     raise
 
             return self._success(
+                domain_config.skill_domain,
                 decision,
                 persisted_skill,
                 affected_skill_ids,
@@ -306,6 +345,7 @@ class McpSkillMakerTool:
 
     def _acquire_locks(
         self,
+        skills_root: Path,
         owner_sub: str,
         skill_name: str,
         skill_ids: list[str],
@@ -316,7 +356,7 @@ class McpSkillMakerTool:
             "skill_name",
         ).casefold()
 
-        lock_root = self._skills_root / ".locks" / owner
+        lock_root = skills_root / ".locks" / owner
         lock_root.mkdir(parents=True, exist_ok=True)
         acquired: list[TextIO] = []
 
@@ -367,6 +407,7 @@ class McpSkillMakerTool:
             return "Skill maker input is required"
 
         allowed_fields = {
+            "skill_domain",
             "decision",
             "skill_name",
             "skill_title",
@@ -377,11 +418,13 @@ class McpSkillMakerTool:
             "ragmem_description",
             "affected_skill_ids",
             "notes",
+            "skill_tags",
         }
         if set(arguments).difference(allowed_fields):
             return "unsupported input property"
 
         required_fields = {
+            "skill_domain",
             "decision",
             "skill_name",
             "skill_title",
@@ -431,6 +474,10 @@ class McpSkillMakerTool:
             raise ValueError("yaml_metadata must be an object")
 
         notes = arguments.get("notes", [])
+        skill_tags = normalize_skill_tags(
+            arguments.get("skill_tags"),
+            default_to_standard=True,
+        )
         if not isinstance(notes, list):
             raise ValueError("notes must be a list")
 
@@ -438,6 +485,7 @@ class McpSkillMakerTool:
             skill_name=clean_text["skill_name"],
             skill_title=clean_text["skill_title"],
             skill_description=clean_text["skill_description"],
+            skill_tags=skill_tags,
             yaml_metadata=dict(yaml_metadata),
             instruction_text=clean_text["skill_text"],
             ragmem_title=clean_text["ragmem_title"],
@@ -507,14 +555,24 @@ class McpSkillMakerTool:
 
         return clean_value
 
-    def _create_manager(self, owner_sub: str) -> SkillManager:
+    def _create_manager(
+        self,
+        owner_sub: str,
+        domain_config: SkillDomainConfig,
+    ) -> SkillManager:
         return SkillManager(
             owner_sub=owner_sub,
-            skills_root=self._skills_root,
+            skills_root=domain_config.skills_root(
+                self._skills_base_root
+            ),
+            memory_store=McpSkillMemoryStore(
+                domain_config=domain_config
+            ),
         )
 
     @staticmethod
     def _success(
+        skill_domain: str,
         decision: str,
         skill: Skill,
         affected_skill_ids: list[str],
@@ -522,11 +580,13 @@ class McpSkillMakerTool:
         structured_content = {
             "created": True,
             "workflow_state": WORKFLOW_COMPLETE,
+            "skill_domain": skill_domain,
             "decision": decision,
             "skill_id": skill.skill_id,
             "skill_name": skill.skill_name,
             "skill_title": skill.skill_title,
             "skill_description": skill.skill_description,
+            "skill_tags": list(skill.skill_tags),
             "folder_path": skill.folder_path,
             "skill_md_path": skill.skill_md_path,
             "ragmem_record_id": skill.ragmem_record_id,

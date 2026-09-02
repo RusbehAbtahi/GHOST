@@ -1,0 +1,113 @@
+@startuml UML_MCP_PromptSkillArchitecture
+
+top to bottom direction
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam nodesep 16
+skinparam ranksep 20
+skinparam classFontSize 11
+hide empty members
+
+'──────────────────────────────────────────────────────────────
+'  MCP ENTRY
+'──────────────────────────────────────────────────────────────
+package "AI / MCP Interface" {
+
+    class "ChatGPT MCP Client" as ChatGPT
+    class "MCP Interface\nowner context + tool registration" as Mcp
+
+    together {
+        class "CLI Task Tool" as CliTool
+        class "Skill Make / Load Tools" as SkillTools
+        class "Prompt Show\nreturns prompt + receipt" as PromptShow
+        class "Prompt Run\nexecutes prompt once" as PromptRun
+        class "Prompt Settings" as PromptSettings
+    }
+}
+
+ChatGPT <--> Mcp
+Mcp --> CliTool
+Mcp --> SkillTools
+Mcp --> PromptShow
+Mcp --> PromptRun
+Mcp --> PromptSettings
+
+
+'──────────────────────────────────────────────────────────────
+'  CONSUMING FLOWS
+'──────────────────────────────────────────────────────────────
+package "MCP Workflows" {
+
+    together {
+        class "CLI Task Execution\nuses selected CLI Skills" as CliWorkflow
+
+        class "Prompt Builder\nbuilds final prompt + receipt" as PromptBuilder
+    }
+
+    together {
+        class "Input Cleanup\n+ PreProcessing + A2" as PromptShaping
+
+        class "Context Retrieval\nDocument + Memory + Knowledge" as ContextRetrieval
+
+        class "Owner Prompt Settings\nflags + defaults\nmemory_recency_enabled" as Settings
+    }
+
+    class "GHOST LLM\nexisting execution path" as GhostLlm
+}
+
+CliTool --> CliWorkflow
+
+PromptShow --> PromptBuilder : build only
+PromptRun --> PromptBuilder : build
+
+PromptSettings --> Settings : show / set / reset
+PromptBuilder --> Settings : effective settings
+PromptBuilder --> PromptShaping : optional
+PromptBuilder --> ContextRetrieval : optional
+
+PromptRun --> GhostLlm : built prompt\nexactly once
+
+
+'──────────────────────────────────────────────────────────────
+'  SHARED SKILL SYSTEM
+'──────────────────────────────────────────────────────────────
+package "Neutral Shared Skill System" {
+
+    together {
+        class "Skill" as Skill
+        class "SkillManager" as SkillManager
+        class "SkillCreator" as SkillCreator
+        class "SkillRetrieval" as SkillRetrieval
+    }
+}
+
+SkillTools --> SkillManager : create / load\nselected domain
+
+CliWorkflow --> SkillManager : retrieve CLI Skills
+PromptBuilder --> SkillManager : retrieve General Skills\nattach as prompt context
+
+SkillManager --> Skill
+SkillManager --> SkillCreator
+SkillManager --> SkillRetrieval
+
+
+'──────────────────────────────────────────────────────────────
+'  DOMAIN ARTIFACTS
+'──────────────────────────────────────────────────────────────
+package "Skill Artifact Domains" {
+
+    together {
+        class "CLI Skill Artifacts" as CliArtifacts
+        class "General Skill Artifacts" as GeneralArtifacts
+    }
+}
+
+SkillCreator --> CliArtifacts : write CLI
+SkillCreator --> GeneralArtifacts : write General
+
+SkillRetrieval --> CliArtifacts : search / load CLI
+SkillRetrieval --> GeneralArtifacts : search / load General
+
+@enduml

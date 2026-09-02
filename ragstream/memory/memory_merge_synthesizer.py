@@ -58,6 +58,7 @@ class MemoryMergeSynthesizer:
         self.agent_id = str(cfg.get("agent_id", "memory_synthesizer"))
         self.agent_version = str(cfg.get("agent_version", "memory_synthesizer_001"))
         self.target_context_tokens = int(cfg.get("target_context_tokens", 700))
+        self.max_output_tokens = int(cfg.get("max_output_tokens", 0) or 0)
         self.max_episodic_records = int(cfg.get("max_episodic_records", 3))
         self.max_semantic_chunks = int(cfg.get("max_semantic_chunks", 5))
         self.prompt_cache_key = str(cfg.get("prompt_cache_key", "memory_synthesizer"))
@@ -187,7 +188,11 @@ class MemoryMergeSynthesizer:
         response = self.llm_client.responses(
             messages=messages,
             model_name=agent_prompt.model_name,
-            max_output_tokens=agent_prompt.max_output_tokens,
+            max_output_tokens=(
+                self.max_output_tokens
+                if self.max_output_tokens > 0
+                else agent_prompt.max_output_tokens
+            ),
             reasoning_effort="minimal",
             return_metadata=True,
             prompt_cache_key=self.prompt_cache_key,
@@ -282,7 +287,10 @@ class MemoryMergeSynthesizer:
             "{\n"
             '  "memory_context": "query-relevant synthesized Memory Context"\n'
             "}\n\n"
-            f"Keep memory_context at or below about {self.target_context_tokens} tokens."
+            f"The visible memory_context content MUST NOT exceed "
+            f"{self.target_context_tokens} tokens. "
+            f"{self.target_context_tokens} tokens is a strict maximum, "
+            "not a target or approximation."
         )
 
     def _skipped_result(

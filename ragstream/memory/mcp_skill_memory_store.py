@@ -1,4 +1,4 @@
-"""Persist and retrieve owner-scoped MCP CLI Skill Memory.
+"""Persist and retrieve owner-scoped MCP Skill Memory by domain.
 
 This module is a small Skill-specific adapter over the existing GHOST Memory
 architecture. MemoryManager remains responsible for RagMem, RagMeta, and SQLite
@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import re
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -19,13 +20,76 @@ from ragstream.memory.mcp_episodic_description_vector_store import (
 )
 from ragstream.memory.memory_manager import MemoryManager
 from ragstream.memory.memory_record import MemoryRecord
+from ragstream.skills.skill_tags import (
+    SkillTagIndex,
+    normalize_skill_tag_filters,
+    normalize_skill_tags,
+)
 
 
-CLI_SKILL_MEMORY_TYPE = "cli_skill"
-CLI_SKILL_TITLE = "CLI_SKILL"
-CLI_SKILL_DESCRIPTION = "Owner-scoped MCP CLI Skill descriptions."
+CLI_SKILL_DOMAIN = "CLI"
+GENERAL_SKILL_DOMAIN = "GENERAL"
 DEFAULT_MEMORY_ROOT = Path("data/mcp/memory")
+DEFAULT_SKILLS_BASE_ROOT = Path("data/skills")
 _SAFE_OWNER_SUB = re.compile(r"[A-Za-z0-9._-]+")
+
+
+@dataclass(frozen=True, slots=True)
+class SkillDomainConfig:
+    """Select one isolated Skill artifact and Memory domain."""
+
+    skill_domain: str
+    artifact_directory: str
+    memory_type: str
+    memory_title: str
+    memory_description: str
+    ragmem_filename: str
+    ragmeta_filename: str
+
+    def skills_root(
+        self,
+        base_root: str | Path = DEFAULT_SKILLS_BASE_ROOT,
+    ) -> Path:
+        """Return the artifact root for this domain."""
+        return Path(base_root) / self.artifact_directory
+
+
+CLI_SKILL_CONFIG = SkillDomainConfig(
+    skill_domain=CLI_SKILL_DOMAIN,
+    artifact_directory="MCP_CLI",
+    memory_type="cli_skill",
+    memory_title="CLI_SKILL",
+    memory_description="Owner-scoped MCP CLI Skill descriptions.",
+    ragmem_filename="CLI_SKILL.ragmem",
+    ragmeta_filename="CLI_SKILL.ragmeta.json",
+)
+GENERAL_SKILL_CONFIG = SkillDomainConfig(
+    skill_domain=GENERAL_SKILL_DOMAIN,
+    artifact_directory="GENERAL_SKILLS",
+    memory_type="general_skill",
+    memory_title="GENERAL_SKILL",
+    memory_description="Owner-scoped General Skill descriptions.",
+    ragmem_filename="GENERAL_SKILL.ragmem",
+    ragmeta_filename="GENERAL_SKILL.ragmeta.json",
+)
+_SKILL_DOMAIN_CONFIGS = {
+    CLI_SKILL_DOMAIN: CLI_SKILL_CONFIG,
+    GENERAL_SKILL_DOMAIN: GENERAL_SKILL_CONFIG,
+}
+
+
+def resolve_skill_domain(value: Any) -> SkillDomainConfig:
+    """Resolve the exact public Skill domain without fallback."""
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("skill_domain must be CLI or GENERAL")
+
+    skill_domain = value.strip()
+    try:
+        return _SKILL_DOMAIN_CONFIGS[skill_domain]
+    except KeyError as error:
+        raise ValueError(
+            "skill_domain must be CLI or GENERAL"
+        ) from error
 ACTIVE_SKILL_STATUS = "ACTIVE"
 PENDING_SKILL_STATUS = "PENDING"
 EXCLUDED_SKILL_STATUS = "EXCLUDED"
@@ -57,7 +121,13 @@ class McpSkillMemoryStore:
         description_vector_store: (
             McpEpisodicDescriptionVectorStore | None
         ) = None,
+        domain_config: SkillDomainConfig = CLI_SKILL_CONFIG,
     ) -> None:
+        if not isinstance(domain_config, SkillDomainConfig):
+            raise TypeError(
+                "domain_config must be a SkillDomainConfig instance."
+            )
+        self.domain_config = domain_config
         self.memory_root = Path(memory_root)
         self.sqlite_path = (
             Path(sqlite_path)
@@ -71,6 +141,10 @@ class McpSkillMemoryStore:
             else McpEpisodicDescriptionVectorStore(
                 self.vector_root
             )
+        )
+        self._tag_index = SkillTagIndex(
+            sqlite_path=self.sqlite_path,
+            skill_domain=self.domain_config.skill_domain,
         )
 
     def save_skill(
@@ -159,6 +233,7 @@ class McpSkillMemoryStore:
                 ),
                 "skill_title": data["skill_title"],
                 "skill_description": data["skill_description"],
+                "skill_tags": list(data["skill_tags"]),
                 "skill_status": stored_status,
                 "folder_path": data["folder_path"],
                 "skill_md_path": data["skill_md_path"],
@@ -227,7 +302,10 @@ class McpSkillMemoryStore:
 
         manager = self._load_manager(owner)
         if manager is None:
-            raise ValueError("CLI_SKILL Memory was not found for owner.")
+            raise ValueError(
+                f"{self.domain_config.memory_title} Memory was not "
+                "found for owner."
+            )
         self._assert_active_name_integrity(manager)
 
         replacement = self._find_record(manager, replacement_id)
@@ -309,7 +387,10 @@ class McpSkillMemoryStore:
         clean_skill_id = self._require_text(skill_id, "skill_id")
         manager = self._load_manager(owner)
         if manager is None:
-            raise ValueError("CLI_SKILL Memory was not found for owner.")
+            raise ValueError(
+                f"{self.domain_config.memory_title} Memory was not "
+                "found for owner."
+            )
 
         record = self._find_record(manager, clean_skill_id)
         if record is None:
@@ -346,10 +427,16 @@ class McpSkillMemoryStore:
         owner_sub: str,
         query: str,
         limit: int,
+        include_tags: list[str] | None = None,
+        exclude_tags: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Return ACTIVE owner Skill descriptions ranked by cosine."""
         owner = self._validate_owner_sub(owner_sub)
         clean_query = self._require_text(query, "query")
+        included, excluded = normalize_skill_tag_filters(
+            include_tags,
+            exclude_tags,
+        )
 
         if (
             not isinstance(limit, int)
@@ -362,6 +449,7 @@ class McpSkillMemoryStore:
         if manager is None:
             return []
         self._assert_active_name_integrity(manager)
+        self._sync_skill_tag_index(manager, owner)
 
         active_records = {
             record.record_id: record
@@ -374,10 +462,19 @@ class McpSkillMemoryStore:
         if not active_records:
             return []
 
+        eligible_record_ids = self._tag_index.filter_record_ids(
+            owner_sub=owner,
+            candidate_record_ids=list(active_records),
+            include_tags=included,
+            exclude_tags=excluded,
+        )
+        if not eligible_record_ids:
+            return []
+
         hits = self._description_vectors.search_descriptions(
             owner_sub=owner,
             query_description=clean_query,
-            candidate_record_ids=list(active_records),
+            candidate_record_ids=eligible_record_ids,
             limit=limit,
         )
 
@@ -390,6 +487,7 @@ class McpSkillMemoryStore:
                 continue
 
             metadata = record.to_index_dict()
+            data = self._record_data(record)
             candidates.append(
                 {
                     "skill_id": str(
@@ -406,6 +504,7 @@ class McpSkillMemoryStore:
                     "skill_status": str(
                         metadata.get("skill_status", "")
                     ),
+                    "skill_tags": list(data["skill_tags"]),
                     "cosine_similarity": hit.get(
                         "cosine_similarity"
                     ),
@@ -462,7 +561,8 @@ class McpSkillMemoryStore:
         manager = self._load_manager(owner)
         if manager is None:
             raise ValueError(
-                "CLI_SKILL Memory was not found for owner."
+                f"{self.domain_config.memory_title} Memory was not "
+                "found for owner."
             )
 
         self._assert_active_name_integrity(manager)
@@ -501,6 +601,32 @@ class McpSkillMemoryStore:
         # scope from this updated RagMeta truth, so EXCLUDED records are never
         # queried even if their old description vector remains physically.
 
+    def _sync_skill_tag_index(
+        self,
+        manager: MemoryManager,
+        owner_sub: str,
+    ) -> None:
+        """Backfill legacy tags and rebuild one owner/domain SQL projection."""
+        record_tags: dict[str, list[str]] = {}
+        metadata_changed = False
+        for record in manager.records:
+            metadata = record.to_index_dict()
+            tags = normalize_skill_tags(
+                metadata.get("skill_tags"),
+                default_to_standard=True,
+            )
+            if metadata.get("skill_tags") != tags:
+                record.update_metadata_overlay({"skill_tags": tags})
+                metadata_changed = True
+            record_tags[record.record_id] = tags
+
+        if metadata_changed:
+            manager.save_metainfo()
+        self._tag_index.replace_owner_records(
+            owner_sub=owner_sub,
+            record_tags=record_tags,
+        )
+
     def _load_or_create_manager(
         self,
         owner_sub: str,
@@ -522,7 +648,7 @@ class McpSkillMemoryStore:
             return None
         if not meta_path.is_file() or not ragmem_path.is_file():
             raise ValueError(
-                "CLI_SKILL RagMem and RagMeta are inconsistent."
+                f"{self.domain_config.memory_title} RagMem and RagMeta are inconsistent."
             )
 
         try:
@@ -531,16 +657,16 @@ class McpSkillMemoryStore:
             )
         except (OSError, json.JSONDecodeError) as error:
             raise ValueError(
-                "CLI_SKILL RagMeta cannot be read."
+                f"{self.domain_config.memory_title} RagMeta cannot be read."
             ) from error
 
         if not isinstance(metadata, dict):
             raise ValueError(
-                "CLI_SKILL RagMeta must contain an object."
+                f"{self.domain_config.memory_title} RagMeta must contain an object."
             )
         if str(metadata.get("owner_sub", "")) != owner_sub:
             raise ValueError(
-                "CLI_SKILL RagMeta owner does not match."
+                f"{self.domain_config.memory_title} RagMeta owner does not match."
             )
 
         file_id = self._require_text(
@@ -552,7 +678,7 @@ class McpSkillMemoryStore:
 
         if manager.owner_sub != owner_sub:
             raise ValueError(
-                "CLI_SKILL SQLite owner does not match."
+                f"{self.domain_config.memory_title} SQLite owner does not match."
             )
 
         return manager
@@ -560,21 +686,22 @@ class McpSkillMemoryStore:
     def _create_manager(self, owner_sub: str) -> MemoryManager:
         manager = self._new_manager()
         storage_folder = f"{owner_sub}/cli_knowledge"
+        config = self.domain_config
 
         manager.start_new_history(
-            CLI_SKILL_TITLE,
-            memory_type=CLI_SKILL_MEMORY_TYPE,
-            memory_description=CLI_SKILL_DESCRIPTION,
+            config.memory_title,
+            memory_type=config.memory_type,
+            memory_description=config.memory_description,
             owner_sub=owner_sub,
             storage_folder=storage_folder,
         )
 
-        # CLI knowledge is a singleton and therefore uses fixed filenames.
+        # Each owner and Skill domain has one fixed Memory container.
         manager.filename_ragmem = (
-            f"{storage_folder}/CLI_SKILL.ragmem"
+            f"{storage_folder}/{config.ragmem_filename}"
         )
         manager.filename_meta = (
-            f"{storage_folder}/CLI_SKILL.ragmeta.json"
+            f"{storage_folder}/{config.ragmeta_filename}"
         )
         manager.ragmem_path.parent.mkdir(
             parents=True,
@@ -598,7 +725,7 @@ class McpSkillMemoryStore:
             / "files"
             / owner_sub
             / "cli_knowledge"
-            / "CLI_SKILL.ragmem"
+            / self.domain_config.ragmem_filename
         )
 
     def _fixed_meta_path(self, owner_sub: str) -> Path:
@@ -607,7 +734,7 @@ class McpSkillMemoryStore:
             / "files"
             / owner_sub
             / "cli_knowledge"
-            / "CLI_SKILL.ragmeta.json"
+            / self.domain_config.ragmeta_filename
         )
 
     @staticmethod
@@ -834,6 +961,10 @@ class McpSkillMemoryStore:
             else []
         )
 
+        skill_tags = normalize_skill_tags(
+            metadata.get("skill_tags"),
+            default_to_standard=True,
+        )
         return {
             "skill_id": str(metadata.get("skill_id", "")),
             "skill_name": str(metadata.get("skill_name", "")),
@@ -862,6 +993,7 @@ class McpSkillMemoryStore:
             "skill_md_path": str(
                 metadata.get("skill_md_path", "")
             ),
+            "skill_tags": skill_tags,
             "notes": notes,
             "ragmem_record_id": record.record_id,
             "ragmem_recall_key": record.direct_recall_key,
@@ -926,6 +1058,10 @@ class McpSkillMemoryStore:
             raise ValueError("notes must be a list.")
 
         cleaned["notes"] = list(notes)
+        cleaned["skill_tags"] = normalize_skill_tags(
+            skill_data.get("skill_tags"),
+            default_to_standard=True,
+        )
         return cleaned
 
     @staticmethod
@@ -986,4 +1122,4 @@ class McpSkillMemoryStore:
                 f"{field_name} must not be empty."
             )
 
-        return value.strip()
+        return value.strip()

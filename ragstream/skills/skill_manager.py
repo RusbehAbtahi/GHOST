@@ -316,9 +316,16 @@ class SkillManager:
     def retrieve_candidates(
         self,
         query: str,
+        *,
+        include_tags: list[str] | None = None,
+        exclude_tags: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Return owner-scoped Skill description candidates."""
-        return self._retrieval.search(query)
+        return self._retrieval.search(
+            query,
+            include_tags=include_tags,
+            exclude_tags=exclude_tags,
+        )
 
     def load_selected_skills(
         self,
@@ -339,6 +346,7 @@ class SkillManager:
             "skill_name": skill.skill_name,
             "skill_title": skill.skill_title,
             "skill_description": skill.skill_description,
+            "skill_tags": list(skill.skill_tags),
             "folder_path": skill.folder_path,
             "skill_md_path": skill.skill_md_path,
             "ragmem_recall_key": skill.ragmem_recall_key,
@@ -398,4 +406,4 @@ class SkillManager:
                 "'_' or '-'."
             )
 
-        return clean_value
+        return clean_value

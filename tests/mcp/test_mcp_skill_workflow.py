@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any
 
 from ragstream.mcp.mcp_skill_loader import McpSkillLoaderTool
+from ragstream.memory.mcp_skill_memory_store import SkillDomainConfig
 from ragstream.mcp.mcp_skill_maker import (
     CREATE_NEW_SKILL,
     SKILL_UPDATE_BUSY,
@@ -53,8 +54,9 @@ class InMemorySkillStore:
         *,
         owner_sub: str,
         skill_data: dict[str, Any],
+        replacing_skill_ids: list[str] | None = None,
     ) -> dict[str, str]:
-        """Persist one active Skill using its GHOST-generated Skill ID."""
+        """Persist one Skill using its GHOST-generated Skill ID."""
         owner_records = self._records.setdefault(owner_sub, {})
         skill_id = str(skill_data["skill_id"])
 
@@ -64,7 +66,12 @@ class InMemorySkillStore:
         self._record_sequence += 1
         record_id = f"record-{self._record_sequence}"
         stored_data = dict(skill_data)
+        replacing_ids = list(replacing_skill_ids or [])
         stored_data["notes"] = list(skill_data.get("notes", []))
+        stored_data["replacing_skill_ids"] = replacing_ids
+        stored_data["skill_status"] = (
+            "PENDING" if replacing_ids else "ACTIVE"
+        )
         stored_data["ragmem_record_id"] = record_id
         stored_data["ragmem_recall_key"] = str(
             skill_data["ragmem_recall_key"]
@@ -83,17 +90,26 @@ class InMemorySkillStore:
         owner_sub: str,
         query: str,
         limit: int,
+        include_tags: list[str] | None = None,
+        exclude_tags: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Return active descriptions in deterministic creation order."""
         if not query.strip():
             raise ValueError("query must not be empty")
 
         owner_records = self._records.get(owner_sub, {})
-        active_records = [
-            record
-            for record in owner_records.values()
-            if str(record.get("skill_status", "")).upper() == "ACTIVE"
-        ]
+        included = set(include_tags or [])
+        excluded = set(exclude_tags or [])
+        active_records: list[dict[str, Any]] = []
+        for record in owner_records.values():
+            if str(record.get("skill_status", "")).upper() != "ACTIVE":
+                continue
+            record_tags = set(record.get("skill_tags", ["STANDARD"]))
+            if included and record_tags.isdisjoint(included):
+                continue
+            if excluded and not record_tags.isdisjoint(excluded):
+                continue
+            active_records.append(record)
 
         # Vector ranking itself has focused unit tests. This acceptance store
         # supplies a stable similarity so this test can verify the complete
@@ -101,10 +117,14 @@ class InMemorySkillStore:
         return [
             {
                 "skill_id": str(record["skill_id"]),
+                "skill_title": str(record["skill_title"]),
                 "skill_description": str(
                     record["skill_description"]
                 ),
                 "skill_status": "ACTIVE",
+                "skill_tags": list(
+                    record.get("skill_tags", ["STANDARD"])
+                ),
                 "cosine_similarity": 0.95,
             }
             for record in active_records[:limit]
@@ -169,6 +189,46 @@ class InMemorySkillStore:
                 archived_skill.get("notes", [])
             )
 
+    def finalize_replacement(
+        self,
+        *,
+        owner_sub: str,
+        replacement_skill_id: str,
+        archived_skills: list[dict[str, Any]],
+    ) -> None:
+        owner_records = self._records.get(owner_sub, {})
+        replacement = owner_records.get(replacement_skill_id)
+        if replacement is None:
+            raise ValueError(
+                f"skill_id was not found: {replacement_skill_id}"
+            )
+        if replacement["skill_status"] != "PENDING":
+            raise ValueError("Replacement Skill is not PENDING.")
+
+        expected = set(replacement["replacing_skill_ids"])
+        actual = {
+            str(item["skill_id"]) for item in archived_skills
+        }
+        if actual != expected:
+            raise ValueError(
+                "Archived Skill IDs do not match replacement."
+            )
+
+        self.exclude_skills(
+            owner_sub=owner_sub,
+            archived_skills=archived_skills,
+        )
+        replacement["skill_status"] = "ACTIVE"
+        replacement["replacing_skill_ids"] = []
+
+    def delete_skill(
+        self,
+        *,
+        owner_sub: str,
+        skill_id: str,
+    ) -> None:
+        self._records.get(owner_sub, {}).pop(skill_id, None)
+
     def active_skill_ids(self, owner_sub: str) -> list[str]:
         """Return active IDs for assertions without exposing internal state."""
         return [
@@ -191,28 +251,43 @@ class RealManagerFactory:
     def __init__(
         self,
         *,
-        skills_root: Path,
-        memory_store: InMemorySkillStore,
+        skills_base_root: Path,
+        cli_memory_store: InMemorySkillStore,
     ) -> None:
-        self._skills_root = skills_root
-        self._memory_store = memory_store
+        self._skills_base_root = skills_base_root
+        self._memory_stores = {
+            "CLI": cli_memory_store,
+            "GENERAL": InMemorySkillStore(),
+        }
         self.created_managers: list[SkillManager] = []
 
-    def __call__(self, owner_sub: str) -> SkillManager:
-        """Create one request-scoped manager for the authenticated owner."""
+    def __call__(
+        self,
+        owner_sub: str,
+        domain_config: SkillDomainConfig,
+    ) -> SkillManager:
+        """Create one request-scoped manager for one Skill domain."""
         manager = SkillManager(
             owner_sub=owner_sub,
-            skills_root=self._skills_root,
-            memory_store=self._memory_store,
+            skills_root=domain_config.skills_root(
+                self._skills_base_root
+            ),
+            memory_store=self._memory_stores[
+                domain_config.skill_domain
+            ],
         )
         self.created_managers.append(manager)
         return manager
+
+    def memory_store(self, skill_domain: str) -> InMemorySkillStore:
+        return self._memory_stores[skill_domain]
 
 
 def _skill_arguments(
     *,
     decision: str = CREATE_NEW_SKILL,
     affected_skill_ids: list[str] | None = None,
+    skill_domain: str = "CLI",
     description: str = (
         "Inspect filesystem folders using the smallest safe scope."
     ),
@@ -222,6 +297,7 @@ def _skill_arguments(
 ) -> dict[str, Any]:
     """Build one complete model-prepared Skill request."""
     return {
+        "skill_domain": skill_domain,
         "decision": decision,
         "skill_name": "filesystem-search",
         "skill_title": "GHOST Filesystem Search",
@@ -253,8 +329,8 @@ def _create_tools(
     """Create real MCP adapters with fresh managers and shared storage."""
     memory_store = InMemorySkillStore()
     manager_factory = RealManagerFactory(
-        skills_root=tmp_path,
-        memory_store=memory_store,
+        skills_base_root=tmp_path,
+        cli_memory_store=memory_store,
     )
 
     loader = McpSkillLoaderTool(
@@ -262,7 +338,7 @@ def _create_tools(
     )
     maker = McpSkillMakerTool(
         manager_factory=manager_factory,
-        skills_root=tmp_path,
+        skills_base_root=tmp_path,
     )
     return loader, maker, memory_store, manager_factory
 
@@ -304,7 +380,7 @@ def test_complete_create_load_and_replace_workflow(
     assert original_skill_path.parent == original_folder
     assert (
         original_folder.parent
-        == tmp_path / OWNER_ONE
+        == tmp_path / "MCP_CLI" / OWNER_ONE
     )
 
     original_text = original_skill_path.read_text(
@@ -319,7 +395,7 @@ def test_complete_create_load_and_replace_workflow(
 
     search_result = loader.call_sanitized(
         OWNER_ONE,
-        {"query": "inspect Windows filesystem folders"},
+        {"skill_domain": "CLI", "query": "inspect Windows filesystem folders"},
     )
 
     assert search_result.isError is False
@@ -334,8 +410,10 @@ def test_complete_create_load_and_replace_workflow(
     # Search returns only identification, Description, and vector score.
     assert set(candidate) == {
         "skill_id",
+        "skill_title",
         "skill_description",
         "cosine_similarity",
+        "skill_tags",
     }
     assert candidate["skill_id"] == original_skill_id
     assert candidate["skill_description"] == (
@@ -344,7 +422,7 @@ def test_complete_create_load_and_replace_workflow(
 
     load_result = loader.call_sanitized(
         OWNER_ONE,
-        {"skill_ids": [original_skill_id]},
+        {"skill_domain": "CLI", "skill_ids": [original_skill_id]},
     )
 
     assert load_result.isError is False
@@ -419,7 +497,7 @@ def test_complete_create_load_and_replace_workflow(
     # Retrieval must now expose only the active replacement.
     replacement_search = loader.call_sanitized(
         OWNER_ONE,
-        {"query": "inspect Windows filesystem folders"},
+        {"skill_domain": "CLI", "query": "inspect Windows filesystem folders"},
     )
 
     assert replacement_search.isError is False
@@ -427,7 +505,9 @@ def test_complete_create_load_and_replace_workflow(
     assert replacement_search.structuredContent["candidates"] == [
         {
             "skill_id": replacement_skill_id,
+            "skill_title": "GHOST Filesystem Search",
             "skill_description": updated_description,
+            "skill_tags": ["STANDARD"],
             "cosine_similarity": 0.95,
         }
     ]
@@ -437,7 +517,7 @@ def test_complete_create_load_and_replace_workflow(
 
     old_load_result = loader.call_sanitized(
         OWNER_ONE,
-        {"skill_ids": [original_skill_id]},
+        {"skill_domain": "CLI", "skill_ids": [original_skill_id]},
     )
 
     assert old_load_result.isError is True
@@ -447,7 +527,7 @@ def test_complete_create_load_and_replace_workflow(
 
     replacement_load = loader.call_sanitized(
         OWNER_ONE,
-        {"skill_ids": [replacement_skill_id]},
+        {"skill_domain": "CLI", "skill_ids": [replacement_skill_id]},
     )
 
     assert replacement_load.isError is False
@@ -483,7 +563,7 @@ def test_workflow_preserves_authenticated_owner_isolation(
 
     owner_two_search = loader.call_sanitized(
         OWNER_TWO,
-        {"query": "inspect filesystem folders"},
+        {"skill_domain": "CLI", "query": "inspect filesystem folders"},
     )
 
     assert owner_two_search.isError is False
@@ -496,7 +576,7 @@ def test_workflow_preserves_authenticated_owner_isolation(
 
     owner_two_load = loader.call_sanitized(
         OWNER_TWO,
-        {"skill_ids": [owner_one_skill_id]},
+        {"skill_domain": "CLI", "skill_ids": [owner_one_skill_id]},
     )
 
     assert owner_two_load.isError is True
@@ -506,16 +586,73 @@ def test_workflow_preserves_authenticated_owner_isolation(
 
     assert memory_store.skill_count(OWNER_ONE) == 1
     assert memory_store.skill_count(OWNER_TWO) == 0
-    assert (
+    owner_one_path = Path(
+        create_result.structuredContent["skill_md_path"]
+    )
+    assert owner_one_path.is_file()
+    owner_one_path.resolve().relative_to(
+        (tmp_path / "MCP_CLI" / OWNER_ONE).resolve()
+    )
+    assert not (tmp_path / "MCP_CLI" / OWNER_TWO).exists()
+
+
+def test_cli_and_general_domains_are_isolated(
+    tmp_path: Path,
+) -> None:
+    loader, maker, _cli_store, manager_factory = _create_tools(
         tmp_path
-        / OWNER_ONE
-        / (
-            "filesystem-search_"
-            f"{owner_one_skill_id}"
-        )
-        / "SKILL.md"
-    ).is_file()
-    assert not (tmp_path / OWNER_TWO).exists()
+    )
+
+    cli_result = maker.call_sanitized(
+        OWNER_ONE,
+        _skill_arguments(skill_domain="CLI"),
+    )
+    general_result = maker.call_sanitized(
+        OWNER_ONE,
+        _skill_arguments(skill_domain="GENERAL"),
+    )
+
+    assert cli_result.isError is False
+    assert general_result.isError is False
+    assert cli_result.structuredContent["skill_domain"] == "CLI"
+    assert general_result.structuredContent["skill_domain"] == "GENERAL"
+
+    cli_id = str(cli_result.structuredContent["skill_id"])
+    general_id = str(general_result.structuredContent["skill_id"])
+    assert cli_id != general_id
+    assert "MCP_CLI" in cli_result.structuredContent["folder_path"]
+    assert "GENERAL_SKILLS" in (
+        general_result.structuredContent["folder_path"]
+    )
+
+    cli_search = loader.call_sanitized(
+        OWNER_ONE,
+        {"skill_domain": "CLI", "query": "filesystem"},
+    )
+    general_search = loader.call_sanitized(
+        OWNER_ONE,
+        {"skill_domain": "GENERAL", "query": "filesystem"},
+    )
+    assert [
+        item["skill_id"]
+        for item in cli_search.structuredContent["candidates"]
+    ] == [cli_id]
+    assert [
+        item["skill_id"]
+        for item in general_search.structuredContent["candidates"]
+    ] == [general_id]
+
+    cross_domain = loader.call_sanitized(
+        OWNER_ONE,
+        {"skill_domain": "GENERAL", "skill_ids": [cli_id]},
+    )
+    assert cross_domain.isError is True
+    assert manager_factory.memory_store("CLI").skill_count(
+        OWNER_ONE
+    ) == 1
+    assert manager_factory.memory_store("GENERAL").skill_count(
+        OWNER_ONE
+    ) == 1
 
 
 def test_busy_update_aborts_then_succeeds_after_lock_release(
@@ -534,12 +671,11 @@ def test_busy_update_aborts_then_succeeds_after_lock_release(
         create_result.structuredContent["skill_id"]
     )
 
-    lock_root = tmp_path / ".locks"
-    lock_root.mkdir(parents=True, exist_ok=True)
-    lock_path = (
-        lock_root
-        / f"{OWNER_ONE}_{original_skill_id}.lock"
+    lock_root = (
+        tmp_path / "MCP_CLI" / ".locks" / OWNER_ONE
     )
+    lock_root.mkdir(parents=True, exist_ok=True)
+    lock_path = lock_root / f"id_{original_skill_id}.lock"
 
     update_arguments = _skill_arguments(
         decision=UPDATE_EXISTING_SKILL,
@@ -618,3 +754,99 @@ def test_busy_update_aborts_then_succeeds_after_lock_release(
             available_lock.fileno(),
             fcntl.LOCK_UN,
         )
+def test_tag_filters_flow_from_mcp_to_skill_retrieval(
+    tmp_path: Path,
+) -> None:
+    """Verify default tags and explicit include/exclude MCP behavior."""
+    loader, maker, _, _ = _create_tools(tmp_path)
+
+    standard_result = maker.call_sanitized(
+        OWNER_ONE,
+        _skill_arguments(),
+    )
+    ghost_arguments = _skill_arguments(
+        description="Operate the GHOST MCP prompt and Skill workflow.",
+        instruction_text="Use only the GHOST MCP workflow.",
+    )
+    ghost_arguments.update(
+        {
+            "skill_name": "ghost-mcp-workflow",
+            "skill_title": "GHOST MCP Workflow",
+            "ragmem_title": "GHOST MCP Workflow",
+            "skill_tags": ["GHOST"],
+        }
+    )
+    ghost_result = maker.call_sanitized(OWNER_ONE, ghost_arguments)
+
+    assert standard_result.isError is False
+    assert ghost_result.isError is False
+    assert standard_result.structuredContent["skill_tags"] == [
+        "STANDARD"
+    ]
+    assert ghost_result.structuredContent["skill_tags"] == ["GHOST"]
+
+    standard_id = standard_result.structuredContent["skill_id"]
+    ghost_id = ghost_result.structuredContent["skill_id"]
+
+    all_result = loader.call_sanitized(
+        OWNER_ONE,
+        {"skill_domain": "CLI", "query": "workflow"},
+    )
+    assert {
+        candidate["skill_id"]
+        for candidate in all_result.structuredContent["candidates"]
+    } == {standard_id, ghost_id}
+
+    ghost_only = loader.call_sanitized(
+        OWNER_ONE,
+        {
+            "skill_domain": "CLI",
+            "query": "workflow",
+            "include_tags": ["GHOST"],
+        },
+    )
+    assert [
+        candidate["skill_id"]
+        for candidate in ghost_only.structuredContent["candidates"]
+    ] == [ghost_id]
+
+    standard_only = loader.call_sanitized(
+        OWNER_ONE,
+        {
+            "skill_domain": "CLI",
+            "query": "workflow",
+            "exclude_tags": ["GHOST"],
+        },
+    )
+    assert [
+        candidate["skill_id"]
+        for candidate in standard_only.structuredContent["candidates"]
+    ] == [standard_id]
+
+    explicit_both = loader.call_sanitized(
+        OWNER_ONE,
+        {
+            "skill_domain": "CLI",
+            "query": "workflow",
+            "include_tags": ["GHOST", "STANDARD"],
+        },
+    )
+    assert {
+        candidate["skill_id"]
+        for candidate in explicit_both.structuredContent["candidates"]
+    } == {standard_id, ghost_id}
+
+    contradictory = loader.call_sanitized(
+        OWNER_ONE,
+        {
+            "skill_domain": "CLI",
+            "query": "workflow",
+            "include_tags": ["GHOST"],
+            "exclude_tags": ["GHOST"],
+        },
+    )
+    assert contradictory.isError is True
+    assert (
+        "same Skill tag cannot be included and excluded"
+        in contradictory.content[0]["text"]
+    )

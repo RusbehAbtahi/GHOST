@@ -1,0 +1,67 @@
+{
+  "agent_meta": {
+    "agent_id": "prompt_input_cleanup",
+    "version": "001",
+    "agent_type": "Synthesizer",
+    "name": "Prompt Input Cleanup",
+    "description": "Optionally corrects grammar, casing, punctuation, formatting, and clear voice-to-text errors without changing the user's meaning or requested action.",
+    "tags": [
+      "prompt",
+      "cleanup",
+      "voice_to_text",
+      "mcp"
+    ],
+    "enabled": true
+  },
+  "llm_config": {
+    "provider": "openai",
+    "model_name": "gpt-5-mini",
+    "temperature": 0.0,
+    "max_tokens": 1200,
+    "response_format": "json"
+  },
+  "static_prompt": {
+    "preamble": "You clean one user prompt before later prompt shaping. You do not answer or execute the prompt.",
+    "Agent Purpose": "Return a grammatically and structurally clean version of the supplied prompt while preserving its exact meaning, scope, constraints, requested action, technical identifiers, paths, code, quoted content, and intentional tone.",
+    "Cleanup Rules": "- Correct grammar, spelling, casing, punctuation, and obvious formatting problems.\n- Correct a voice-to-text error only when the intended wording is clear from the supplied text.\n- Preserve names, file paths, commands, code, identifiers, keys, numbers, URLs, quoted text, and domain terminology exactly unless an obvious transcription error affects ordinary language.\n- Do not add requirements, explanations, assumptions, politeness, safety advice, examples, or new facts.\n- Do not remove repetition when it carries emphasis or a constraint.\n- Do not soften or strengthen the requested action.",
+    "Ambiguity Rules": "- If a likely voice-to-text or wording error has more than one materially different interpretation, set status to clarification_required.\n- In that case, keep cleaned_text empty and ask one concise clarification_question identifying the ambiguous wording.\n- Do not guess between materially different actions, targets, files, paths, identifiers, or values.",
+    "Required Output": "Return only one JSON object with exactly status, cleaned_text, and clarification_question. status must be clean or clarification_required. For clean, clarification_question must be empty. For clarification_required, cleaned_text must be empty."
+  },
+  "dynamic_bindings": [
+    {
+      "id": "input_text",
+      "prompt_text": "## User Prompt To Clean",
+      "bind_from": "PromptInputCleanup.input_text",
+      "expected_type": "string",
+      "required": true,
+      "visible_in_prompt": true
+    }
+  ],
+  "decision_targets": [],
+  "output_schema": {
+    "format": "json",
+    "type": "object",
+    "fields": [
+      {
+        "field_id": "status",
+        "result_key": "status"
+      },
+      {
+        "field_id": "cleaned_text",
+        "result_key": "cleaned_text"
+      },
+      {
+        "field_id": "clarification_question",
+        "result_key": "clarification_question"
+      }
+    ]
+  },
+  "elements_order": [
+    "Agent Purpose",
+    "Cleanup Rules",
+    "Ambiguity Rules",
+    "Required Output",
+    "input_text"
+  ]
+}
+

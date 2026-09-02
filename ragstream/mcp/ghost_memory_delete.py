@@ -22,7 +22,7 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-from ragstream.mcp.ghost_engineer_prompt import (
+from ragstream.mcp.mcp_tool_contracts import (
     DEFAULT_REQUIRED_SCOPE,
     GhostToolResult,
 )

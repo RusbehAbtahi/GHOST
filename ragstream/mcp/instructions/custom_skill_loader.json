@@ -1,31 +1,30 @@
 {
   "tool_description": [
-    "Discover and load reusable owner-scoped GHOST CLI Skills before executing a CLI task.",
-    "Use query for description-vector retrieval. GHOST returns at most ten ACTIVE candidates containing Skill ID, Title, Description, and cosine similarity.",
-    "After selecting relevant candidates, call the same tool with exact skill_ids to load their complete SKILL.md instructions."
+    "Discover and load reusable owner-scoped GHOST Skills from the explicitly selected CLI or GENERAL domain.",
+    "Use query for SQLite tag filtering followed by description-vector retrieval. GHOST returns at most ten ACTIVE candidates from that domain.",
+    "After selecting relevant candidates, call the same tool with the same domain and exact skill_ids to load their complete SKILL.md instructions."
   ],
-
   "server_instruction": [
-    "Before beginning a CLI task, formulate one concise semantic query describing the operational capability needed and call ghost_skill_loader with query.",
-
-    "The query stage searches only Skill Description vectors. Candidate Title and Description help selection, but candidate metadata is not executable guidance.",
-
-    "Select only candidates whose Title and Description are relevant to the current task. Never invent, alter, infer, or reuse a Skill ID that was not returned for this authenticated owner.",
-
-    "If one or more candidates are relevant, call ghost_skill_loader again with their exact skill_ids. Only the complete SKILL.md content returned by that second call is executable Skill guidance.",
-
-    "Follow loaded Skill instructions during the CLI task unless they conflict with the user's current request, authorization boundaries, or a higher-priority system rule.",
-
-    "If no candidate is relevant, continue without a Skill. Do not force a semantic match and do not call the loading stage with an empty list.",
-
-    "When the user identifies a Skill by an exact known ID, load that exact ID. A title or name supplied only as text is not an exact ID and remains subject to normal candidate retrieval unless a separate deterministic exact-name lookup is implemented.",
-
+    "Set skill_domain to exactly CLI or GENERAL. CLI and GENERAL use the same retrieval mechanism but separate artifacts and Skill Memory.",
+    "For a CLI task, search and load CLI Skills before execution. Loaded CLI Skills guide the MCP CLI task directly.",
+    "If no include_tags or exclude_tags are supplied, all ACTIVE Skills are eligible.",
+    "If include_tags is non-empty, only Skills carrying at least one named tag are eligible. STANDARD is not implicit; include it explicitly when STANDARD Skills are wanted.",
+    "exclude_tags removes every Skill carrying any excluded tag after inclusion is applied. The same tag cannot appear in both filters.",
+    "The controlled tag vocabulary is STANDARD and GHOST. Never invent or infer another tag.",
+    "For General Skill prompt context, search and load GENERAL Skills. The Prompt Builder attaches the selected complete Skill text to the larger prompt; the loader does not build or run the prompt.",
+    "The query stage searches only Skill Description vectors inside the selected domain. Candidate metadata is not executable guidance.",
+    "Select only relevant candidates. Never invent, alter, infer, or reuse a Skill ID that was not returned for this authenticated owner and selected domain.",
+    "If candidates are relevant, call ghost_skill_loader again with the same skill_domain and their exact skill_ids. Only complete SKILL.md content returned by that call is Skill guidance or prompt context.",
+    "If no candidate is relevant, continue without a Skill. Do not force a match and do not call the loading stage with an empty list.",
+    "When the user identifies a Skill by an exact known ID, load that exact ID from the stated domain. A title or name is not an exact ID.",
+    "Never search or load the other domain as a fallback.",
     "The loader is read-only. It does not create, update, archive, delete, or lock Skills."
   ],
-
   "field_descriptions": {
-    "query": "A concise semantic description of the CLI capability needed for the current task. Retrieval embeds this query and compares it with Skill Description vectors.",
-
-    "skill_ids": "One or more exact owner-scoped Skill IDs selected from candidates returned by an earlier query call. This loads complete SKILL.md content deterministically."
+    "skill_domain": "Exact isolated Skill domain: CLI for CLI execution guidance, or GENERAL for context attached to a larger prompt.",
+    "query": "A concise semantic description of the capability needed. Retrieval compares it only with Skill Description vectors in the selected domain.",
+    "skill_ids": "One or more exact owner-scoped Skill IDs selected from candidates returned earlier for the same domain.",
+    "include_tags": "Optional controlled tag union applied before semantic retrieval. A Skill is eligible when it has at least one included tag.",
+    "exclude_tags": "Optional controlled tags removed before semantic retrieval. A Skill is rejected when it has any excluded tag."
   }
 }

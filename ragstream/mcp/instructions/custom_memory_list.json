@@ -5,10 +5,12 @@
   ],
   "server_instruction": [
     "Use ghost_memory_list only for metadata discovery. Use list_mode collections when the user wants to discover Collection identities. Use list_mode collection_episodes with the exact Collection ID when the user wants the contents index of one Collection. Use list_mode memories for the general saved-memory index.",
-    "Do not present List results as complete recalled Q/A content. Use ghost_memory_recall when the user asks for complete episodes."
+    "Do not present List results as complete recalled Q/A content. Use ghost_memory_recall when the user asks for complete episodes.",
+    "When presenting Collections, use highest_assigned_episode_number as Episodes instead of record_count.",
+    "Also present Missing episodes. Show the missing episode numbers when gaps exist; otherwise show Missing episodes: empty."
   ],
   "field_descriptions": {
-    "list_mode": "Select memories for the general memory index, collections for Collection containers, or collection_episodes for one Collection's numbered metadata index.",
+    "list_mode": "Select memories for the general memory index, collections for Collection containers, or collection_episodes with an exact Collection ID for one Collection's numbered metadata index.",
     "collection_id": "The exact stable Collection ID required by list_mode collection_episodes."
   }
 }

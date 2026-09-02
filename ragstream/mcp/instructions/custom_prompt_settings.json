@@ -1,0 +1,12 @@
+{
+  "tool_description": [
+    "Show or deterministically update the authenticated owner's persistent GHOST prompt-builder settings. Supported actions are show, set, reset, and all_off. Settings are stored in one owner-scoped JSON file and are never inferred from conversation memory."
+  ],
+  "server_instruction": [
+    "Use ghost_prompt_settings when the user asks to inspect, set, reset, or disable GHOST prompt-builder flags or default retrieval paths. Use action show to inspect the current values, set with updates to change only named values, reset to restore approved defaults, or all_off to disable every enrichment flag while preserving stored paths and memory_recency_enabled."
+  ],
+  "field_descriptions": {
+    "action": "Exactly one settings operation: show, set, reset, or all_off.",
+    "updates": "Required only for action set. Contains the exact persistent setting values requested by the user."
+  }
+}

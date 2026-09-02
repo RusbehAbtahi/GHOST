@@ -30,7 +30,7 @@ from ragstream.cli.command_service import (
     CommandService,
     CommandServiceError,
 )
-from ragstream.mcp.ghost_engineer_prompt import (
+from ragstream.mcp.mcp_tool_contracts import (
     DEFAULT_REQUIRED_SCOPE,
     GhostToolResult,
 )

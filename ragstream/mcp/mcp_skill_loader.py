@@ -18,16 +18,26 @@ Main methods and functions:
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
+from pathlib import Path
 from typing import Any
 
-from ragstream.mcp.ghost_engineer_prompt import (
+from ragstream.mcp.mcp_tool_contracts import (
     DEFAULT_REQUIRED_SCOPE,
     GhostToolResult,
 )
 from ragstream.mcp.memory_tool_instructions import (
     load_memory_tool_instructions,
 )
+from ragstream.memory.mcp_skill_memory_store import (
+    CLI_SKILL_DOMAIN,
+    DEFAULT_SKILLS_BASE_ROOT,
+    GENERAL_SKILL_DOMAIN,
+    McpSkillMemoryStore,
+    SkillDomainConfig,
+    resolve_skill_domain,
+)
 from ragstream.skills.skill_manager import SkillManager
+from ragstream.skills.skill_tags import normalize_skill_tag_filters
 
 
 TOOL_NAME = "ghost_skill_loader"
@@ -44,10 +54,35 @@ SERVER_INSTRUCTIONS = _INSTRUCTIONS.server_instruction
 INPUT_SCHEMA = {
     "type": "object",
     "properties": {
+        "skill_domain": {
+            "type": "string",
+            "enum": [CLI_SKILL_DOMAIN, GENERAL_SKILL_DOMAIN],
+            "description": _INSTRUCTIONS.field_descriptions[
+                "skill_domain"
+            ],
+        },
         "query": {
             "type": "string",
             "minLength": 1,
             "description": _INSTRUCTIONS.field_descriptions["query"],
+        },
+        "include_tags": {
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "enum": ["STANDARD", "GHOST"],
+            },
+            "description": _INSTRUCTIONS.field_descriptions["include_tags"],
+        },
+        "exclude_tags": {
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "enum": ["STANDARD", "GHOST"],
+            },
+            "description": _INSTRUCTIONS.field_descriptions["exclude_tags"],
         },
         "skill_ids": {
             "type": "array",
@@ -59,6 +94,7 @@ INPUT_SCHEMA = {
             ],
         },
     },
+    "required": ["skill_domain"],
     "oneOf": [
         {
             "required": ["query"],
@@ -78,12 +114,22 @@ _CANDIDATE_SCHEMA = {
         "skill_id": {"type": "string", "minLength": 1},
         "skill_title": {"type": "string", "minLength": 1},
         "skill_description": {"type": "string", "minLength": 1},
+        "skill_tags": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "enum": ["STANDARD", "GHOST"],
+            },
+        },
         "cosine_similarity": {"type": "number"},
     },
     "required": [
         "skill_id",
         "skill_title",
         "skill_description",
+        "skill_tags",
         "cosine_similarity",
     ],
     "additionalProperties": False,
@@ -102,6 +148,10 @@ _LOADED_SKILL_SCHEMA = {
 OUTPUT_SCHEMA = {
     "type": "object",
     "properties": {
+        "skill_domain": {
+            "type": "string",
+            "enum": [CLI_SKILL_DOMAIN, GENERAL_SKILL_DOMAIN],
+        },
         "workflow_state": {
             "type": "string",
             "enum": [
@@ -111,6 +161,20 @@ OUTPUT_SCHEMA = {
         },
         "query": {"type": "string", "minLength": 1},
         "candidate_count": {"type": "integer", "minimum": 0},
+        "include_tags": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": ["STANDARD", "GHOST"],
+            },
+        },
+        "exclude_tags": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": ["STANDARD", "GHOST"],
+            },
+        },
         "candidates": {
             "type": "array",
             "items": _CANDIDATE_SCHEMA,
@@ -126,7 +190,7 @@ OUTPUT_SCHEMA = {
     "additionalProperties": False,
 }
 
-ManagerFactory = Callable[[str], SkillManager]
+ManagerFactory = Callable[[str, SkillDomainConfig], SkillManager]
 
 
 class McpSkillLoaderTool:
@@ -135,7 +199,9 @@ class McpSkillLoaderTool:
     def __init__(
         self,
         manager_factory: ManagerFactory | None = None,
+        skills_base_root: str | Path = DEFAULT_SKILLS_BASE_ROOT,
     ) -> None:
+        self._skills_base_root = Path(skills_base_root)
         self._manager_factory = (
             manager_factory or self._create_manager
         )
@@ -152,12 +218,28 @@ class McpSkillLoaderTool:
         assert arguments is not None
 
         try:
-            manager = self._manager_factory(owner_sub)
+            domain_config = resolve_skill_domain(
+                arguments["skill_domain"]
+            )
+            manager = self._manager_factory(
+                owner_sub,
+                domain_config,
+            )
             if "query" in arguments:
-                return self._search(manager, arguments["query"])
+                return self._search(
+                    manager,
+                    arguments["query"],
+                    domain_config.skill_domain,
+                    arguments.get("include_tags"),
+                    arguments.get("exclude_tags"),
+                )
 
             skill_ids = self._clean_skill_ids(arguments["skill_ids"])
-            return self._load(manager, skill_ids)
+            return self._load(
+                manager,
+                skill_ids,
+                domain_config.skill_domain,
+            )
         except ValueError as error:
             return self._failure(str(error))
         except Exception:
@@ -167,6 +249,9 @@ class McpSkillLoaderTool:
     def _search(
         manager: SkillManager,
         raw_query: Any,
+        skill_domain: str,
+        raw_include_tags: Any,
+        raw_exclude_tags: Any,
     ) -> GhostToolResult:
         if not isinstance(raw_query, str) or not raw_query.strip():
             raise ValueError(
@@ -174,7 +259,18 @@ class McpSkillLoaderTool:
             )
 
         query = raw_query.strip()
-        candidates = manager.retrieve_candidates(query)
+        include_tags, exclude_tags = normalize_skill_tag_filters(
+            raw_include_tags,
+            raw_exclude_tags,
+        )
+        if include_tags or exclude_tags:
+            candidates = manager.retrieve_candidates(
+                query,
+                include_tags=include_tags,
+                exclude_tags=exclude_tags,
+            )
+        else:
+            candidates = manager.retrieve_candidates(query)
         workflow_state = (
             WORKFLOW_SELECTION_REQUIRED
             if candidates
@@ -189,9 +285,12 @@ class McpSkillLoaderTool:
         return GhostToolResult(
             content=[{"type": "text", "text": message}],
             structuredContent={
+                "skill_domain": skill_domain,
                 "workflow_state": workflow_state,
                 "query": query,
                 "candidate_count": len(candidates),
+                "include_tags": include_tags,
+                "exclude_tags": exclude_tags,
                 "candidates": candidates,
             },
         )
@@ -200,6 +299,7 @@ class McpSkillLoaderTool:
     def _load(
         manager: SkillManager,
         skill_ids: list[str],
+        skill_domain: str,
     ) -> GhostToolResult:
         skill_texts = manager.load_selected_skills(skill_ids)
         loaded_skills = [
@@ -225,6 +325,7 @@ class McpSkillLoaderTool:
                 }
             ],
             structuredContent={
+                "skill_domain": skill_domain,
                 "workflow_state": WORKFLOW_COMPLETE,
                 "loaded_count": len(loaded_skills),
                 "skills": loaded_skills,
@@ -240,14 +341,28 @@ class McpSkillLoaderTool:
             return "authenticated user is required"
         if not isinstance(arguments, Mapping):
             return "Skill loader input is required"
-        if set(arguments).difference({"query", "skill_ids"}):
+        if set(arguments).difference(
+            {
+                "skill_domain",
+                "query",
+                "skill_ids",
+                "include_tags",
+                "exclude_tags",
+            }
+        ):
             return "unsupported input property"
+        if "skill_domain" not in arguments:
+            return "missing required input: skill_domain"
 
         has_query = "query" in arguments
         has_skill_ids = "skill_ids" in arguments
         if has_query == has_skill_ids:
             return "provide exactly one of query or skill_ids"
 
+        if has_skill_ids and (
+            "include_tags" in arguments or "exclude_tags" in arguments
+        ):
+            return "tag filters are allowed only with query"
         return None
 
     @staticmethod
@@ -270,9 +385,20 @@ class McpSkillLoaderTool:
 
         return cleaned
 
-    @staticmethod
-    def _create_manager(owner_sub: str) -> SkillManager:
-        return SkillManager(owner_sub=owner_sub)
+    def _create_manager(
+        self,
+        owner_sub: str,
+        domain_config: SkillDomainConfig,
+    ) -> SkillManager:
+        return SkillManager(
+            owner_sub=owner_sub,
+            skills_root=domain_config.skills_root(
+                self._skills_base_root
+            ),
+            memory_store=McpSkillMemoryStore(
+                domain_config=domain_config
+            ),
+        )
 
     @staticmethod
     def _failure(reason: str) -> GhostToolResult:

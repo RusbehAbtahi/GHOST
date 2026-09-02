@@ -39,6 +39,10 @@ class PromptEngineeringRunner:
 
     def run(self, prompt_text: str) -> str:
         """Return the final post-A2 SuperPrompt.prompt_ready value."""
+        return self.run_superprompt(prompt_text).prompt_ready
+
+    def run_superprompt(self, prompt_text: str) -> SuperPrompt:
+        """Return the same request-isolated SuperPrompt after PreProcessing+A2."""
         sp = self._super_prompt_factory()
 
         try:
@@ -67,7 +71,7 @@ class PromptEngineeringRunner:
         engineered_prompt = sp.prompt_ready
         if not isinstance(engineered_prompt, str) or not engineered_prompt.strip():
             raise PromptEngineeringError("A2 produced an empty engineered prompt")
-        return engineered_prompt
+        return sp
 
 
 def _default_schema_path() -> Path:

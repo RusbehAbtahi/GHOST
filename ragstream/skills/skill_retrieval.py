@@ -37,13 +37,25 @@ class SkillRetrieval:
         self._memory_store = memory_store
         self._owner_skills_root = Path(skills_root) / self._owner_sub
 
-    def search(self, query: str) -> list[dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        *,
+        include_tags: list[str] | None = None,
+        exclude_tags: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
         """Return up to ten ACTIVE description candidates above threshold."""
         clean_query = self._require_text(query, "query")
+        search_arguments = {
+            "owner_sub": self._owner_sub,
+            "query": clean_query,
+            "limit": self.max_candidates,
+        }
+        if include_tags or exclude_tags:
+            search_arguments["include_tags"] = include_tags or []
+            search_arguments["exclude_tags"] = exclude_tags or []
         raw_candidates = self._memory_store.search_skills(
-            owner_sub=self._owner_sub,
-            query=clean_query,
-            limit=self.max_candidates,
+            **search_arguments
         )
 
         candidates: list[dict[str, Any]] = []
@@ -61,6 +73,9 @@ class SkillRetrieval:
                     "skill_title": str(item["skill_title"]),
                     "skill_description": str(
                         item["skill_description"]
+                    ),
+                    "skill_tags": list(
+                        item.get("skill_tags") or ["STANDARD"]
                     ),
                     "cosine_similarity": float(score),
                 }
@@ -145,4 +160,4 @@ class SkillRetrieval:
             or _SAFE_OWNER_SUB.fullmatch(owner) is None
         ):
             raise ValueError("owner_sub contains unsafe characters.")
-        return owner
+        return owner
