@@ -37,7 +37,7 @@ from ragstream.memory.mcp_skill_memory_store import (
     resolve_skill_domain,
 )
 from ragstream.skills.skill_manager import SkillManager
-from ragstream.skills.skill_tags import normalize_skill_tag_filters
+from ragstream.skills.skill_tags import SkillTagCatalog, normalize_skill_tag_filters
 
 
 TOOL_NAME = "ghost_skill_loader"
@@ -69,19 +69,13 @@ INPUT_SCHEMA = {
         "include_tags": {
             "type": "array",
             "uniqueItems": True,
-            "items": {
-                "type": "string",
-                "enum": ["STANDARD", "GHOST"],
-            },
+            "items": {"type": "string", "minLength": 1},
             "description": _INSTRUCTIONS.field_descriptions["include_tags"],
         },
         "exclude_tags": {
             "type": "array",
             "uniqueItems": True,
-            "items": {
-                "type": "string",
-                "enum": ["STANDARD", "GHOST"],
-            },
+            "items": {"type": "string", "minLength": 1},
             "description": _INSTRUCTIONS.field_descriptions["exclude_tags"],
         },
         "skill_ids": {
@@ -118,10 +112,7 @@ _CANDIDATE_SCHEMA = {
             "type": "array",
             "minItems": 1,
             "uniqueItems": True,
-            "items": {
-                "type": "string",
-                "enum": ["STANDARD", "GHOST"],
-            },
+            "items": {"type": "string", "minLength": 1},
         },
         "cosine_similarity": {"type": "number"},
     },
@@ -163,17 +154,11 @@ OUTPUT_SCHEMA = {
         "candidate_count": {"type": "integer", "minimum": 0},
         "include_tags": {
             "type": "array",
-            "items": {
-                "type": "string",
-                "enum": ["STANDARD", "GHOST"],
-            },
+            "items": {"type": "string", "minLength": 1},
         },
         "exclude_tags": {
             "type": "array",
-            "items": {
-                "type": "string",
-                "enum": ["STANDARD", "GHOST"],
-            },
+            "items": {"type": "string", "minLength": 1},
         },
         "candidates": {
             "type": "array",
@@ -200,8 +185,10 @@ class McpSkillLoaderTool:
         self,
         manager_factory: ManagerFactory | None = None,
         skills_base_root: str | Path = DEFAULT_SKILLS_BASE_ROOT,
+        skill_tag_catalog: SkillTagCatalog | None = None,
     ) -> None:
         self._skills_base_root = Path(skills_base_root)
+        self._skill_tag_catalog = skill_tag_catalog or SkillTagCatalog()
         self._manager_factory = (
             manager_factory or self._create_manager
         )
@@ -230,6 +217,7 @@ class McpSkillLoaderTool:
                     manager,
                     arguments["query"],
                     domain_config.skill_domain,
+                    self._skill_tag_catalog.tags(owner_sub),
                     arguments.get("include_tags"),
                     arguments.get("exclude_tags"),
                 )
@@ -250,6 +238,7 @@ class McpSkillLoaderTool:
         manager: SkillManager,
         raw_query: Any,
         skill_domain: str,
+        allowed_tags: list[str],
         raw_include_tags: Any,
         raw_exclude_tags: Any,
     ) -> GhostToolResult:
@@ -262,6 +251,7 @@ class McpSkillLoaderTool:
         include_tags, exclude_tags = normalize_skill_tag_filters(
             raw_include_tags,
             raw_exclude_tags,
+            allowed_tags=allowed_tags,
         )
         if include_tags or exclude_tags:
             candidates = manager.retrieve_candidates(
@@ -396,7 +386,8 @@ class McpSkillLoaderTool:
                 self._skills_base_root
             ),
             memory_store=McpSkillMemoryStore(
-                domain_config=domain_config
+                domain_config=domain_config,
+                skill_tag_catalog=self._skill_tag_catalog,
             ),
         )
 

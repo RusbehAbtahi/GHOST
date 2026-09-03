@@ -1,0 +1,12 @@
+{
+  "tool_description": [
+    "Show or update the authenticated owner's persisted Skill tag catalog. The catalog is the runtime source of truth for Skill Maker validation and Skill Loader filtering."
+  ],
+  "server_instruction": [
+    "Use ghost_skill_tag_settings to inspect or change the current Skill tag catalog. Use action show before choosing a tag when the current catalog is not already known. Use add to persist one new tag. Use remove only when requested; GHOST checks both CLI and GENERAL Skill Memory and refuses removal while persisted Skills still use that tag."
+  ],
+  "field_descriptions": {
+    "action": "Exactly one Skill tag catalog operation: show, add, or remove.",
+    "tag": "Required only for add or remove. The Skill tag to normalize and persist or remove."
+  }
+}

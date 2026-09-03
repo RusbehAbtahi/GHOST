@@ -21,6 +21,7 @@ from ragstream.memory.mcp_episodic_description_vector_store import (
 from ragstream.memory.memory_manager import MemoryManager
 from ragstream.memory.memory_record import MemoryRecord
 from ragstream.skills.skill_tags import (
+    SkillTagCatalog,
     SkillTagIndex,
     normalize_skill_tag_filters,
     normalize_skill_tags,
@@ -122,12 +123,14 @@ class McpSkillMemoryStore:
             McpEpisodicDescriptionVectorStore | None
         ) = None,
         domain_config: SkillDomainConfig = CLI_SKILL_CONFIG,
+        skill_tag_catalog: SkillTagCatalog | None = None,
     ) -> None:
         if not isinstance(domain_config, SkillDomainConfig):
             raise TypeError(
                 "domain_config must be a SkillDomainConfig instance."
             )
         self.domain_config = domain_config
+        self._skill_tag_catalog = skill_tag_catalog or SkillTagCatalog()
         self.memory_root = Path(memory_root)
         self.sqlite_path = (
             Path(sqlite_path)
@@ -156,7 +159,7 @@ class McpSkillMemoryStore:
     ) -> dict[str, str]:
         """Persist a new ACTIVE Skill or a staged replacement Skill."""
         owner = self._validate_owner_sub(owner_sub)
-        data = self._validated_skill_data(skill_data)
+        data = self._validated_skill_data(skill_data, owner)
         replacing_ids = self._clean_skill_ids(
             replacing_skill_ids or []
         )
@@ -433,9 +436,11 @@ class McpSkillMemoryStore:
         """Return ACTIVE owner Skill descriptions ranked by cosine."""
         owner = self._validate_owner_sub(owner_sub)
         clean_query = self._require_text(query, "query")
+        allowed_tags = self._skill_tag_catalog.tags(owner)
         included, excluded = normalize_skill_tag_filters(
             include_tags,
             exclude_tags,
+            allowed_tags=allowed_tags,
         )
 
         if (
@@ -544,6 +549,38 @@ class McpSkillMemoryStore:
 
         return data
 
+    def find_skills_by_tag(
+        self,
+        *,
+        owner_sub: str,
+        tag: str,
+    ) -> list[dict[str, str]]:
+        """Return every persisted Skill record carrying one catalog tag."""
+        owner = self._validate_owner_sub(owner_sub)
+        clean_tag = normalize_skill_tags(
+            [tag],
+            default_to_standard=False,
+            field_name="tag",
+            allowed_tags=self._skill_tag_catalog.tags(owner),
+        )[0]
+        manager = self._load_manager(owner)
+        if manager is None:
+            return []
+
+        matches: list[dict[str, str]] = []
+        for record in manager.records:
+            data = self._record_data(record)
+            if clean_tag in data["skill_tags"]:
+                matches.append(
+                    {
+                        "skill_domain": self.domain_config.skill_domain,
+                        "skill_id": str(data["skill_id"]),
+                        "skill_name": str(data["skill_name"]),
+                        "skill_status": str(data["skill_status"]),
+                    }
+                )
+        return matches
+
     def exclude_skills(
         self,
         *,
@@ -609,11 +646,13 @@ class McpSkillMemoryStore:
         """Backfill legacy tags and rebuild one owner/domain SQL projection."""
         record_tags: dict[str, list[str]] = {}
         metadata_changed = False
+        allowed_tags = self._skill_tag_catalog.tags(owner_sub)
         for record in manager.records:
             metadata = record.to_index_dict()
             tags = normalize_skill_tags(
                 metadata.get("skill_tags"),
                 default_to_standard=True,
+                allowed_tags=allowed_tags,
             )
             if metadata.get("skill_tags") != tags:
                 record.update_metadata_overlay({"skill_tags": tags})
@@ -1002,9 +1041,10 @@ class McpSkillMemoryStore:
             "replacing_skill_ids": replacing_ids,
         }
 
-    @staticmethod
     def _validated_skill_data(
+        self,
         skill_data: dict[str, Any],
+        owner_sub: str,
     ) -> dict[str, Any]:
         if not isinstance(skill_data, dict):
             raise ValueError(
@@ -1061,6 +1101,7 @@ class McpSkillMemoryStore:
         cleaned["skill_tags"] = normalize_skill_tags(
             skill_data.get("skill_tags"),
             default_to_standard=True,
+            allowed_tags=self._skill_tag_catalog.tags(owner_sub),
         )
         return cleaned
 

@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from ragstream.skills.skill_tags import (
+    SkillTagCatalog,
     SkillTagIndex,
     normalize_skill_tag_filters,
     normalize_skill_tags,
@@ -59,16 +60,23 @@ def test_missing_skill_tags_default_to_standard() -> None:
     ) == ["STANDARD"]
 
 
-def test_skill_tags_are_controlled_normalized_and_unique() -> None:
+def test_skill_tags_are_controlled_normalized_and_unique(
+    tmp_path: Path,
+) -> None:
+    catalog = SkillTagCatalog(settings_root=tmp_path / "catalog")
+    allowed_tags = catalog.tags("owner-1")
+
     assert normalize_skill_tags(
         [" ghost ", "STANDARD", "ghost"],
         default_to_standard=True,
+        allowed_tags=allowed_tags,
     ) == ["GHOST", "STANDARD"]
 
     with pytest.raises(ValueError, match="undefined tag CUSTOM"):
         normalize_skill_tags(
             ["CUSTOM"],
             default_to_standard=True,
+            allowed_tags=allowed_tags,
         )
 
 
@@ -130,3 +138,17 @@ def test_sqlite_filters_before_semantic_candidates(
                 include_tags=include_tags,
                 exclude_tags=exclude_tags,
             )
+
+
+def test_catalog_add_makes_new_tag_valid_without_code_change(
+    tmp_path: Path,
+) -> None:
+    catalog = SkillTagCatalog(settings_root=tmp_path / "catalog")
+    tags, changed = catalog.add("owner-1", "architecture")
+
+    assert changed is True
+    assert normalize_skill_tags(
+        ["ARCHITECTURE"],
+        default_to_standard=True,
+        allowed_tags=tags,
+    ) == ["ARCHITECTURE"]

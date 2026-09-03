@@ -103,6 +103,12 @@ from ragstream.mcp.ghost_persistent_chat import (
     init_tool_metadata as persistent_chat_init_tool_metadata,
     resume_tool_metadata as persistent_chat_resume_tool_metadata,
 )
+from ragstream.mcp.ghost_skill_tag_settings import (
+    SERVER_INSTRUCTIONS as SKILL_TAG_SETTINGS_SERVER_INSTRUCTIONS,
+    GhostSkillTagSettingsTool,
+    TOOL_NAME as SKILL_TAG_SETTINGS_TOOL_NAME,
+    tool_metadata as skill_tag_settings_tool_metadata,
+)
 from ragstream.mcp.mcp_skill_loader import (
     SERVER_INSTRUCTIONS as SKILL_LOADER_SERVER_INSTRUCTIONS,
     McpSkillLoaderTool,
@@ -126,6 +132,7 @@ from ragstream.memory.mcp_memory_store import McpMemoryStore
 from ragstream.memory.mcp_persistent_chat_store import (
     McpPersistentChatStore,
 )
+from ragstream.skills.skill_tags import SkillTagCatalog
 
 
 SERVER_INSTRUCTIONS = (
@@ -146,6 +153,8 @@ SERVER_INSTRUCTIONS = (
     + SKILL_LOADER_SERVER_INSTRUCTIONS
     + " "
     + SKILL_MAKER_SERVER_INSTRUCTIONS
+    + " "
+    + SKILL_TAG_SETTINGS_SERVER_INSTRUCTIONS
     + " "
     + PROMPT_SHOW_SERVER_INSTRUCTIONS
     + " "
@@ -171,6 +180,7 @@ GHOST_TOOL_NAMES = frozenset(
         CLI_ASYNC_TOOL_NAME,
         SKILL_LOADER_TOOL_NAME,
         SKILL_MAKER_TOOL_NAME,
+        SKILL_TAG_SETTINGS_TOOL_NAME,
     }
 )
 
@@ -182,6 +192,7 @@ class GhostMcpApplication:
         self,
         prompt_builder: GhostPromptBuilder | None = None,
         prompt_settings: GhostPromptSettings | None = None,
+        skill_tag_catalog: SkillTagCatalog | None = None,
         required_scope: str | None = None,
         memory_store: McpMemoryStore | None = None,
         persistent_chat_store: McpPersistentChatStore | None = None,
@@ -195,6 +206,8 @@ class GhostMcpApplication:
         """Create production tools or accept injected test dependencies."""
         if prompt_settings is None:
             prompt_settings = GhostPromptSettings()
+        if skill_tag_catalog is None:
+            skill_tag_catalog = SkillTagCatalog()
         if prompt_builder is None:
             prompt_builder = GhostPromptBuilder(
                 settings=prompt_settings
@@ -272,8 +285,15 @@ class GhostMcpApplication:
 
         # Each Skill tool creates its own request-scoped SkillManager. The MCP
         # application owns only the stateless adapters.
-        self.skill_loader_tool = McpSkillLoaderTool()
-        self.skill_maker_tool = McpSkillMakerTool()
+        self.skill_tag_settings_tool = GhostSkillTagSettingsTool(
+            skill_tag_catalog
+        )
+        self.skill_loader_tool = McpSkillLoaderTool(
+            skill_tag_catalog=skill_tag_catalog
+        )
+        self.skill_maker_tool = McpSkillMakerTool(
+            skill_tag_catalog=skill_tag_catalog
+        )
 
         self.required_scope = required_scope
 
@@ -305,6 +325,7 @@ class GhostMcpApplication:
             cli_async_tool_metadata(self.required_scope),
             skill_loader_tool_metadata(self.required_scope),
             skill_maker_tool_metadata(self.required_scope),
+            skill_tag_settings_tool_metadata(self.required_scope),
         )
 
         return [
@@ -405,6 +426,13 @@ class GhostMcpApplication:
 
         if name == CLI_ASYNC_TOOL_NAME:
             result = self.cli_tool.async_sanitized(
+                owner_sub or "",
+                arguments,
+            )
+            return self._to_memory_mcp_result(result)
+
+        if name == SKILL_TAG_SETTINGS_TOOL_NAME:
+            result = self.skill_tag_settings_tool.call_sanitized(
                 owner_sub or "",
                 arguments,
             )

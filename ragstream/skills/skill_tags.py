@@ -1,35 +1,196 @@
-"""Validate controlled Skill tags and filter Skill records through SQLite.
+"""Persist and validate dynamic GHOST Skill tags.
 
-Skill tags are categorical retrieval controls, separate from ordinary Memory tags.
-The durable values live in Skill RagMeta metadata; SkillTagIndex maintains the
-owner- and domain-scoped SQLite projection used before vector retrieval.
-
-Main classes:
-    SkillTagIndex:
-        Rebuilds and queries the deterministic SQLite Skill-tag projection.
-
-Main functions:
-    normalize_skill_tags():
-        Normalizes and validates tags against the fixed vocabulary.
-    normalize_skill_tag_filters():
-        Validates include/exclude filters and rejects contradictions.
+The owner-scoped JSON catalog is the runtime source of truth for allowed Skill
+categories. SQLite remains only a derivative retrieval index.
 """
 
 from __future__ import annotations
 
+import fcntl
+import json
+import os
 import re
 import sqlite3
+import tempfile
 
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator, Mapping, TextIO
 
 
 STANDARD_SKILL_TAG = "STANDARD"
-GHOST_SKILL_TAG = "GHOST"
-ALLOWED_SKILL_TAGS = frozenset(
-    {STANDARD_SKILL_TAG, GHOST_SKILL_TAG}
+DEFAULT_SKILL_TAG_SETTINGS_ROOT = (
+    Path(__file__).resolve().parents[2]
+    / "data"
+    / "mcp"
+    / "skill_tag_settings"
+)
+DEFAULT_SKILL_TAG_CATALOG_PATH = Path(__file__).with_name(
+    "default_skill_tag_catalog.json"
 )
 _SAFE_SKILL_TAG = re.compile(r"[A-Z][A-Z0-9_-]*")
+_SAFE_OWNER_SUB = re.compile(r"[A-Za-z0-9._-]+")
+
+
+class SkillTagCatalogError(ValueError):
+    """Raised when Skill tag settings or persisted catalog state is invalid."""
+
+
+class SkillTagCatalog:
+    """Read and atomically update one owner's Skill tag catalog."""
+
+    def __init__(
+        self,
+        settings_root: str | Path = DEFAULT_SKILL_TAG_SETTINGS_ROOT,
+        default_catalog_path: str | Path = DEFAULT_SKILL_TAG_CATALOG_PATH,
+    ) -> None:
+        self.settings_root = Path(settings_root)
+        self.default_catalog_path = Path(default_catalog_path)
+
+    def show(self, owner_sub: str) -> dict[str, list[str]]:
+        """Return the current catalog, creating approved defaults if absent."""
+        owner = self._validate_owner_sub(owner_sub)
+        with self._owner_lock(owner):
+            return {"skill_tags": list(self._read_or_create_unlocked(owner))}
+
+    def tags(self, owner_sub: str) -> list[str]:
+        """Return the current allowed Skill tags for one owner."""
+        return self.show(owner_sub)["skill_tags"]
+
+    def add(self, owner_sub: str, tag: str) -> tuple[list[str], bool]:
+        """Add one normalized tag if absent and return the resulting catalog."""
+        owner = self._validate_owner_sub(owner_sub)
+        clean_tag = _normalize_tag(tag, "tag")
+        with self._owner_lock(owner):
+            tags = self._read_or_create_unlocked(owner)
+            if clean_tag in tags:
+                return list(tags), False
+            tags.append(clean_tag)
+            self._write_unlocked(owner, tags)
+            return list(tags), True
+
+    def remove(self, owner_sub: str, tag: str) -> tuple[list[str], bool]:
+        """Remove one non-default tag after callers have checked Skill usage."""
+        owner = self._validate_owner_sub(owner_sub)
+        clean_tag = _normalize_tag(tag, "tag")
+        if clean_tag == STANDARD_SKILL_TAG:
+            raise SkillTagCatalogError(
+                "STANDARD is the required default Skill tag and cannot be removed"
+            )
+        with self._owner_lock(owner):
+            tags = self._read_or_create_unlocked(owner)
+            if clean_tag not in tags:
+                raise SkillTagCatalogError(
+                    f"Skill tag is not defined: {clean_tag}"
+                )
+            tags.remove(clean_tag)
+            self._write_unlocked(owner, tags)
+            return list(tags), True
+
+    def settings_path(self, owner_sub: str) -> Path:
+        """Return the deterministic owner-scoped JSON catalog path."""
+        owner = self._validate_owner_sub(owner_sub)
+        return self.settings_root / owner / "skill_tags.json"
+
+    @staticmethod
+    def _validate_owner_sub(owner_sub: str) -> str:
+        owner = str(owner_sub or "").strip()
+        if (
+            owner in {"", ".", ".."}
+            or _SAFE_OWNER_SUB.fullmatch(owner) is None
+        ):
+            raise SkillTagCatalogError(
+                "owner_sub must contain only letters, numbers, '.', '_' or '-'"
+            )
+        return owner
+
+    @contextmanager
+    def _owner_lock(self, owner: str) -> Iterator[None]:
+        owner_root = self.settings_root / owner
+        owner_root.mkdir(parents=True, exist_ok=True)
+        lock_path = owner_root / ".skill_tags.lock"
+        lock_file: TextIO = lock_path.open("a+", encoding="utf-8")
+        try:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            yield
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+            lock_file.close()
+
+    def _read_or_create_unlocked(self, owner: str) -> list[str]:
+        path = self.settings_root / owner / "skill_tags.json"
+        if not path.exists():
+            tags = self._read_catalog_file(self.default_catalog_path, "default")
+            self._write_unlocked(owner, tags)
+            return tags
+        return self._read_catalog_file(path, "persisted")
+
+    @staticmethod
+    def _read_catalog_file(path: Path, source: str) -> list[str]:
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise SkillTagCatalogError(
+                f"{source} Skill tag catalog JSON is unreadable"
+            ) from error
+        if not isinstance(raw, Mapping) or set(raw) != {"skill_tags"}:
+            raise SkillTagCatalogError(
+                f"{source} Skill tag catalog must contain only skill_tags"
+            )
+        tags = normalize_skill_tags(
+            raw["skill_tags"],
+            default_to_standard=False,
+        )
+        if not tags:
+            raise SkillTagCatalogError("Skill tag catalog must not be empty")
+        if STANDARD_SKILL_TAG not in tags:
+            raise SkillTagCatalogError(
+                "Skill tag catalog must contain the required default tag STANDARD"
+            )
+        return tags
+
+    def _write_unlocked(self, owner: str, tags: list[str]) -> None:
+        clean_tags = normalize_skill_tags(tags, default_to_standard=False)
+        if not clean_tags or STANDARD_SKILL_TAG not in clean_tags:
+            raise SkillTagCatalogError(
+                "Skill tag catalog must contain the required default tag STANDARD"
+            )
+        owner_root = self.settings_root / owner
+        owner_root.mkdir(parents=True, exist_ok=True)
+        target = owner_root / "skill_tags.json"
+        temp_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=owner_root,
+                prefix=".skill_tags.",
+                suffix=".tmp",
+                delete=False,
+            ) as temp_file:
+                temp_path = Path(temp_file.name)
+                json.dump(
+                    {"skill_tags": clean_tags},
+                    temp_file,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                temp_file.write("\n")
+                temp_file.flush()
+                os.fsync(temp_file.fileno())
+            os.replace(temp_path, target)
+        finally:
+            if temp_path is not None and temp_path.exists():
+                temp_path.unlink()
+
+
+def _normalize_tag(value: Any, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field_name} must contain only non-empty strings")
+    tag = value.strip().upper()
+    if _SAFE_SKILL_TAG.fullmatch(tag) is None:
+        raise ValueError(f"{field_name} contains an invalid tag")
+    return tag
 
 
 def normalize_skill_tags(
@@ -37,29 +198,29 @@ def normalize_skill_tags(
     *,
     default_to_standard: bool,
     field_name: str = "skill_tags",
+    allowed_tags: list[str] | set[str] | frozenset[str] | None = None,
 ) -> list[str]:
-    """Return unique controlled tags in stable order."""
+    """Normalize tags and optionally validate against a runtime catalog."""
     if value is None or value == []:
         return [STANDARD_SKILL_TAG] if default_to_standard else []
     if not isinstance(value, list):
         raise ValueError(f"{field_name} must be a list")
 
+    allowed: set[str] | None = None
+    if allowed_tags is not None:
+        allowed = {
+            _normalize_tag(item, "allowed_tags")
+            for item in allowed_tags
+        }
+
     normalized: list[str] = []
     seen: set[str] = set()
     for item in value:
-        if not isinstance(item, str) or not item.strip():
-            raise ValueError(
-                f"{field_name} must contain only non-empty strings"
-            )
-
-        tag = item.strip().upper()
-        if _SAFE_SKILL_TAG.fullmatch(tag) is None:
-            raise ValueError(f"{field_name} contains an invalid tag")
-        if tag not in ALLOWED_SKILL_TAGS:
-            allowed = ", ".join(sorted(ALLOWED_SKILL_TAGS))
+        tag = _normalize_tag(item, field_name)
+        if allowed is not None and tag not in allowed:
             raise ValueError(
                 f"{field_name} contains undefined tag {tag}; "
-                f"allowed tags: {allowed}"
+                "read the current Skill tag catalog first"
             )
         if tag not in seen:
             normalized.append(tag)
@@ -73,17 +234,21 @@ def normalize_skill_tags(
 def normalize_skill_tag_filters(
     include_tags: Any,
     exclude_tags: Any,
+    *,
+    allowed_tags: list[str] | set[str] | frozenset[str] | None = None,
 ) -> tuple[list[str], list[str]]:
     """Return valid filters and reject the same tag on both sides."""
     included = normalize_skill_tags(
         include_tags,
         default_to_standard=False,
         field_name="include_tags",
+        allowed_tags=allowed_tags,
     )
     excluded = normalize_skill_tags(
         exclude_tags,
         default_to_standard=False,
         field_name="exclude_tags",
+        allowed_tags=allowed_tags,
     )
     overlap = sorted(set(included).intersection(excluded))
     if overlap:

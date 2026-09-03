@@ -15,7 +15,7 @@
     "A neutral Skill should contain reusable operational methods. A deliberately task-specific Skill may contain exact targets, paths, named content, or a user-defined workflow when the user explicitly requests that information to be saved.",
     "Without an explicit Skill-saving instruction, do not save one-off paths, named files, media choices, or other task-specific details merely because they appeared during execution.",
     "Choose UPDATE_EXISTING_SKILL only when a relevant active Skill in the selected domain is wrong, incomplete, ambiguous, or missing a justified concrete rule. Pass every exact affected Skill ID returned by ghost_skill_loader for that same domain.",
-    "Use only the controlled tags STANDARD and GHOST. Omit skill_tags or pass an empty list to assign STANDARD automatically; never invent a tag.",
+    "Use only tags currently present in the authenticated owner Skill tag catalog. Call ghost_skill_tag_settings with action show when the current catalog is not already known. Omit skill_tags or pass an empty list to assign the existing default automatically; never invent a tag.",
     "Choose CREATE_NEW_SKILL only when no appropriate loaded Skill in the selected domain represents the intended reusable or explicitly requested capability. Pass an empty affected_skill_ids list.",
     "An update is immutable. Provide one complete replacement Skill, preserving all proven correct instructions and changing only what the evidence or explicit user instruction justifies.",
     "Do not add generic best practices, speculative improvements, unrelated architecture, invented failures, or invented environment facts.",
@@ -39,6 +39,6 @@
     "ragmem_description": "Semantic Episode Description for the selected domain's Skill Memory episode.",
     "affected_skill_ids": "For UPDATE_EXISTING_SKILL, exact active Skill IDs returned and loaded from the selected domain. For CREATE_NEW_SKILL, an empty list.",
     "notes": "Optional factual lifecycle or implementation notes. Do not add speculative notes.",
-    "skill_tags": "Optional controlled Skill categories. Allowed values are STANDARD and GHOST. Missing or empty means STANDARD."
+    "skill_tags": "Optional controlled Skill categories. Values must exist in the authenticated owner Skill tag catalog. Missing or empty uses the existing default tag."
   }
 }

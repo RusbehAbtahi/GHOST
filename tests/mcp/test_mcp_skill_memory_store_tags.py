@@ -8,6 +8,8 @@ from typing import Any
 import pytest
 
 from ragstream.memory.mcp_skill_memory_store import McpSkillMemoryStore
+from ragstream.mcp.ghost_skill_tag_settings import GhostSkillTagSettingsTool
+from ragstream.skills.skill_tags import SkillTagCatalog
 from ragstream.memory.memory_record import MemoryRecord
 
 
@@ -91,10 +93,12 @@ def _store(
     monkeypatch: pytest.MonkeyPatch,
 ) -> tuple[McpSkillMemoryStore, RecordingVectors]:
     vectors = RecordingVectors()
+    catalog = SkillTagCatalog(settings_root=tmp_path / "skill_tag_settings")
     store = McpSkillMemoryStore(
         memory_root=tmp_path,
         sqlite_path=tmp_path / "memory_index.sqlite3",
         description_vector_store=vectors,  # type: ignore[arg-type]
+        skill_tag_catalog=catalog,
     )
     manager = FakeManager(tmp_path)
     monkeypatch.setattr(
@@ -164,3 +168,55 @@ def test_sqlite_tag_filter_restricts_scope_before_vector_search(
         "standard"
     ]
     assert len(vectors.candidate_scopes[-1]) == 1
+
+
+def test_new_settings_tag_persists_loads_and_filters_without_code_change(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vectors = RecordingVectors()
+    catalog = SkillTagCatalog(settings_root=tmp_path / "skill_tag_settings")
+    settings_tool = GhostSkillTagSettingsTool(
+        catalog,
+        usage_checker=lambda *_: [],
+    )
+    add_result = settings_tool.call_sanitized(
+        "owner-1",
+        {"action": "add", "tag": "ARCHITECTURE"},
+    )
+    assert add_result.isError is False
+    assert add_result.structuredContent["changed"] is True
+
+    store = McpSkillMemoryStore(
+        memory_root=tmp_path,
+        sqlite_path=tmp_path / "memory_index.sqlite3",
+        description_vector_store=vectors,  # type: ignore[arg-type]
+        skill_tag_catalog=catalog,
+    )
+    manager = FakeManager(tmp_path)
+    monkeypatch.setattr(store, "_load_or_create_manager", lambda _owner: manager)
+    monkeypatch.setattr(store, "_load_manager", lambda _owner: manager)
+
+    store.save_skill(
+        owner_sub="owner-1",
+        skill_data=_skill_data(
+            "architecture",
+            skill_tags=["ARCHITECTURE"],
+        ),
+    )
+
+    loaded = store.get_skill(
+        owner_sub="owner-1",
+        skill_id="architecture",
+    )
+    assert loaded is not None
+    assert loaded["skill_tags"] == ["ARCHITECTURE"]
+
+    candidates = store.search_skills(
+        owner_sub="owner-1",
+        query="architecture",
+        limit=10,
+        include_tags=["ARCHITECTURE"],
+    )
+    assert [item["skill_id"] for item in candidates] == ["architecture"]
+    assert vectors.candidate_scopes[-1] == [loaded["ragmem_record_id"]]

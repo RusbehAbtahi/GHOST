@@ -47,7 +47,7 @@ from ragstream.memory.mcp_skill_memory_store import (
     resolve_skill_domain,
 )
 from ragstream.skills.skill import Skill
-from ragstream.skills.skill_tags import normalize_skill_tags
+from ragstream.skills.skill_tags import SkillTagCatalog, normalize_skill_tags
 from ragstream.skills.skill_manager import SkillManager
 
 
@@ -145,10 +145,7 @@ INPUT_SCHEMA = {
         "skill_tags": {
             "type": "array",
             "uniqueItems": True,
-            "items": {
-                "type": "string",
-                "enum": ["STANDARD", "GHOST"],
-            },
+            "items": {"type": "string", "minLength": 1},
             "description": _INSTRUCTIONS.field_descriptions["skill_tags"],
         },
         "notes": {
@@ -194,10 +191,7 @@ OUTPUT_SCHEMA = {
             "type": "array",
             "minItems": 1,
             "uniqueItems": True,
-            "items": {
-                "type": "string",
-                "enum": ["STANDARD", "GHOST"],
-            },
+            "items": {"type": "string", "minLength": 1},
         },
         "folder_path": {"type": "string", "minLength": 1},
         "skill_md_path": {"type": "string", "minLength": 1},
@@ -235,8 +229,10 @@ class McpSkillMakerTool:
         self,
         manager_factory: ManagerFactory | None = None,
         skills_base_root: str | Path = DEFAULT_SKILLS_BASE_ROOT,
+        skill_tag_catalog: SkillTagCatalog | None = None,
     ) -> None:
         self._skills_base_root = Path(skills_base_root)
+        self._skill_tag_catalog = skill_tag_catalog or SkillTagCatalog()
         self._manager_factory = (
             manager_factory or self._create_manager
         )
@@ -264,7 +260,10 @@ class McpSkillMakerTool:
                 arguments["affected_skill_ids"]
             )
             self._validate_decision(decision, affected_skill_ids)
-            skill = self._build_skill(arguments)
+            skill = self._build_skill(
+                arguments,
+                self._skill_tag_catalog.tags(owner_sub),
+            )
         except ValueError as error:
             return self._failure(str(error))
 
@@ -446,6 +445,7 @@ class McpSkillMakerTool:
     def _build_skill(
         cls,
         arguments: Mapping[str, Any],
+        allowed_tags: list[str],
     ) -> Skill:
         text_fields = (
             "skill_name",
@@ -477,6 +477,7 @@ class McpSkillMakerTool:
         skill_tags = normalize_skill_tags(
             arguments.get("skill_tags"),
             default_to_standard=True,
+            allowed_tags=allowed_tags,
         )
         if not isinstance(notes, list):
             raise ValueError("notes must be a list")
@@ -566,7 +567,8 @@ class McpSkillMakerTool:
                 self._skills_base_root
             ),
             memory_store=McpSkillMemoryStore(
-                domain_config=domain_config
+                domain_config=domain_config,
+                skill_tag_catalog=self._skill_tag_catalog,
             ),
         )
 
