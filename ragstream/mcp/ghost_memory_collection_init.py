@@ -59,6 +59,11 @@ INPUT_SCHEMA = {
                 "collection_description"
             ],
         },
+        "folder": {
+            "type": "string",
+            "minLength": 1,
+            "description": _INSTRUCTIONS.field_descriptions["folder"],
+        },
     },
     "required": ["collection_name", "collection_description"],
     "additionalProperties": False,
@@ -79,6 +84,7 @@ OUTPUT_SCHEMA = {
             "minLength": 1,
         },
         "created_at_utc": {"type": "string", "minLength": 1},
+        "folder": {"type": "string", "minLength": 1},
         "record_count": {"type": "integer", "minimum": 0},
         "next_sequence_number": {"type": "integer", "minimum": 1},
         "reason": {"type": "string"},
@@ -107,7 +113,7 @@ class GhostMemoryCollectionInitTool:
                 "Collection initialization input is required"
             )
         if set(arguments).difference(
-            {"collection_name", "collection_description"}
+            {"collection_name", "collection_description", "folder"}
         ):
             return self._failure("unsupported input property")
 
@@ -115,6 +121,7 @@ class GhostMemoryCollectionInitTool:
         collection_description = arguments.get(
             "collection_description"
         )
+        folder = arguments.get("folder")
 
         if (
             not isinstance(collection_name, str)
@@ -132,12 +139,17 @@ class GhostMemoryCollectionInitTool:
                 "collection_description is required and must be a "
                 "non-empty string"
             )
+        if folder is not None and (
+            not isinstance(folder, str) or not folder.strip()
+        ):
+            return self._failure("folder must be a non-empty string")
 
         try:
             collection = self._collection_store.initialize_collection(
                 owner_sub=owner_sub,
                 collection_name=collection_name.strip(),
                 collection_description=collection_description.strip(),
+                folder=folder.strip() if isinstance(folder, str) else None,
             )
         except ValueError as error:
             return self._failure(str(error))
@@ -156,6 +168,7 @@ class GhostMemoryCollectionInitTool:
                         f"{collection['collection_name']}\n"
                         f"Collection ID: "
                         f"{collection['collection_id']}\n"
+                        f"Folder: {collection['folder']}\n"
                         f"Created UTC: "
                         f"{collection['created_at_utc']}"
                     ),

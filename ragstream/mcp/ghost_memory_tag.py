@@ -10,7 +10,7 @@ Main classes:
 
 Main methods and functions:
     call_sanitized():
-        Validates, routes, saves, and returns the effective Recall Key.
+        Validates and routes Save calls, including Collection brief preparation.
     tool_metadata():
         Builds the OAuth-protected MCP tool descriptor.
 """
@@ -45,6 +45,7 @@ from ragstream.memory.mcp_memory_store import (
 TOOL_NAME = "ghost_memory_tag"
 TOOL_TITLE = "GHOST Memory Save"
 WORKFLOW_COMPLETE = "complete"
+WORKFLOW_COMPOSITION_REQUIRED = "composition_required"
 EPISODIC_MEMORY_TYPE = "episodic"
 
 _SUPPORTED_MEMORY_TYPES = {
@@ -116,7 +117,6 @@ INPUT_SCHEMA = {
         },
         "active_retrieval_brief": {
             "type": "string",
-            "minLength": 1,
             "description": _INSTRUCTIONS.field_descriptions[
                 "active_retrieval_brief"
             ],
@@ -132,7 +132,6 @@ INPUT_SCHEMA = {
                 "memory_type",
                 "episode_title",
                 "episode_description",
-                "active_retrieval_brief",
             ],
             "oneOf": [
                 {
@@ -184,7 +183,7 @@ OUTPUT_SCHEMA = {
         "saved": {"type": "boolean"},
         "workflow_state": {
             "type": "string",
-            "enum": [WORKFLOW_COMPLETE],
+            "enum": [WORKFLOW_COMPLETE, WORKFLOW_COMPOSITION_REQUIRED],
         },
         "memory_type": {
             "type": "string",
@@ -209,6 +208,8 @@ OUTPUT_SCHEMA = {
         "episode_number": {"type": "integer", "minimum": 1},
         "created_at_utc": {"type": "string", "minLength": 1},
         "next_sequence_number": {"type": "integer", "minimum": 1},
+        "collection_description": {"type": "string"},
+        "previous_active_retrieval_brief": {"type": "string"},
         "reason": {"type": "string"},
     },
     "required": ["saved", "workflow_state"],
@@ -494,9 +495,11 @@ class GhostMemoryTagTool:
             arguments,
             "recall_key",
         )
-        active_brief = self._read_optional_text(
-            arguments,
-            "active_retrieval_brief",
+        active_brief_raw = arguments.get("active_retrieval_brief")
+        active_brief = (
+            active_brief_raw.strip()
+            if isinstance(active_brief_raw, str)
+            else None
         )
 
         invalid_fields = [
@@ -505,7 +508,6 @@ class GhostMemoryTagTool:
                 ("collection_id", collection_id),
                 ("collection_name", collection_name),
                 ("recall_key", recall_key),
-                ("active_retrieval_brief", active_brief),
             )
             if value is False
         ]
@@ -521,9 +523,50 @@ class GhostMemoryTagTool:
                 memory_type=COLLECTION_MEMORY_TYPE,
             )
 
-        if not isinstance(active_brief, str):
+        if "active_retrieval_brief" not in arguments:
+            try:
+                context = self._collection_store.get_activebrief_context(
+                    owner_sub=owner_sub,
+                    collection_id=(
+                        collection_id if isinstance(collection_id, str) else None
+                    ),
+                    collection_name=(
+                        collection_name if isinstance(collection_name, str) else None
+                    ),
+                )
+            except ValueError as error:
+                return self._failure(
+                    str(error),
+                    memory_type=COLLECTION_MEMORY_TYPE,
+                )
+            except Exception:  # noqa: BLE001
+                return self._failure(
+                    "GHOST Collection ActiveBrief context lookup failed",
+                    memory_type=COLLECTION_MEMORY_TYPE,
+                )
+
+            return GhostToolResult(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "Collection ActiveBrief composition context is ready. "
+                            "Compose active_retrieval_brief using the Collection "
+                            "description guidance, then call ghost_memory_tag again."
+                        ),
+                    }
+                ],
+                structuredContent={
+                    "saved": False,
+                    "workflow_state": WORKFLOW_COMPOSITION_REQUIRED,
+                    "memory_type": COLLECTION_MEMORY_TYPE,
+                    **context,
+                },
+            )
+
+        if not isinstance(active_brief_raw, str):
             return self._failure(
-                "active_retrieval_brief is required for Collection Memory",
+                "active_retrieval_brief must be a string",
                 memory_type=COLLECTION_MEMORY_TYPE,
             )
 

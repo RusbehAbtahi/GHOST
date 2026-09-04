@@ -27,6 +27,9 @@ from ragstream.mcp.mcp_tool_contracts import (
 from ragstream.mcp.memory_tool_instructions import (
     load_memory_tool_instructions,
 )
+from ragstream.memory.mcp_memory_collection_browser import (
+    McpMemoryCollectionBrowser,
+)
 from ragstream.memory.mcp_memory_collection_retriever import (
     McpMemoryCollectionRetriever,
 )
@@ -38,11 +41,13 @@ TOOL_TITLE = "GHOST Memory List"
 
 LIST_MODE_MEMORIES = "memories"
 LIST_MODE_COLLECTIONS = "collections"
+LIST_MODE_COLLECTION_FOLDERS = "collection_folders"
 LIST_MODE_COLLECTION_EPISODES = "collection_episodes"
 
 _LIST_MODES = {
     LIST_MODE_MEMORIES,
     LIST_MODE_COLLECTIONS,
+    LIST_MODE_COLLECTION_FOLDERS,
     LIST_MODE_COLLECTION_EPISODES,
 }
 
@@ -69,6 +74,11 @@ INPUT_SCHEMA = {
             "description": _INSTRUCTIONS.field_descriptions[
                 "collection_id"
             ],
+        },
+        "folder": {
+            "type": "string",
+            "minLength": 1,
+            "description": _INSTRUCTIONS.field_descriptions["folder"],
         },
     },
     "additionalProperties": False,
@@ -136,6 +146,7 @@ _COLLECTION_ITEM_SCHEMA = {
             "type": "integer",
             "minimum": 0,
         },
+        "folder": {"type": "string", "minLength": 1},
     },
     "required": [
         "collection_id",
@@ -146,6 +157,7 @@ _COLLECTION_ITEM_SCHEMA = {
         "record_count",
         "next_sequence_number",
         "highest_assigned_episode_number",
+        "folder",
     ],
     "additionalProperties": False,
 }
@@ -202,6 +214,11 @@ OUTPUT_SCHEMA = {
             "type": "array",
             "items": _COLLECTION_ITEM_SCHEMA,
         },
+        "folders": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+        },
+        "folder": {"type": "string", "minLength": 1},
         "collection_id": {
             "type": "string",
             "minLength": 1,
@@ -263,9 +280,14 @@ class GhostMemoryListTool:
         self,
         memory_store: McpMemoryStore,
         collection_retriever: McpMemoryCollectionRetriever,
+        collection_browser: McpMemoryCollectionBrowser | None = None,
     ) -> None:
         self._memory_store = memory_store
         self._collection_retriever = collection_retriever
+        self._collection_browser = collection_browser or McpMemoryCollectionBrowser(
+            memory_root=collection_retriever.memory_root,
+            sqlite_path=collection_retriever.sqlite_path,
+        )
 
     def call_sanitized(
         self,
@@ -286,7 +308,7 @@ class GhostMemoryListTool:
                 LIST_MODE_MEMORIES,
             )
         if set(arguments).difference(
-            {"list_mode", "collection_id"}
+            {"list_mode", "collection_id", "folder"}
         ):
             return self._failure(
                 "unsupported input property",
@@ -304,6 +326,7 @@ class GhostMemoryListTool:
             )
 
         collection_id = arguments.get("collection_id")
+        folder = arguments.get("folder")
         if collection_id is not None and (
             not isinstance(collection_id, str)
             or not collection_id.strip()
@@ -313,24 +336,43 @@ class GhostMemoryListTool:
                 list_mode,
             )
 
+        if folder is not None and (
+            not isinstance(folder, str) or not folder.strip()
+        ):
+            return self._failure("folder must be a non-empty string", list_mode)
+
         if list_mode == LIST_MODE_MEMORIES:
-            if collection_id is not None:
+            if collection_id is not None or folder is not None:
                 return self._failure(
-                    "collection_id requires list_mode "
-                    "collection_episodes",
+                    "Collection fields are not used with memories",
                     list_mode,
                 )
             return self._list_memories(owner_sub)
 
+        if list_mode == LIST_MODE_COLLECTION_FOLDERS:
+            if collection_id is not None or folder is not None:
+                return self._failure(
+                    "collection_folders does not use collection_id or folder",
+                    list_mode,
+                )
+            return self._list_collection_folders(owner_sub)
+
         if list_mode == LIST_MODE_COLLECTIONS:
             if collection_id is not None:
                 return self._failure(
-                    "collection_id is not used when listing "
-                    "Collections",
+                    "collection_id is not used when listing Collections",
                     list_mode,
                 )
-            return self._list_collections(owner_sub)
+            return self._list_collections(
+                owner_sub,
+                folder.strip() if isinstance(folder, str) else None,
+            )
 
+        if folder is not None:
+            return self._failure(
+                "folder is not used when listing Collection episodes",
+                list_mode,
+            )
         if not isinstance(collection_id, str):
             return self._failure(
                 "exact collection_id is required for "
@@ -398,12 +440,12 @@ class GhostMemoryListTool:
     def _list_collections(
         self,
         owner_sub: str,
+        folder: str | None,
     ) -> GhostToolResult:
         try:
-            collections = (
-                self._collection_retriever.list_collections(
-                    owner_sub
-                )
+            collections = self._collection_browser.list_collections(
+                owner_sub,
+                folder=folder,
             )
         except Exception:  # noqa: BLE001
             return self._failure(
@@ -413,7 +455,7 @@ class GhostMemoryListTool:
 
         if collections:
             lines = [
-                "GHOST Collection Memories:",
+                f"GHOST Collection Memories in {collections[0]['folder']}:",
                 "",
                 (
                     "| Collection | Description | Episodes | "
@@ -450,8 +492,36 @@ class GhostMemoryListTool:
             ],
             structuredContent={
                 "list_mode": LIST_MODE_COLLECTIONS,
+                "folder": (
+                    collections[0]["folder"]
+                    if collections
+                    else (folder or "Main")
+                ),
                 "collections": collections,
                 "total_count": len(collections),
+            },
+        )
+
+    def _list_collection_folders(self, owner_sub: str) -> GhostToolResult:
+        try:
+            folders = self._collection_browser.list_collection_folders(owner_sub)
+        except Exception:  # noqa: BLE001
+            return self._failure(
+                "GHOST Collection folder listing failed",
+                LIST_MODE_COLLECTION_FOLDERS,
+            )
+
+        return GhostToolResult(
+            content=[
+                {
+                    "type": "text",
+                    "text": "Collection folders: " + ", ".join(folders),
+                }
+            ],
+            structuredContent={
+                "list_mode": LIST_MODE_COLLECTION_FOLDERS,
+                "folders": folders,
+                "total_count": len(folders),
             },
         )
 

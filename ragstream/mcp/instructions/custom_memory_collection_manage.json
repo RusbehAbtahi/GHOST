@@ -1,0 +1,16 @@
+{
+  "tool_description": [
+    "Move one exact owner-scoped Collection between Main and ordinary subfolders, archive it, or restore it from Archive.",
+    "Archive is a reserved physical folder. Archiving preserves the .ragmem and .ragmeta.json files but removes the Collection's live SQLite file and record rows.",
+    "Restore preserves the Collection ID, episode Record IDs, Recall Keys, permanent episode numbers, and next sequence number."
+  ],
+  "server_instruction": [
+    "Use ghost_memory_collection_manage only after the user explicitly requests move, archive, or restore for one exact Collection ID.",
+    "For move, supply destination_folder and never use Archive; use action archive instead. For restore, omit destination_folder for Main or supply one ordinary folder. Never invent Collection IDs or folder names."
+  ],
+  "field_descriptions": {
+    "action": "Exactly move, archive, or restore.",
+    "collection_id": "The exact stable Collection ID to manage.",
+    "destination_folder": "Required for move. Optional for restore, where omission means Main. Not allowed for archive."
+  }
+}

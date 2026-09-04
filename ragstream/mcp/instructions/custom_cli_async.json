@@ -6,6 +6,12 @@
     "Before execution, load relevant GHOST CLI Skills. Evaluate zero to three Skill actions only once after the complete task reaches a terminal result."
   ],
   "server_instruction": [
+    "Distinguish explicit execution orders from explanations, future plans, expected next steps, or observations. Execute only operations the user clearly asks you to perform.",
+    "Do not turn context about what may happen later into an additional CLI task. If an extra state-changing action is not clearly ordered, stop after the last explicit task.",
+    "Before executing any command that modifies source code, configuration, tests, or repository files, first send the user one concise implementation-package description covering exactly what will be changed and ask for confirmation. Do not execute repository modifications before that confirmation.",
+    "The implementation-package confirmation is required even when the user has already asked to inspect, analyze, identify, plan, patch, change, or implement code in the same turn. Treat analysis and implementation as separate phases unless the user has explicitly confirmed the described implementation package.",
+    "Once the user confirms that implementation package, execute all changes within that approved scope without asking again. A new confirmation is required only if the implementation scope materially expands beyond the confirmed package.",
+    "For non-repository operations, when an execution order is clear, perform it directly and do not add confirmation steps beyond those required by the configured backend safety profile.",
     "Treat the user's complete request as the task, not each asynchronous start or result poll.",
     "Before the first CLI command, call ghost_skill_loader to search the vector index using the task description.",
     "The loader searches vectors created only from Skill descriptions and returns at most ten candidate Skills.",

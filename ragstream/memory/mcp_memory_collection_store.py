@@ -14,6 +14,8 @@ Main classes:
 Main methods:
     initialize_collection():
         Creates one empty Collection with a stable Collection ID.
+    get_activebrief_context():
+        Returns persisted Collection guidance before ActiveBrief composition.
     append_episode():
         Appends one numbered episode and advances its permanent counter.
     delete_episode():
@@ -35,6 +37,11 @@ import threading
 from pathlib import Path
 from typing import Any
 
+from ragstream.memory.mcp_memory_collection_paths import (
+    COLLECTION_ARCHIVE_FOLDER,
+    collection_storage_folder,
+    normalize_collection_folder,
+)
 from ragstream.memory.mcp_memory_store import MAX_EPISODE_TITLE_LENGTH
 from ragstream.memory.memory_manager import MemoryManager
 from ragstream.memory.memory_record import MemoryRecord
@@ -114,6 +121,7 @@ class McpMemoryCollectionStore:
         owner_sub: str,
         collection_name: str,
         collection_description: str,
+        folder: str | None = None,
     ) -> dict[str, Any]:
         """Create one persistent Collection and its permanent number counter."""
         owner = self._validate_owner_sub(owner_sub)
@@ -127,6 +135,9 @@ class McpMemoryCollectionStore:
             "collection_description",
             trim=True,
         )
+        clean_folder = normalize_collection_folder(folder)
+        if clean_folder == COLLECTION_ARCHIVE_FOLDER:
+            raise ValueError("new Collections cannot be created directly in Archive")
 
         with self._lock:
             if self._collection_name_exists(owner, name):
@@ -141,7 +152,7 @@ class McpMemoryCollectionStore:
                 memory_description=description,
                 actors=[],
                 owner_sub=owner,
-                storage_folder=f"{owner}/collections",
+                storage_folder=collection_storage_folder(owner, clean_folder),
             )
             manager.metainfo["next_sequence_number"] = 1
 
@@ -162,8 +173,36 @@ class McpMemoryCollectionStore:
             "collection_name": str(result["title"]),
             "collection_description": str(result["memory_description"]),
             "created_at_utc": manager.created_at_utc,
+            "folder": clean_folder,
             "record_count": 0,
             "next_sequence_number": 1,
+        }
+
+    def get_activebrief_context(
+        self,
+        owner_sub: str,
+        *,
+        collection_id: str | None = None,
+        collection_name: str | None = None,
+    ) -> dict[str, Any]:
+        """Return persisted Collection guidance needed before ActiveBrief composition."""
+        owner = self._validate_owner_sub(owner_sub)
+        with self._lock:
+            collection = self._resolve_collection(
+                owner,
+                collection_id=collection_id,
+                collection_name=collection_name,
+            )
+            manager, _ = self._load_collection_manager(collection)
+            latest = self._latest_record(manager.records)
+
+        return {
+            "collection_id": manager.file_id,
+            "collection_name": manager.title,
+            "collection_description": manager.memory_description,
+            "previous_active_retrieval_brief": (
+                latest.active_retrieval_brief if latest is not None else ""
+            ),
         }
 
     def append_episode(
@@ -199,11 +238,9 @@ class McpMemoryCollectionStore:
         )
         exact_input = self._require_text(input_text, "input_text")
         exact_output = self._require_text(output_text, "output_text")
-        active_brief = self._require_text(
-            active_retrieval_brief,
-            "active_retrieval_brief",
-            trim=True,
-        )
+        if not isinstance(active_retrieval_brief, str):
+            raise ValueError("active_retrieval_brief must be a string.")
+        active_brief = active_retrieval_brief.strip()
 
         with self._lock:
             collection = self._resolve_collection(

@@ -1,15 +1,16 @@
 {
   "tool_description": [
-    "Initialize one persistent owner-scoped Collection Memory container. A Collection groups episodes intentionally saved around one fixed topic or purpose.",
-    "Provide a Collection Name and Collection Description or Purpose. GHOST creates a stable Collection ID and an empty Collection with its permanent episode-number counter starting at one.",
-    "Initialization does not append the current conversation automatically. Use ghost_memory_tag with memory_type collection later when the user explicitly asks to add an episode."
+    "Initialize one persistent owner-scoped Collection Memory container in Main or one ordinary Collection subfolder.",
+    "Provide a Collection Name and Collection Description or Purpose. If folder is omitted, GHOST creates the Collection in Main.",
+    "Initialization never creates directly in Archive and does not append the current conversation automatically."
   ],
   "server_instruction": [
-    "When the user explicitly asks to create or initialize Collection Memory, call ghost_memory_collection_init with the exact user-approved Collection Name and a clear Collection Description or Purpose.",
-    "After a successful call, report the returned stable Collection ID, Collection Name, and creation time. Do not claim that an episode was saved during initialization."
+    "When the user explicitly asks to create or initialize Collection Memory, call ghost_memory_collection_init with the exact user-approved Collection Name and a clear Collection Description or Purpose. Supply folder only when the user explicitly chose an ordinary Collection folder; otherwise omit it so Main is used.",
+    "Do not create a new Collection directly in Archive. After a successful call, report the returned stable Collection ID, Collection Name, folder, and creation time."
   ],
   "field_descriptions": {
     "collection_name": "The user-defined exact name of the new Collection within the authenticated owner's scope.",
-    "collection_description": "The fixed subject, purpose, or scope that the Collection will accumulate over time."
+    "collection_description": "The fixed subject, purpose, or scope that the Collection will accumulate over time.",
+    "folder": "Optional safe relative ordinary Collection folder. Omit it for Main. Archive is reserved and cannot be used for initialization."
   }
 }

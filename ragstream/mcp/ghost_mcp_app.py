@@ -69,6 +69,12 @@ from ragstream.mcp.ghost_memory_collection_init import (
     TOOL_NAME as COLLECTION_INIT_TOOL_NAME,
     tool_metadata as collection_init_tool_metadata,
 )
+from ragstream.mcp.ghost_memory_collection_manage import (
+    SERVER_INSTRUCTIONS as COLLECTION_MANAGE_SERVER_INSTRUCTIONS,
+    GhostMemoryCollectionManageTool,
+    TOOL_NAME as COLLECTION_MANAGE_TOOL_NAME,
+    tool_metadata as collection_manage_tool_metadata,
+)
 from ragstream.mcp.ghost_memory_delete import (
     SERVER_INSTRUCTIONS as MEMORY_DELETE_SERVER_INSTRUCTIONS,
     GhostMemoryDeleteTool,
@@ -122,6 +128,9 @@ from ragstream.mcp.mcp_skill_maker import (
     tool_metadata as skill_maker_tool_metadata,
 )
 from ragstream.memory.mcp_clipboard_store import McpClipboardStore
+from ragstream.memory.mcp_memory_collection_manager import (
+    McpMemoryCollectionManager,
+)
 from ragstream.memory.mcp_memory_collection_retriever import (
     McpMemoryCollectionRetriever,
 )
@@ -137,6 +146,8 @@ from ragstream.skills.skill_tags import SkillTagCatalog
 
 SERVER_INSTRUCTIONS = (
     COLLECTION_INIT_SERVER_INSTRUCTIONS
+    + " "
+    + COLLECTION_MANAGE_SERVER_INSTRUCTIONS
     + " "
     + MEMORY_SAVE_SERVER_INSTRUCTIONS
     + " "
@@ -170,6 +181,7 @@ GHOST_TOOL_NAMES = frozenset(
         PROMPT_SETTINGS_TOOL_NAME,
         MEMORY_TAG_TOOL_NAME,
         COLLECTION_INIT_TOOL_NAME,
+        COLLECTION_MANAGE_TOOL_NAME,
         MEMORY_RECALL_TOOL_NAME,
         MEMORY_LIST_TOOL_NAME,
         MEMORY_DELETE_TOOL_NAME,
@@ -197,6 +209,7 @@ class GhostMcpApplication:
         memory_store: McpMemoryStore | None = None,
         persistent_chat_store: McpPersistentChatStore | None = None,
         collection_store: McpMemoryCollectionStore | None = None,
+        collection_manager: McpMemoryCollectionManager | None = None,
         collection_retriever: (
             McpMemoryCollectionRetriever | None
         ) = None,
@@ -228,6 +241,12 @@ class GhostMcpApplication:
                 sqlite_path=memory_store.sqlite_path,
             )
 
+        if collection_manager is None:
+            collection_manager = McpMemoryCollectionManager(
+                memory_root=memory_store.memory_root,
+                sqlite_path=memory_store.sqlite_path,
+            )
+
         if collection_retriever is None:
             collection_retriever = McpMemoryCollectionRetriever(
                 memory_root=memory_store.memory_root,
@@ -251,6 +270,9 @@ class GhostMcpApplication:
             GhostMemoryCollectionInitTool(
                 collection_store
             )
+        )
+        self.collection_manage_tool = GhostMemoryCollectionManageTool(
+            collection_manager
         )
 
         self.memory_tag_tool = GhostMemoryTagTool(
@@ -308,6 +330,7 @@ class GhostMcpApplication:
             prompt_run_tool_metadata(self.required_scope),
             prompt_settings_tool_metadata(self.required_scope),
             collection_init_tool_metadata(self.required_scope),
+            collection_manage_tool_metadata(self.required_scope),
             memory_tag_tool_metadata(self.required_scope),
             memory_recall_tool_metadata(self.required_scope),
             memory_list_tool_metadata(self.required_scope),
@@ -370,6 +393,13 @@ class GhostMcpApplication:
 
         if name == COLLECTION_INIT_TOOL_NAME:
             result = self.collection_init_tool.call_sanitized(
+                owner_sub or "",
+                arguments,
+            )
+            return self._to_memory_mcp_result(result)
+
+        if name == COLLECTION_MANAGE_TOOL_NAME:
+            result = self.collection_manage_tool.call_sanitized(
                 owner_sub or "",
                 arguments,
             )
