@@ -1,0 +1,26 @@
+{
+  "tool_description": [
+    "Use dedicated GHOST Spotify tools for exact Spotify_Collection resolution and playback control. Resolve music only from Spotify_Collection and reuse exact resolved Spotify data when it is already available in the current task."
+  ],
+  "server_instruction": [
+    "SOURCE OF TRUTH: Resolve Spotify music only from the active GHOST Memory Collection Spotify_Collection with exact Collection ID d839053d0f1c456197de0c2246f01d30. Do not use another Collection, semantic Memory retrieval, generic RAG/vector retrieval, CLI search, repository inspection, public web search, Spotify web search, Skills, prompt tools, or invented Spotify URIs as fallback resolution sources.",
+    "RESOLVED PLAYBACK FORMAT: Always treat each resolved Spotify item as one pair {parent_uri, track_uri}. For PLAY, the legacy track_uri key may contain either a spotify:track: URI or a spotify:episode: URI. Preserve the user's composer, work, catalogue or opus number, performer or ensemble, movement, recording, and requested order. Keep both values even when the current action ultimately needs only track_uri.",
+    "REUSE FIRST: For PLAY or ADD QUEUE, if the exact requested music and its required {parent_uri, track_uri} data are already resolved in the current task context, reuse those exact values immediately. Do not list, recall, search, verify, or resolve them again.",
+    "COLLECTION RESOLUTION: If the required Spotify data are not already available, call ghost_memory_list once with list_mode collection_episodes and collection_id d839053d0f1c456197de0c2246f01d30. Inspect the returned Episode descriptions, select only the Episode or Episodes relevant to the request, and recall each selected Episode once by its exact record_id using ghost_memory_recall.",
+    "EXACT MATCHING: Resolve the requested item pairs only from the recalled Episode content. If the same exact requested recording and item URI appears more than once, use one matching stored parent deterministically. If materially different recordings remain plausible, ask one concise clarification. If the exact requested item cannot be resolved from Spotify_Collection, stop and report that it was not found in the Collection.",
+    "PLAY: Use the resolved pair for the requested starter item and call ghost_spotify_start with parent_uri and starter_track_uri=track_uri. For PLAY, track_uri may be either a spotify:track: URI or a spotify:episode: URI. After the tool result, stop.",
+    "ADD QUEUE: Resolve the complete requested sequence as ordered {parent_uri, track_uri} pairs. Preserve the user's requested order and musical movement order exactly. Project those pairs to the ordered track_uri list and call ghost_spotify_add_queue exactly once. Do not deduplicate, reorder, skip, or infer continuation unless the user explicitly requested it. After the tool result, stop.",
+    "PAUSE AND STOP: For an explicit Pause request, call ghost_spotify_pause directly. For an explicit Stop request, call ghost_spotify_stop directly.",
+    "RESULT DISCIPLINE: Report only the actual result returned by the Spotify action tool. Do not invent connectivity, playback, queue, or failure state. Do not perform redundant retrieval, verification, troubleshooting, or follow-up calls after the explicit action succeeds."
+  ],
+  "field_descriptions": {
+    "device_check_tool": "Check Spotify Connect readiness now and return the selected usable device. Use only when the user explicitly asks for Spotify connection, device, availability, or readiness status. It performs no music resolution and changes no playback state.",
+    "start_tool": "Start one exact Spotify track or episode inside one exact playlist or album context using the supplied parent_uri and starter_track_uri.",
+    "add_queue_tool": "Add the supplied exact Spotify track URIs to the current live queue in exactly the supplied order. It performs no music resolution.",
+    "pause_tool": "Pause Spotify playback on the current usable Connect device and start the configured silent keepalive. No input properties are required.",
+    "stop_tool": "Stop the GHOST Spotify session by pausing playback and cancelling GHOST background Spotify activity. No input properties are required.",
+    "parent_uri": "Exact Spotify playlist or album context URI retained together with the resolved playback item URI.",
+    "starter_track_uri": "Exact Spotify track or episode URI retained together with its parent URI and used as the playback start offset. The field name is retained for backward compatibility.",
+    "track_uris": "Complete ordered array of exact Spotify track URIs projected from the resolved {parent_uri, track_uri} pairs."
+  }
+}

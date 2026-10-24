@@ -1,7 +1,7 @@
 """Persist short-lived owner-scoped MCP Clipboard Memory.
 
-Clipboard Memory is a deterministic temporary slot mechanism. Slots M1 through
-M100 are append-only: saving another value to an occupied slot creates a new
+Clipboard Memory is a deterministic temporary slot mechanism. Slots with one or two
+ASCII letters followed by 1-10000 are append-only: saving another value to an occupied slot creates a new
 episode, while recall returns only the newest exact match. Clipboard histories
 use one shared GHOST ``.ragmem``/``.ragmeta.json`` pair per owner and UTC day.
 
@@ -18,7 +18,7 @@ Main classes:
 
 Main functions:
     is_clipboard_slot():
-        Identifies reserved M1-M100 slot names without accepting lookalikes.
+        Identifies reserved mnemonic slot names without accepting lookalikes.
     normalize_clipboard_slot():
         Validates and canonicalizes a slot to uppercase form.
 """
@@ -40,13 +40,13 @@ from ragstream.memory.storage.memory_file_manager import MemoryFileManager
 
 CLIPBOARD_MEMORY_TYPE = "clipboard"
 CLIPBOARD_SOURCE = "mcp_clipboard"
-CLIPBOARD_RETENTION_DAYS = 10
+CLIPBOARD_RETENTION_DAYS = 30
 DEFAULT_MEMORY_ROOT = Path("data/mcp/memory")
 
 _OWNER_SUB_PATTERN = re.compile(r"[A-Za-z0-9._-]+")
 _CLIPBOARD_SLOT_PATTERN = re.compile(
-    r"M(?:[1-9]|[1-9][0-9]|100)",
-    re.IGNORECASE,
+    r"[A-Z]{1,2}(?:[1-9][0-9]{0,3}|10000)",
+    re.IGNORECASE | re.ASCII,
 )
 
 
@@ -59,9 +59,12 @@ def is_clipboard_slot(value: object) -> bool:
 
 
 def normalize_clipboard_slot(value: str) -> str:
-    """Validate M1-M100 and return its canonical uppercase representation."""
+    """Validate a mnemonic slot and return its canonical uppercase representation."""
     if not is_clipboard_slot(value):
-        raise ValueError("clipboard_slot must be one of M1 through M100.")
+        raise ValueError(
+            "clipboard_slot must be one or two ASCII letters followed by "
+            "1-10000, without separators or leading zeroes."
+        )
     return value.strip().upper()
 
 

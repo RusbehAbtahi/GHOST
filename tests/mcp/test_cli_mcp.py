@@ -63,6 +63,8 @@ class RecordingCommandService:
         command: str | None = None,
         confirmation_id: str | None = None,
         confirmation_token: str | None = None,
+        task_description: str | None = None,
+        task_scope: str | None = None,
     ) -> CommandOutcome:
         self.calls.append(
             (
@@ -71,6 +73,7 @@ class RecordingCommandService:
                 command,
                 confirmation_id,
                 confirmation_token,
+                *((task_description, task_scope) if task_description is not None else ()),
             )
         )
         return self.sync_outcome
@@ -81,6 +84,8 @@ class RecordingCommandService:
         command: str | None = None,
         confirmation_id: str | None = None,
         confirmation_token: str | None = None,
+        task_description: str | None = None,
+        task_scope: str | None = None,
     ) -> CommandOutcome:
         self.calls.append(
             (
@@ -89,6 +94,7 @@ class RecordingCommandService:
                 command,
                 confirmation_id,
                 confirmation_token,
+                *((task_description, task_scope) if task_description is not None else ()),
             )
         )
         return self.async_outcome
@@ -468,3 +474,37 @@ def test_application_inventory_and_dispatch_include_both_cli_tools() -> None:
         "stdout": "async output",
         "job_id": "async-job",
     }
+
+
+def test_task_fields_reach_service_for_sync_and_async_start() -> None:
+    tool, service = _tool()
+    tool.run_sanitized(
+        "owner-1",
+        {"command": "pwd", "task_description": "Edit sources", "task_scope": "ragstream"},
+    )
+    tool.async_sanitized(
+        "owner-1",
+        {"action": "start", "command": "pwd", "task_description": "Edit tests"},
+    )
+    assert service.calls == [
+        ("run_sync", "owner-1", "pwd", None, None, "Edit sources", "ragstream"),
+        ("start_async", "owner-1", "pwd", None, None, "Edit tests", "."),
+    ]
+    assert "task_description" in RUN_INPUT_SCHEMA["properties"]
+    assert "task_scope" in ASYNC_INPUT_SCHEMA["properties"]
+
+
+def test_task_fields_are_rejected_on_confirmation_and_result() -> None:
+    tool, service = _tool()
+    invalid = tool.run_sanitized(
+        "owner-1",
+        {"confirmation_id": "id", "confirmation_token": "token",
+         "task_description": "Edit"},
+    )
+    result = tool.async_sanitized(
+        "owner-1",
+        {"action": "result", "job_id": "job", "task_description": "Edit"},
+    )
+    assert invalid.isError
+    assert result.isError
+    assert service.calls == []

@@ -118,17 +118,6 @@ def build_recall_schemas(
                 "default": RESULT_MODE_EPISODE,
             },
         },
-        "anyOf": [
-            {"required": ["recall_key"]},
-            {"required": ["record_id"]},
-            {"required": ["query_description"]},
-            {
-                "required": ["memory_type", "selection_mode"],
-                "properties": {
-                    "memory_type": {"const": COLLECTION_MEMORY_TYPE}
-                },
-            },
-        ],
         "additionalProperties": False,
     }
 

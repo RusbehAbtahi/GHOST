@@ -1,11 +1,13 @@
 {
   "tool_description": [
+    "MANDATORY CLI SKILL CHECK: Before the first CLI command of every new user CLI task, ALWAYS search CLI Skills with ghost_skill_loader. If relevant candidates are returned, load their complete SKILL.md instructions before executing any CLI command and use those instructions during execution. If no relevant Skill exists, continue normally. Never skip this check.",
     "Execute one owner-scoped shell command synchronously through the configured GHOST CLI backend.",
     "Bash/WSL is the default execution environment. Prefer Bash/WSL unless the user explicitly requests another shell or Bash/WSL genuinely cannot perform the required operation.",
     "The configured confirmation profile controls approvals: trusted_local confirms only commands classified as dangerous, while strict requires deterministic read-only classification.",
     "Before execution, load relevant GHOST CLI Skills. After the complete task, factual Layer-1 execution feedback or an explicit user instruction may justify zero to three Skill actions."
   ],
   "server_instruction": [
+    "HIGHEST-PRIORITY CLI INVARIANT: Before the first ghost_cli_run call for every new user CLI task, ALWAYS call ghost_skill_loader with skill_domain CLI and a query describing the complete task. If relevant candidates are returned, you MUST call ghost_skill_loader again with the selected exact skill_ids and read and use the complete SKILL.md instructions BEFORE executing any CLI command. Candidate metadata alone is not sufficient. If no returned candidate is relevant, execution may continue without a Skill. Never execute first and search Skills afterward.",
     "Distinguish explicit execution orders from explanations, future plans, expected next steps, or observations. Execute only operations the user clearly asks you to perform.",
     "Do not turn context about what may happen later into an additional CLI task. If an extra state-changing action is not clearly ordered, stop after the last explicit task.",
     "Before executing any command that modifies source code, configuration, tests, or repository files, first send the user one concise implementation-package description covering exactly what will be changed and ask for confirmation. Do not execute repository modifications before that confirmation.",
@@ -58,11 +60,14 @@
     "For each UPDATE_EXISTING_SKILL action, prepare one complete replacement Skill and call ghost_skill_make with the exact affected Skill IDs returned by ghost_skill_loader.",
     "Choose CREATE_NEW_SKILL only when reusable knowledge or an explicitly requested task-specific Skill is not represented by an appropriate loaded Skill.",
     "For each CREATE_NEW_SKILL action, prepare one complete Skill and call ghost_skill_make with an empty affected_skill_ids list.",
-    "Instructions provided as part of the original task may control Skill creation. Later user-feedback-driven Skill creation or updating remains outside the current implementation scope."
+    "Instructions provided as part of the original task may control Skill creation. Later user-feedback-driven Skill creation or updating remains outside the current implementation scope.",
+    "A task grant requires task_description with the initial command and optional task_scope; it activates only after that exact confirmation is replayed, expires with the confirmation TTL or MCP restart, and never exempts destructive, external, credential, system, or out-of-scope commands."
   ],
   "field_descriptions": {
     "command": "The exact shell command to execute. Use Bash/WSL syntax by default. Preserve its complete spelling, quoting, arguments, operators, and paths.",
     "confirmation_id": "The server-side pending-command identifier returned by confirmation_required. Supply it only with confirmation_token after explicit approval and omit command.",
-    "confirmation_token": "The short-lived secret returned with confirmation_id. Supply both after explicit approval, omit command, and never invent or reuse either value."
+    "confirmation_token": "The short-lived secret returned with confirmation_id. Supply both after explicit approval, omit command, and never invent or reuse either value.",
+    "task_description": "Optional explicit task flag: describe the authorized modification task. With command, it starts one confirmation that grants temporary owner-scoped authorization only after exact confirmation replay.",
+    "task_scope": "Optional path relative to the configured CLI working directory, default '.'. Ordinary writes under an active task grant are limited to this scope."
   }
 }

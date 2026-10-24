@@ -1,11 +1,13 @@
 {
   "tool_description": [
+    "MANDATORY CLI SKILL CHECK: Before ghost_cli_async action start for every new user CLI task, ALWAYS search CLI Skills with ghost_skill_loader. If relevant candidates are returned, load their complete SKILL.md instructions before starting any CLI command and use those instructions during execution. If no relevant Skill exists, continue normally. action result for an already-started job does not require a new Skill search.",
     "Start or retrieve one owner-scoped asynchronous shell command through the configured GHOST CLI backend.",
-    "GHOST CLI uses Bash/WSL as its default execution environment. The configured profile controls approvals: trusted_local confirms only dangerous commands, while strict requires deterministic read-only classification.",
+    "GHOST CLI uses Bash/WSL as its default execution environment. Without a task grant, only provably read-only commands run immediately; all other commands require exact confirmation.",
     "Use action start with command for work that may exceed the synchronous wait. Use action result with only the same durable job_id to retrieve the latest state without starting the command again.",
     "Before execution, load relevant GHOST CLI Skills. Evaluate zero to three Skill actions only once after the complete task reaches a terminal result."
   ],
   "server_instruction": [
+    "HIGHEST-PRIORITY CLI INVARIANT: Before the first ghost_cli_async action start for every new user CLI task, ALWAYS call ghost_skill_loader with skill_domain CLI and a query describing the complete task. If relevant candidates are returned, you MUST call ghost_skill_loader again with the selected exact skill_ids and read and use the complete SKILL.md instructions BEFORE starting the CLI command. Candidate metadata alone is not sufficient. If no returned candidate is relevant, execution may continue without a Skill. Do not repeat this check for action result polling of the same job. Never start execution first and search Skills afterward.",
     "Distinguish explicit execution orders from explanations, future plans, expected next steps, or observations. Execute only operations the user clearly asks you to perform.",
     "Do not turn context about what may happen later into an additional CLI task. If an extra state-changing action is not clearly ordered, stop after the last explicit task.",
     "Before executing any command that modifies source code, configuration, tests, or repository files, first send the user one concise implementation-package description covering exactly what will be changed and ask for confirmation. Do not execute repository modifications before that confirmation.",
@@ -66,13 +68,16 @@
     "Choose CREATE_NEW_SKILL only when reusable knowledge or an explicitly requested task-specific Skill is not represented by an appropriate loaded Skill.",
     "For each CREATE_NEW_SKILL action, prepare one complete Skill and call ghost_skill_make with an empty affected_skill_ids list.",
     "Instructions provided as part of the original task may control Skill creation. Later user-feedback-driven Skill creation or updating remains outside the current implementation scope.",
-    "Report status, exit_code, stdout, stderr, and truncated accurately. Do not claim success before status is succeeded."
+    "Report status, exit_code, stdout, stderr, and truncated accurately. Do not claim success before status is succeeded.",
+    "A task grant requires task_description with the initial command and optional task_scope; it activates only after that exact confirmation is replayed, expires with the confirmation TTL or MCP restart, and never exempts destructive, external, credential, system, or out-of-scope commands."
   ],
   "field_descriptions": {
     "action": "Use start to create one asynchronous job, or result to retrieve an existing job without starting another command.",
     "command": "Required only for action start. Use Bash/WSL syntax by default and preserve the exact command spelling, quoting, arguments, operators, and paths.",
     "job_id": "Required only for action result. Use the exact owner-scoped job identifier returned by ghost_cli_run or ghost_cli_async.",
     "confirmation_id": "Allowed only for action start after explicit approval. Use the pending-command identifier returned by confirmation_required together with confirmation_token, and omit command.",
-    "confirmation_token": "Allowed only with confirmation_id after explicit approval. Omit command and never invent or reuse either value."
+    "confirmation_token": "Allowed only with confirmation_id after explicit approval. Omit command and never invent or reuse either value.",
+    "task_description": "Optional explicit task flag: describe the authorized modification task. With command, it starts one confirmation that grants temporary owner-scoped authorization only after exact confirmation replay.",
+    "task_scope": "Optional path relative to the configured CLI working directory, default '.'. Ordinary writes under an active task grant are limited to this scope."
   }
 }

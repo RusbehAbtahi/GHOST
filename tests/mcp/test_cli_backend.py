@@ -252,7 +252,7 @@ def test_exact_confirmation_executes_the_stored_request(tmp_path: Path) -> None:
     assert output_path.read_text(encoding="utf-8") == "changed"
 
 
-def test_trusted_local_confirms_only_dangerous_commands(tmp_path: Path) -> None:
+def test_trusted_local_still_defaults_to_read_only(tmp_path: Path) -> None:
     service = CommandService(
         config=CommandConfig(
             backend="local",
@@ -266,12 +266,12 @@ def test_trusted_local_confirms_only_dangerous_commands(tmp_path: Path) -> None:
     normal = service.run_sync("owner-1", "mkdir ordinary-folder")
     dangerous = service.run_sync("owner-1", "rm -rf ordinary-folder")
 
-    assert normal.status == "succeeded"
+    assert normal.status == "confirmation_required"
     assert dangerous.status == "confirmation_required"
     assert dangerous.confirmation_id
 
 
-def test_auto_profile_uses_trusted_local_and_strict_ssm(tmp_path: Path) -> None:
+def test_auto_profile_uses_strict_for_local_and_ssm(tmp_path: Path) -> None:
     local = CommandConfig(working_directory=tmp_path)
     remote = CommandConfig(
         backend="ssm",
@@ -279,7 +279,7 @@ def test_auto_profile_uses_trusted_local_and_strict_ssm(tmp_path: Path) -> None:
         working_directory=tmp_path,
     )
 
-    assert local.confirmation_profile == "trusted_local"
+    assert local.confirmation_profile == "strict"
     assert remote.confirmation_profile == "strict"
 
 
@@ -391,3 +391,79 @@ def test_environment_selects_backend_without_code_changes(
     assert config.backend == "ssm"
     assert config.target_instance_id == "i-fixed"
     assert config.confirmation_profile == "strict"
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "sort -o result.txt input.txt",
+        "sort --output=result.txt input.txt",
+        "sort --compress-program=sh input.txt",
+        "tree -o result.txt",
+        "tree -oresult.txt",
+        "rg --pre=sh pattern .",
+        "rg --pre sh pattern .",
+        "git diff --output=diff.txt",
+        "git diff --ext-diff",
+    ],
+)
+def test_read_only_names_with_stateful_options_require_confirmation(command: str) -> None:
+    for profile in ("strict", "trusted_local"):
+        assert CommandPolicy().classify(command, profile).confirmation_required
+
+
+def test_confirmed_task_allows_only_simple_in_scope_writes(tmp_path: Path) -> None:
+    service = _local_service(tmp_path)
+    first = service.run_sync(
+        "owner-1",
+        "printf initial > source.txt",
+        task_description="Edit project files",
+        task_scope=".",
+    )
+    assert first.status == "confirmation_required"
+    assert not (tmp_path / "source.txt").exists()
+
+    confirmed = service.run_sync(
+        "owner-1",
+        confirmation_id=first.confirmation_id,
+        confirmation_token=first.confirmation_token,
+    )
+    assert confirmed.status == "succeeded"
+
+    ordinary = service.run_sync("owner-1", "printf next > in_scope.txt")
+    assert ordinary.status == "succeeded"
+    assert (tmp_path / "in_scope.txt").read_text() == "next"
+
+    assert service.run_sync("owner-2", "touch other.txt").confirmation_required
+    assert service.run_sync("owner-1", "touch /tmp/outside.txt").confirmation_required
+    assert service.run_sync("owner-1", "touch .env").confirmation_required
+    assert service.run_sync("owner-1", "printf x > data/mcp/memory/index.sqlite3").confirmation_required
+    assert service.run_sync("owner-1", "touch $HOME/escape").confirmation_required
+    assert service.run_sync("owner-1", "touch *.txt").confirmation_required
+    assert service.run_sync("owner-1", "rm in_scope.txt").confirmation_required
+    assert service.run_sync("owner-1", "git reset --hard").confirmation_required
+    assert service.run_sync("owner-1", "aws s3 rm s3://bucket/key").confirmation_required
+
+    restarted = _local_service(tmp_path)
+    assert restarted.run_sync("owner-1", "touch after_restart.txt").confirmation_required
+
+
+def test_task_grant_expires_and_rejects_scope_escape(tmp_path: Path) -> None:
+    service = _local_service(tmp_path)
+    with pytest.raises(ValueError, match="task_scope"):
+        service.run_sync(
+            "owner-1", "pwd", task_description="Edit", task_scope="../outside"
+        )
+    first = service.run_sync(
+        "owner-1", "pwd", task_description="Edit", task_scope="."
+    )
+    service.run_sync(
+        "owner-1",
+        confirmation_id=first.confirmation_id,
+        confirmation_token=first.confirmation_token,
+    )
+    from dataclasses import replace
+
+    current = service._active_tasks["owner-1"]
+    service._active_tasks["owner-1"] = replace(current, expires_at=0.0)
+    assert service.run_sync("owner-1", "touch expired.txt").confirmation_required

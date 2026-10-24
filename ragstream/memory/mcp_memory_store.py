@@ -60,8 +60,8 @@ MAX_EPISODE_TITLE_LENGTH = 120
 
 _OWNER_SUB_PATTERN = re.compile(r"[A-Za-z0-9._-]+")
 _CLIPBOARD_KEY_PATTERN = re.compile(
-    r"M(?:[1-9]|[1-9][0-9]|100)",
-    re.IGNORECASE,
+    r"[A-Z]{1,2}(?:[1-9][0-9]{0,3}|10000)",
+    re.IGNORECASE | re.ASCII,
 )
 _RECORD_PATTERN = re.compile(
     rf"{re.escape(RECORD_START)}\n(.*?)\n{re.escape(RECORD_END)}",
@@ -164,7 +164,8 @@ class McpMemoryStore:
         base_key = self._require_text(recall_key, "recall_key", trim=True)
         if _CLIPBOARD_KEY_PATTERN.fullmatch(base_key) is not None:
             raise ValueError(
-                "recall_key M1 through M100 is reserved for Clipboard Memory."
+                "recall_key with one or two ASCII letters followed by "
+                "1-10000 is reserved for Clipboard Memory."
             )
 
         title = self._require_text(episode_title, "episode_title", trim=True)
@@ -332,7 +333,7 @@ class McpMemoryStore:
         record_id: str | None = None,
         delete_all_matches: bool = False,
     ) -> dict[str, Any]:
-        """Delete a non-Clipboard episode and synchronize durable storage."""
+        """Delete only an Episodic episode and synchronize durable storage."""
         owner = self._validate_owner_sub(owner_sub)
         key = (
             self._require_text(
@@ -392,14 +393,14 @@ class McpMemoryStore:
                     JOIN memory_files AS mf
                       ON mf.file_id = mr.file_id
                     WHERE mf.owner_sub = ?
-                      AND mf.memory_type <> ?
+                      AND mf.memory_type = ?
                       AND {selector}
                     ORDER BY mr.created_at_utc DESC,
                              mr.record_id DESC
                     """,
                     [
                         owner,
-                        CLIPBOARD_MEMORY_TYPE,
+                        EPISODIC_MEMORY_TYPE,
                         selector_value,
                     ],
                 ).fetchall()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
 
 from pathlib import Path
 
@@ -226,3 +227,88 @@ def test_mcp_init_list_and_manage_contracts(collection_parts) -> None:
     assert restored.isError is False
     assert restored.structuredContent["folder"] == "Applications"
     assert MANAGE_TOOL_NAME == "ghost_memory_collection_manage"
+
+
+@pytest.mark.parametrize("reserved_key", ["M1", "O735", "P20", "CV1", "pr42", "MR500", "mm10000"])
+def test_collection_rejects_mnemonic_clipboard_keys(collection_parts, reserved_key: str) -> None:
+    _, store, _, browser, _ = collection_parts
+    collection = store.initialize_collection(OWNER, "Reserved keys", "description")
+    with pytest.raises(ValueError, match="reserved for Clipboard Memory"):
+        store.append_episode(
+            OWNER,
+            collection_id=collection["collection_id"],
+            recall_key=reserved_key,
+            episode_title="title",
+            episode_description="description",
+            input_text="question",
+            output_text="answer",
+            active_retrieval_brief="brief",
+        )
+    assert browser.list_collections(OWNER)[0]["record_count"] == 0
+
+
+def test_append_and_move_share_the_same_collection_lock(
+    collection_parts, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, store, manager, browser, _ = collection_parts
+    collection = store.initialize_collection(OWNER, "Serialized", "description")
+    collection_id = collection["collection_id"]
+    entered = threading.Event()
+    release = threading.Event()
+    moving = threading.Event()
+    moved = threading.Event()
+    errors: list[Exception] = []
+    original = store._load_collection_manager
+
+    def paused_load(row):
+        entered.set()
+        if not release.wait(2):
+            raise TimeoutError("append was not released")
+        return original(row)
+
+    monkeypatch.setattr(store, "_load_collection_manager", paused_load)
+
+    def append():
+        try:
+            _append(store, collection_id, "one")
+        except Exception as error:
+            errors.append(error)
+
+    def move():
+        try:
+            moving.set()
+            manager.move_collection(OWNER, collection_id, "Next")
+            moved.set()
+        except Exception as error:
+            errors.append(error)
+
+    writer = threading.Thread(target=append)
+    mover = threading.Thread(target=move)
+    writer.start()
+    assert entered.wait(2)
+    mover.start()
+    assert moving.wait(2)
+    assert not moved.wait(0.1)
+    release.set()
+    writer.join(2)
+    mover.join(2)
+    assert not writer.is_alive()
+    assert not mover.is_alive()
+    assert errors == []
+    assert moved.is_set()
+    assert browser.list_collections(OWNER, "Next")[0]["record_count"] == 1
+
+
+def test_collection_lock_registry_is_shared_per_identity(collection_parts) -> None:
+    _, store, manager, _, _ = collection_parts
+    from ragstream.memory.mcp_memory_collection_store import collection_operation_lock
+
+    first = store.initialize_collection(OWNER, "First", "description")
+    second = store.initialize_collection(OWNER, "Second", "description")
+    shared = collection_operation_lock(store.sqlite_path, OWNER, first["collection_id"])
+    assert shared is collection_operation_lock(
+        manager.sqlite_path, OWNER, first["collection_id"]
+    )
+    assert shared is not collection_operation_lock(
+        store.sqlite_path, OWNER, second["collection_id"]
+    )

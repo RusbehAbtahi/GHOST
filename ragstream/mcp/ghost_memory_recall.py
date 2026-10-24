@@ -305,13 +305,14 @@ class GhostMemoryRecallTool:
         recall_key: str | None,
         result_mode: str,
     ) -> GhostToolResult:
-        """Return only the newest non-expired pair in one M1-M100 slot."""
+        """Return only the newest non-expired pair in one mnemonic Clipboard slot."""
         if (
             not isinstance(recall_key, str)
             or not is_clipboard_slot(recall_key)
         ):
             return self._failure(
-                "Clipboard Memory requires recall_key M1 through M100",
+                "Clipboard Memory requires recall_key with one or two ASCII "
+                "letters followed by 1-10000, without separators or leading zeroes",
                 RETRIEVAL_CLIPBOARD,
                 RESULT_MODE_EPISODE,
             )

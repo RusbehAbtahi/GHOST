@@ -58,11 +58,19 @@ def capture_memory_pair(
         embedded_files_snapshot=embedded_files_snapshot or [],
     )
 
+    warning = str(getattr(memory_manager, "last_capture_warning", "") or "").strip()
+    message = f"Memory record saved: {record.record_id}"
+    if warning:
+        message = f"{message}. Warning: {warning}"
+
     logger(
         f"Memory record saved: {record.record_id}",
         "INFO",
         "PUBLIC",
     )
+
+    if warning:
+        logger(warning, "WARN", "PUBLIC")
 
     logger(
         (
@@ -87,7 +95,8 @@ def capture_memory_pair(
 
     return {
         "success": True,
-        "message": f"Memory record saved: {record.record_id}",
+        "message": message,
+        "warning": warning,
         "record": record,
         "record_id": record.record_id,
         "file_id": memory_manager.file_id,

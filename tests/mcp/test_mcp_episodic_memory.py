@@ -27,7 +27,10 @@ from ragstream.mcp.ghost_memory_recall import (
     WORKFLOW_SELECTION_REQUIRED,
     GhostMemoryRecallTool,
 )
-from ragstream.mcp.ghost_memory_tag import GhostMemoryTagTool
+from ragstream.mcp.ghost_memory_tag import (
+    GhostMemoryTagTool,
+    tool_metadata as save_tool_metadata,
+)
 from ragstream.mcp.memory_tool_instructions import (
     load_memory_tool_instructions,
 )
@@ -273,7 +276,7 @@ def test_duplicate_recall_key_receives_deterministic_suffix(
     assert third.direct_recall_key == "project-alpha_2"
 
 
-@pytest.mark.parametrize("reserved_key", ["M1", "m50", "M100"])
+@pytest.mark.parametrize("reserved_key", ["M1", "O735", "P20", "CV1", "pr42", "MR500", "mm10000"])
 def test_clipboard_keys_are_reserved_for_future_clipboard_memory(
     store: McpMemoryStore,
     reserved_key: str,
@@ -407,6 +410,24 @@ def test_save_tool_returns_effective_key_and_complete_state(
     assert first.structuredContent["recall_key"] == "design"
     assert second.structuredContent["requested_recall_key"] == "design"
     assert second.structuredContent["recall_key"] == "design_1"
+
+
+def test_save_tool_metadata_uses_flat_input_schema() -> None:
+    schema = save_tool_metadata()["inputSchema"]
+
+    assert schema["required"] == ["input_text", "output_text"]
+    assert schema["additionalProperties"] is False
+    assert {
+        "memory_type",
+        "recall_key",
+        "episode_title",
+        "episode_description",
+        "input_text",
+        "output_text",
+    }.issubset(schema["properties"])
+    assert "oneOf" not in schema
+    assert "anyOf" not in schema
+    assert "not" not in schema
 
 
 def test_recall_tool_runs_semantic_selection_then_exact_fetch(
@@ -595,3 +616,58 @@ def test_description_vector_adapter_embeds_upserts_and_normalizes_cosine(
             "cosine_similarity": 0.8,
         }
     ]
+
+def test_generic_deletion_is_limited_to_episodic_memory(store: McpMemoryStore) -> None:
+    from ragstream.memory.mcp_memory_collection_store import McpMemoryCollectionStore
+    from ragstream.memory.mcp_persistent_chat_store import McpPersistentChatStore
+
+    owner = "owner-1"
+    collection_store = McpMemoryCollectionStore(store.memory_root, store.sqlite_path)
+    collection = collection_store.initialize_collection(owner, "Protected", "description")
+    episode = collection_store.append_episode(
+        owner,
+        collection_id=collection["collection_id"],
+        recall_key="protected-key",
+        episode_title="One",
+        episode_description="description",
+        input_text="question",
+        output_text="answer",
+        active_retrieval_brief="brief",
+    )
+    chat_store = McpPersistentChatStore(store.memory_root, store.sqlite_path)
+    chat = chat_store.initialize_chat(owner, "Protected chat")
+    chat_episode = chat_store.append_episode(
+        owner, chat["file_id"], "question", "answer", "brief"
+    )
+
+    with sqlite3.connect(store.sqlite_path) as connection:
+        paths = connection.execute(
+            "SELECT filename_ragmem, filename_meta FROM memory_files "
+            "WHERE file_id IN (?, ?)",
+            [collection["collection_id"], chat["file_id"]],
+        ).fetchall()
+    protected_files = [
+        store.files_root / filename
+        for ragmem, meta in paths
+        for filename in (ragmem, meta)
+    ]
+    originals = {path: path.read_bytes() for path in protected_files}
+
+    for identifier in (episode["record_id"], chat_episode["record_id"]):
+        assert store.delete_memory(owner, record_id=identifier)["deleted"] is False
+    assert store.delete_memory(
+        owner, recall_key="protected-key", delete_all_matches=True
+    )["deleted"] is False
+    with sqlite3.connect(store.sqlite_path) as connection:
+        rows = connection.execute(
+            "SELECT file_id, memory_type FROM memory_files WHERE file_id IN (?, ?)",
+            [collection["collection_id"], chat["file_id"]],
+        ).fetchall()
+    assert {row[1] for row in rows} == {"collection", "persistent_chat"}
+    assert {path: path.read_bytes() for path in protected_files} == originals
+
+    ordinary = _save(store, recall_key="episodic-only")
+    assert store.delete_memory(owner, record_id=ordinary.record_id)["deleted"] is True
+    assert collection_store.delete_episode(
+        owner, record_id=episode["record_id"]
+    )["deleted"] is True

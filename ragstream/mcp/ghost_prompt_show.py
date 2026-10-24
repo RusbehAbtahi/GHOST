@@ -134,11 +134,6 @@ INPUT_SCHEMA = {
             ],
         },
     },
-    "anyOf": [
-        {"required": ["prompt_text"]},
-        {"required": ["prompt"]},
-        {"required": ["build_id"]},
-    ],
     "additionalProperties": False,
 }
 

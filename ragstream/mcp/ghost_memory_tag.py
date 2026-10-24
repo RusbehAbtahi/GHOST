@@ -54,7 +54,7 @@ _SUPPORTED_MEMORY_TYPES = {
     COLLECTION_MEMORY_TYPE,
 }
 
-_CLIPBOARD_SLOT_PATTERN = "^[Mm](?:[1-9]|[1-9][0-9]|100)$"
+_CLIPBOARD_SLOT_PATTERN = r"^[A-Za-z]{1,2}(?:[1-9][0-9]{0,3}|10000)$"
 
 _INSTRUCTIONS = load_memory_tool_instructions("custom_memory_save.json")
 TOOL_DESCRIPTION = _INSTRUCTIONS.tool_description
@@ -123,59 +123,9 @@ INPUT_SCHEMA = {
         },
     },
     "required": ["input_text", "output_text"],
-    "oneOf": [
-        {
-            "properties": {
-                "memory_type": {"const": COLLECTION_MEMORY_TYPE},
-            },
-            "required": [
-                "memory_type",
-                "episode_title",
-                "episode_description",
-            ],
-            "oneOf": [
-                {
-                    "required": ["collection_id"],
-                    "not": {"required": ["collection_name"]},
-                },
-                {
-                    "required": ["collection_name"],
-                    "not": {"required": ["collection_id"]},
-                },
-            ],
-        },
-        {
-            "properties": {
-                "memory_type": {"const": CLIPBOARD_MEMORY_TYPE},
-                "recall_key": {"pattern": _CLIPBOARD_SLOT_PATTERN},
-            },
-            "required": ["recall_key"],
-            "not": {
-                "anyOf": [
-                    {"required": ["collection_id"]},
-                    {"required": ["collection_name"]},
-                    {"required": ["episode_title"]},
-                    {"required": ["episode_description"]},
-                    {"required": ["active_retrieval_brief"]},
-                ]
-            },
-        },
-        {
-            "properties": {
-                "memory_type": {"const": EPISODIC_MEMORY_TYPE},
-                "recall_key": {
-                    "not": {"pattern": _CLIPBOARD_SLOT_PATTERN}
-                },
-            },
-            "required": [
-                "recall_key",
-                "episode_title",
-                "episode_description",
-            ],
-        },
-    ],
     "additionalProperties": False,
 }
+
 
 OUTPUT_SCHEMA = {
     "type": "object",
@@ -323,13 +273,14 @@ class GhostMemoryTagTool:
         arguments: Mapping[str, Any],
         recall_key: str | bool | None,
     ) -> GhostToolResult:
-        """Append one exact visible Q/A pair to a reserved M1-M100 slot."""
+        """Append one exact visible Q/A pair to a reserved mnemonic Clipboard slot."""
         if (
             not isinstance(recall_key, str)
             or not is_clipboard_slot(recall_key)
         ):
             return self._failure(
-                "Clipboard Memory requires recall_key M1 through M100",
+                "Clipboard Memory requires recall_key with one or two ASCII "
+                "letters followed by 1-10000, without separators or leading zeroes",
                 memory_type=CLIPBOARD_MEMORY_TYPE,
             )
 

@@ -3,157 +3,153 @@
     "options": [
       {
         "id": "self_default_senior_engineer",
-        "label": "Self – default senior engineer",
-        "description": "Default audience profile for the user: senior engineering background, strong math, MATLAB, Python, AWS, RAG, and architecture context."
+        "label": "Self – senior multidisciplinary professional",
+        "description": "Default audience for the user: senior engineering, software, AI, architecture, mathematics, and systems background. Be direct and sophisticated without unnecessary beginner-level explanation."
       },
       {
         "id": "self_learning_new_stack",
-        "label": "Self – learning a new stack",
-        "description": "Audience mode for slower explanation while learning an unfamiliar stack, service, library, or technical area."
+        "label": "Self – learning mode",
+        "description": "Use when the user is learning an unfamiliar stack, service, library, domain, or concept and benefits from clear foundations and progressive explanation."
       },
       {
         "id": "self_quick_answer_mode",
-        "label": "Self – quick answer mode",
-        "description": "Audience mode for short, high-signal answers with minimal explanation."
+        "label": "Self – quick answer",
+        "description": "Use for short, high-signal answers with minimal explanation and no unnecessary side material."
       },
       {
         "id": "self_job_pitch_mode",
-        "label": "Self – job pitch mode",
-        "description": "Audience mode for recruiter, hiring-manager, CV, interview, salary, or professional positioning content."
+        "label": "Self – career / job positioning",
+        "description": "Use for recruiter, hiring-manager, CV, interview, salary, application, or professional-positioning content."
       },
       {
         "id": "self_brainstorming_mode",
-        "label": "Self – brainstorming mode",
-        "description": "Audience mode for exploratory thinking, alternatives, ideas, options, or creative strategy."
+        "label": "Self – brainstorming",
+        "description": "Use for exploratory thinking, alternatives, ideas, naming, strategy options, and creative search."
       },
       {
         "id": "self_debugging_mode",
-        "label": "Self – debugging mode",
-        "description": "Audience mode for concrete troubleshooting, logs, symptoms, failing code, and minimal theory."
+        "label": "Self – debugging",
+        "description": "Use for concrete troubleshooting of logs, symptoms, failing code, configuration, or system behavior with minimal unrelated theory."
       }
     ],
     "default": "self_default_senior_engineer"
   },
-
   "tone": {
     "options": [
       {
         "id": "balanced",
         "label": "Balanced",
-        "description": "Moderate tone with both analysis and human readability."
+        "description": "Measured and neutral, combining analysis with readable prose without becoming overly terse or overly expansive."
       },
       {
         "id": "analytical_ti",
-        "label": "Analytical (Ti – introverted thinking)",
-        "description": "Logic-focused tone emphasizing structure, consistency, and precise distinctions."
+        "label": "Analytical",
+        "description": "Logic-first, precise, and structured; distinguish assumptions, evidence, implications, and conceptual differences."
       },
       {
         "id": "direct_te_si",
-        "label": "Direct (Te/Si – extraverted thinking + introverted sensing)",
-        "description": "Practical, result-focused tone grounded in concrete facts and prior evidence."
+        "label": "Direct",
+        "description": "Straight to the result with concrete facts, actions, and conclusions; minimize hedging, padding, and repetition."
       },
       {
         "id": "encouraging_ne_fe",
-        "label": "Encouraging (Ne/Fe – extraverted intuition + extraverted feeling)",
-        "description": "Supportive tone emphasizing possibilities, motivation, and constructive framing."
+        "label": "Encouraging",
+        "description": "Supportive and constructive without exaggeration; emphasize practical possibilities and useful next steps."
       },
       {
         "id": "critical_constructive_ti_te_se",
-        "label": "Critical-Constructive (Ti/Te/Se)",
-        "description": "Sharp technical judgement with concrete reality-checking and practical improvement."
+        "label": "Critical-Constructive",
+        "description": "Rigorous judgement: identify concrete weaknesses, explain why they matter, and propose specific improvements."
       },
       {
         "id": "visionary_ni_ne",
-        "label": "Visionary (Ni/Ne – introverted + extraverted intuition)",
-        "description": "Pattern-oriented tone focused on implications, future paths, and conceptual alternatives."
+        "label": "Exploratory",
+        "description": "Explore patterns, implications, future paths, alternatives, and conceptual connections without presenting speculation as fact."
       },
       {
         "id": "concise_si_te",
-        "label": "Concise (Si/Te – introverted sensing + extraverted thinking)",
-        "description": "Short, structured, information-dense tone with minimal redundancy."
+        "label": "Concise",
+        "description": "Short, high-signal, and structured; keep essential content and remove secondary detail and redundancy."
       },
       {
         "id": "empathetic_fe_fi",
-        "label": "Empathetic (Fe/Fi – extraverted + introverted feeling)",
-        "description": "Emotion-aware tone focused on values, sensitivity, and reduced interpersonal friction."
+        "label": "Empathetic",
+        "description": "Emotion-aware and respectful, sensitive to personal context while remaining clear and substantive."
       },
       {
         "id": "formal_te_si",
-        "label": "Formal (Te/Si – extraverted thinking + introverted sensing)",
-        "description": "Professional, polite, structured tone suitable for official communication."
+        "label": "Formal",
+        "description": "Professional, polished, precise, and suitable for official, legal, business, or application communication."
       }
     ],
     "default": "critical_constructive_ti_te_se"
   },
-
   "depth": {
     "options": [
       {
         "id": "none",
         "label": "No explicit depth",
-        "description": "No explicit depth shaping."
+        "description": "Do not impose a depth preference; let the task and other instructions determine the amount of explanation."
       },
       {
         "id": "overview",
         "label": "Overview",
-        "description": "High-level depth with only the main points."
+        "description": "Give the main conclusion and essential context only; avoid edge cases and deep derivations unless required."
       },
       {
         "id": "detailed",
         "label": "Detailed",
-        "description": "Normal working depth with structured technical explanation."
+        "description": "Default working depth: explain important reasoning, context, trade-offs, and practical implications without exhaustive coverage."
       },
       {
         "id": "exhaustive",
         "label": "Exhaustive",
-        "description": "Maximum audit depth with edge cases, alternatives, missing links, and stronger evidence discipline."
+        "description": "Deep review: inspect assumptions, edge cases, alternatives, missing links, and evidence, maximizing useful coverage within practical limits."
       }
     ],
     "default": "detailed"
   },
-
   "confidence": {
     "options": [
       {
         "id": "none",
-        "label": "No explicit confidence",
-        "description": "No explicit confidence shaping."
+        "label": "No selection confidence",
+        "description": "Do not add an explicit confidence signal for the selected meta-configuration."
       },
       {
         "id": "low",
-        "label": "Low",
-        "description": "Cautious confidence with frequent uncertainty marking."
+        "label": "Low selection confidence",
+        "description": "The selector has weak evidence for the chosen meta-settings; this does not describe factual certainty of the final answer."
       },
       {
         "id": "medium",
-        "label": "Medium",
-        "description": "Balanced confidence with uncertainty marked when needed."
+        "label": "Medium selection confidence",
+        "description": "The selector has reasonable but not decisive evidence for the chosen meta-settings; this is not factual-answer confidence."
       },
       {
         "id": "high",
-        "label": "High",
-        "description": "Clear and decisive confidence when selector conditions are strong."
+        "label": "High selection confidence",
+        "description": "The selector has strong evidence for the chosen meta-settings; this does not imply that the final answer itself is factually certain."
       }
     ],
     "default": "high"
   },
-
   "evidence_policy": {
     "options": [
       {
         "id": "normal",
         "label": "Normal evidence handling",
-        "description": "Ordinary evidence mode."
+        "description": "Use ordinary evidence handling appropriate to the task; no special local-history or external-verification requirement is imposed."
       },
       {
         "id": "local_context_first",
         "label": "Local/project/history context first",
-        "description": "Project, file, memory, history, code, requirement, or architecture context is primary."
+        "description": "Prioritize the supplied project, files, memory, history, code, requirements, and architecture before generic knowledge."
       },
       {
         "id": "strict_history_and_online_fact_check",
         "label": "Strict history + online fact-check",
-        "description": "Strongest grounding mode for explicit non-generic, fact-checking, verification, or external/current facts."
+        "description": "Use the strongest grounding mode when current, external, non-generic, or explicitly verified facts are required, while respecting relevant local history and project evidence."
       }
     ],
     "default": "normal"

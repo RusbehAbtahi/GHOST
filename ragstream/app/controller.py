@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from ragstream.orchestration.super_prompt import SuperPrompt
+from ragstream.orchestration.superprompt_projector import SuperPromptProjector
 from ragstream.preprocessing.prompt_schema import PromptSchema
 from ragstream.preprocessing.preprocessing import preprocess
 from ragstream.preprocessing.activebrief_relation_classifier import ActiveBriefRelationClassifier
@@ -120,25 +121,53 @@ class AppController:
         # Heavy components are created later in initialize_heavy_components().
         self.retriever: Retriever | None = None
         self.reranker: Reranker | None = None
+        self.heavy_initialization_error: str = ""
 
         # MemoryRetriever is configured by ui_streamlit.py after memory objects exist.
         self.memory_retriever: MemoryRetriever | None = None
 
+    @property
+    def heavy_components_ready(self) -> bool:
+        """Return True only when both heavy document components are usable."""
+        return self.retriever is not None and self.reranker is not None
+
     def initialize_heavy_components(self) -> None:
         """
-        Heavy initialization only.
+        Initialize document Retrieval and ReRanker atomically.
 
-        - Creates the document Retrieval stage object.
-        - Creates the document ReRanker stage object.
+        Until both objects are ready, the controller remains in the not-ready
+        state so GUI controls can stay disabled instead of racing startup.
         """
+        self.heavy_initialization_error = ""
 
-        self.retriever = Retriever(
-            doc_root=str(self.doc_root),
-            chroma_root=str(self.chroma_root),
-            runtime_config=self.runtime_config,
-        )
+        try:
+            retriever = Retriever(
+                doc_root=str(self.doc_root),
+                chroma_root=str(self.chroma_root),
+                runtime_config=self.runtime_config,
+            )
+            reranker = Reranker()
+        except Exception as error:
+            self.retriever = None
+            self.reranker = None
+            self.heavy_initialization_error = (
+                f"{type(error).__name__}: {error}"
+            )
+            logger(
+                f"Heavy component initialization failed: {self.heavy_initialization_error}",
+                "ERROR",
+                "PUBLIC",
+            )
+            logger_dev(
+                f"Heavy component initialization exception: {self.heavy_initialization_error}",
+                "ERROR",
+                "CONFIDENTIAL",
+            )
+            return
 
-        self.reranker = Reranker()
+        self.retriever = retriever
+        self.reranker = reranker
+        logger("Retrieval and ReRanker initialization completed.", "INFO", "INTERNAL")
 
     def configure_memory_retrieval(
         self,
@@ -207,6 +236,11 @@ class AppController:
             raw_user_text=text,
         )
 
+        # The relation classifier is authoritative for retrieval routing.
+        # Rebuild after classification so the query cannot retain the stale
+        # pre-classification ActiveBrief policy.
+        sp.effective_retrieval_query_text = SuperPromptProjector.build_query_text(sp)
+
         sp.compose_prompt_ready()
 
         logger("PreProcessing completed.", "INFO", "PUBLIC")
@@ -218,16 +252,67 @@ class AppController:
         *,
         use_llm: bool = True,
     ) -> SuperPrompt:
-        """Run A2 on the current SuperPrompt."""
+        """Run A2, or bypass it completely when Prompt Shaping is off."""
+        if not use_llm:
+            logger("A2 PromptShaper bypassed: Prompt Shaping is off.", "INFO", "INTERNAL")
+            return sp
+
         return self.a2_promptshaper.run(
             sp,
-            use_llm=bool(use_llm),
+            use_llm=True,
         )
 
+    @staticmethod
+    def _should_bypass_enrichment(sp: SuperPrompt) -> bool:
+        extras = getattr(sp, "extras", {}) or {}
+        materiality = str(
+            extras.get("activebrief_prompt_materiality", "") or ""
+        ).strip().upper()
+        topic_relation = str(
+            extras.get("activebrief_topic_relation", "") or ""
+        ).strip().upper()
+        return materiality == "WEAK" and topic_relation == "IRRELEVANT"
+
+    @staticmethod
+    def _clear_enrichment_artifacts(sp: SuperPrompt) -> None:
+        """Remove retrieval/memory artifacts from a bypassed SuperPrompt."""
+        sp.effective_retrieval_query_text = ""
+        sp.base_context_chunks = []
+        sp.views_by_stage = {}
+        sp.final_selection_ids = []
+        sp.memory_context_pack = None
+        sp.memory_context_text = ""
+        sp.active_memory_brief_title = ""
+        sp.active_memory_brief = ""
+        sp.S_CTX_MD = ""
+
+        extras = getattr(sp, "extras", {}) or {}
+        for key in (
+            "memory_context_pack",
+            "memory_context_text",
+            "memory_debug_markdown",
+            "memory_retrieval_counts",
+            "active_memory_brief_title",
+            "active_memory_brief",
+            "a3_ready_source",
+            "a3_ready_candidate_count",
+            "reranked_is_passthrough",
+        ):
+            extras.pop(key, None)
+
+        for key in list(extras):
+            if key.startswith("a3_") or key.startswith("a4_"):
+                extras.pop(key, None)
+
+        sp.compose_prompt_ready()
+
     def run_a3(self, sp: SuperPrompt) -> SuperPrompt:
-        """
-        Run A3 on the current SuperPrompt.
-        """
+        """Run A3 unless enrichment is bypassed for WEAK + IRRELEVANT."""
+        if self._should_bypass_enrichment(sp):
+            self._clear_enrichment_artifacts(sp)
+            logger("A3 bypassed for WEAK + IRRELEVANT prompt.", "INFO", "INTERNAL")
+            return sp
+
         return self.a3_nli_gate.run(sp)
 
     def run_a4(
@@ -236,9 +321,12 @@ class AppController:
         *,
         effective_output_token_limit: int | None = None,
     ) -> SuperPrompt:
-        """
-        Run A4 on the current SuperPrompt.
-        """
+        """Run A4 unless enrichment is bypassed for WEAK + IRRELEVANT."""
+        if self._should_bypass_enrichment(sp):
+            self._clear_enrichment_artifacts(sp)
+            logger("A4 bypassed for WEAK + IRRELEVANT prompt.", "INFO", "INTERNAL")
+            return sp
+
         return self.a4_condenser.run(
             sp,
             effective_output_token_limit=effective_output_token_limit,
@@ -307,6 +395,11 @@ class AppController:
         - A4
         - MemoryMerge
         """
+        if self._should_bypass_enrichment(sp):
+            self._clear_enrichment_artifacts(sp)
+            logger("Retrieval bypassed for WEAK + IRRELEVANT prompt.", "INFO", "INTERNAL")
+            return sp
+
         if self.retriever is None:
             raise RuntimeError("Document Retriever is not initialized yet.")
 
@@ -350,6 +443,11 @@ class AppController:
         ReRanker currently operates only on document retrieval results.
         Memory candidates remain separately stored in SuperPrompt.
         """
+        if self._should_bypass_enrichment(sp):
+            self._clear_enrichment_artifacts(sp)
+            logger("ReRanker bypassed for WEAK + IRRELEVANT prompt.", "INFO", "INTERNAL")
+            return sp
+
         if self.reranker is None:
             raise RuntimeError("ReRanker is not initialized yet.")
 

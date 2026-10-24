@@ -1,10 +1,13 @@
 {
   "tool_description": [
+    "MANDATORY PRE-EXECUTION ROLE FOR CLI: Every new CLI task must search CLI Skills before ghost_cli_run or ghost_cli_async action start. If relevant candidates exist, their complete SKILL.md instructions must be loaded before CLI execution.",
     "Discover and load reusable owner-scoped GHOST Skills from the explicitly selected CLI or GENERAL domain.",
     "Use query for SQLite tag filtering followed by description-vector retrieval. GHOST returns at most ten ACTIVE candidates from that domain.",
     "After selecting relevant candidates, call the same tool with the same domain and exact skill_ids to load their complete SKILL.md instructions."
   ],
   "server_instruction": [
+    "HIGHEST-PRIORITY CLI SKILL RULE: For every new CLI task, BEFORE any ghost_cli_run call or ghost_cli_async action start, ALWAYS search with ghost_skill_loader using skill_domain CLI and a query describing the complete task. If relevant candidates are returned, select only the relevant candidates and MUST load their complete SKILL.md instructions with a second ghost_skill_loader call before any CLI execution. Candidate metadata is never sufficient guidance. If no returned candidate is relevant, continue without a Skill. Never skip this check, never execute first, and never substitute memory, web search, generic CLI investigation, or source inspection for the required Skill lookup.",
+    "For every GHOST task, identify the dedicated tool path and also search the relevant Skill domain before execution. If relevant Skill candidates are returned, load the relevant complete SKILL.md instructions and use them before improvising with other tools, web search, generic CLI investigation, or source inspection. If no relevant Skill candidate is found, continue with the dedicated tool path without forcing a Skill match.",
     "Set skill_domain to exactly CLI or GENERAL. CLI and GENERAL use the same retrieval mechanism but separate artifacts and Skill Memory.",
     "For a CLI task, search and load CLI Skills before execution. Loaded CLI Skills guide the MCP CLI task directly.",
     "If no include_tags or exclude_tags are supplied, all ACTIVE Skills are eligible.",

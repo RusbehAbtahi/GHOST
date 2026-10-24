@@ -94,9 +94,27 @@ class MemoryRetriever:
 
         The method mutates and returns the same SuperPrompt object.
         """
+        # A reused SuperPrompt must never retain a previous retrieval result if
+        # the current attempt is skipped or fails.
+        self._clear_superprompt_memory_results(sp)
+
         if self.config.get("enabled", True) is False:
             logger("Memory Retrieval skipped: disabled in runtime_config.", "INFO", "INTERNAL")
             return sp
+
+        extras = getattr(sp, "extras", {}) or {}
+        decision = extras.get("activebrief_relation_decision", {}) or {}
+        if isinstance(decision, dict) and decision.get("allow_memory_context") is False:
+            logger(
+                "Memory Retrieval skipped: ActiveBrief relation policy disables memory context.",
+                "INFO",
+                "INTERNAL",
+            )
+            return self._write_empty_pack(
+                sp,
+                reason="memory_context_disabled_by_activebrief_policy",
+                include_active_brief=False,
+            )
 
         active_file_id = str(getattr(self.memory_manager, "file_id", "") or "").strip()
         if not active_file_id:
@@ -431,7 +449,13 @@ class MemoryRetriever:
 
         query_embedding = self._embed_query(query_text, embedder)
 
-        where = {"file_id": active_file_id} if active_file_id else None
+        if not active_file_id:
+            raise RuntimeError(
+                "Memory vector search aborted: active history has no file_id, "
+                "so isolation cannot be enforced."
+            )
+
+        where = {"file_id": active_file_id}
 
         try:
             result = collection.query(
@@ -441,16 +465,11 @@ class MemoryRetriever:
                 include=["documents", "metadatas", "distances"],
             )
         except Exception as first_error:
-            logger(
-                f"Memory vector search with file_id filter failed; retrying without filter: {first_error}",
-                "WARN",
-                "INTERNAL",
-            )
-            result = collection.query(
-                query_embeddings=[query_embedding],
-                n_results=int(n_results),
-                include=["documents", "metadatas", "distances"],
-            )
+            error_detail = f"{type(first_error).__name__}: {first_error}"
+            raise RuntimeError(
+                "Memory vector search aborted because the file_id isolation filter "
+                f"could not be enforced for active history {active_file_id}: {error_detail}"
+            ) from first_error
 
         raw_hits = self._normalize_chroma_query_result(result)
 
@@ -775,17 +794,47 @@ class MemoryRetriever:
             },
         }
 
+    def _clear_superprompt_memory_results(self, sp: Any) -> None:
+        """Clear transient memory-retrieval outputs before every attempt."""
+        setattr(sp, "memory_context_pack", None)
+        setattr(sp, "memory_context_text", "")
+        setattr(sp, "active_memory_brief_title", "")
+        setattr(sp, "active_memory_brief", "")
+
+        extras = getattr(sp, "extras", {}) or {}
+        for key in (
+            "memory_context_pack",
+            "memory_context_text",
+            "memory_debug_markdown",
+            "memory_retrieval_counts",
+            "active_memory_brief_title",
+            "active_memory_brief",
+        ):
+            extras.pop(key, None)
+
     def _write_empty_pack(
         self,
         sp: Any,
         reason: str,
+        *,
+        include_active_brief: bool = True,
     ) -> Any:
         pack = MemoryContextPack()
         pack.set_selection_diagnostics({"empty_reason": reason})
+        active_brief_info = (
+            self._find_latest_active_brief_info()
+            if include_active_brief
+            else {
+                "record_id": "",
+                "active_retrieval_brief_title": "",
+                "active_retrieval_brief": "",
+                "active_retrieval_brief_contributor_ids": [],
+            }
+        )
         self._write_to_superprompt(
             sp=sp,
             pack=pack,
-            active_brief_info=self._find_latest_active_brief_info(),
+            active_brief_info=active_brief_info,
         )
         return sp
 

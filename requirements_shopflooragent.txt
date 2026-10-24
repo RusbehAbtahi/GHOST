@@ -1,0 +1,10 @@
+# ShopfloorAgent project-specific dependencies
+# Shared GHOST virtual environment: /home/rusbeh_ab/venvs/ragstream
+
+numpy
+pandas
+scipy
+streamlit
+websockets
+mcp
+langgraph

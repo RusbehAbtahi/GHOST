@@ -22,7 +22,6 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
-import threading
 
 from pathlib import Path
 from typing import Any
@@ -37,6 +36,7 @@ from ragstream.memory.mcp_memory_collection_store import (
     COLLECTION_MEMORY_TYPE,
     DEFAULT_MEMORY_ROOT,
     ensure_collection_schema,
+    collection_operation_lock,
 )
 from ragstream.memory.memory_manager import MemoryManager
 
@@ -58,7 +58,6 @@ class McpMemoryCollectionManager:
             if sqlite_path is not None
             else self.memory_root / "memory_index.sqlite3"
         )
-        self._lock = threading.Lock()
         MemoryManager(self.memory_root, self.sqlite_path)
         ensure_collection_schema(self.sqlite_path)
 
@@ -79,7 +78,7 @@ class McpMemoryCollectionManager:
         if folder == COLLECTION_ARCHIVE_FOLDER:
             raise ValueError("use archive action to move a Collection to Archive")
 
-        with self._lock:
+        with collection_operation_lock(self.sqlite_path, owner, identifier):
             row = self._active_collection(owner, identifier)
             return self._move_active(row, owner, folder, archive=False)
 
@@ -92,7 +91,7 @@ class McpMemoryCollectionManager:
         owner = self._validate_owner_sub(owner_sub)
         identifier = self._require_text(collection_id, "collection_id")
 
-        with self._lock:
+        with collection_operation_lock(self.sqlite_path, owner, identifier):
             row = self._active_collection(owner, identifier)
             return self._move_active(
                 row,
@@ -114,7 +113,7 @@ class McpMemoryCollectionManager:
         if folder == COLLECTION_ARCHIVE_FOLDER:
             raise ValueError("restore destination cannot be Archive")
 
-        with self._lock:
+        with collection_operation_lock(self.sqlite_path, owner, identifier):
             meta_path, metainfo = self._archived_collection(owner, identifier)
             self._validate_restore_collisions(owner, metainfo)
 

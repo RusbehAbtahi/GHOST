@@ -652,9 +652,15 @@ TITLE: Clipboard Memory Scope
 STATEMENT: >>>
 Clipboard Memory shall provide short-lived, deterministic temporary memory slots for lightweight save-and-recall workflows.
 
-Clipboard Memory shall use the reserved slot identifiers:
+Clipboard Recall Keys shall consist of one or two ASCII letters immediately followed by an integer from 1 through 10000, without separators or leading zeroes.
 
-M1 through M100.
+Matching shall be case-insensitive. Accepted keys shall be normalized to uppercase before storage and lookup. For example, cv5, Cv5, cV5, and CV5 shall identify the same slot.
+
+Both single-letter and two-letter prefixes shall be supported, including M1, O735, P20, CV1, PR42, MR500, and MM10000. Prefix meanings shall remain user-defined memory cues; they shall not require a category registry or content classification.
+
+Distinct prefixes shall identify distinct slots: P1 and PR1 shall not be aliases.
+
+The namespace shall contain 7,020,000 possible keys without pre-creating slots or enumerating them in the GUI. This change shall not modify Clipboard storage, retention, or newest-match behavior.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -665,11 +671,11 @@ UID: GHOST-MCP-CLIPBOARD-RESERVED-KEYS
 STATUS: Draft
 TITLE: Reserved Clipboard Routing
 STATEMENT: >>>
-M1 through M100 shall be reserved for Clipboard Memory.
+All keys matching the Clipboard Recall Key grammar shall be reserved exclusively for Clipboard Memory.
 
-A normal Episodic save shall not silently store an M1-M100 key as an ordinary Episodic Recall Key.
+Episodic and Collection stores shall reject reserved Clipboard keys rather than store them as ordinary Recall Keys.
 
-When a user explicitly requests saving to or recalling from M1-M100, the request shall be routed to Clipboard Memory behavior.
+A valid Clipboard Recall Key shall deterministically route save and recall requests to Clipboard Memory, including when memory_type is omitted.
 <<<
 RELATIONS:
 - TYPE: Parent
@@ -738,7 +744,7 @@ TITLE: Clipboard Uses Exact Slot Recall Only
 STATEMENT: >>>
 Clipboard Memory shall not provide intelligent semantic retrieval.
 
-Clipboard Recall shall use the exact M1-M100 slot identifier and return the newest exact match.
+Clipboard Recall shall use the exact normalized slot identifier and return the newest exact match without semantic retrieval, vector retrieval, or scanning the logical namespace.
 <<<
 RELATIONS:
 - TYPE: Parent

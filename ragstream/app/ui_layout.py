@@ -701,9 +701,23 @@ def render_engineered_prompt_panel() -> None:
             st.rerun()
 
 
+def _heavy_component_state(controller: AppController | None) -> tuple[bool, str]:
+    """Return heavy-component readiness and any initialization error."""
+    if controller is None:
+        return False, "Controller is not initialized."
+
+    ready = bool(getattr(controller, "heavy_components_ready", False))
+    error = str(getattr(controller, "heavy_initialization_error", "") or "").strip()
+    return ready, error
+
+
 def render_main_action_controls() -> bool:
     """Left column: main execution controls below User Prompt."""
     _vertical_gap("0.45rem")
+
+    memory_warning = str(st.session_state.pop("memory_save_warning", "") or "").strip()
+    if memory_warning:
+        st.warning(memory_warning)
 
     _render_llm_call_row()
     builder_clicked = _render_prompt_builder_row()
@@ -711,17 +725,28 @@ def render_main_action_controls() -> bool:
 
     _vertical_gap("0.45rem")
 
+    ready, init_error = _heavy_component_state(st.session_state.get("controller"))
+    if (
+        not ready
+        and not init_error
+        and bool(st.session_state.get("heavy_init_started", False))
+    ):
+        time.sleep(1.0)
+        st.rerun()
+
     return bool(builder_clicked)
 
 
 def _render_prompt_builder_row() -> bool:
     action_col, detail_col = st.columns(ACTION_ROW_COLUMNS, gap="small")
+    heavy_ready, init_error = _heavy_component_state(st.session_state.get("controller"))
 
     with action_col:
         builder_clicked = st.button(
             "Prompt Builder",
             key="btn_builder",
             use_container_width=True,
+            disabled=not heavy_ready,
         )
 
     with detail_col:
@@ -748,6 +773,12 @@ def _render_prompt_builder_row() -> bool:
         st.session_state["use_a2_promptshaper_llm"] = bool(use_a2_promptshaper_llm)
         st.session_state["use_retrieval_splade"] = bool(use_retrieval_splade)
         st.session_state["use_reranking_colbert"] = bool(use_reranking_colbert)
+
+    if not heavy_ready:
+        if init_error:
+            st.error(f"Retrieval initialization failed: {init_error}")
+        else:
+            st.info("Initializing Retrieval and ReRanker. Prompt Builder will enable when ready.")
 
     return bool(builder_clicked)
 
@@ -832,6 +863,7 @@ def _render_retrieval_top_k_control() -> None:
 
 
 def _render_manual_pipeline_buttons() -> None:
+    heavy_ready, _init_error = _heavy_component_state(st.session_state.get("controller"))
     b1c1, b1c2, b1c3, b1c4 = st.columns(4, gap="small")
 
     with b1c1:
@@ -856,6 +888,7 @@ def _render_manual_pipeline_buttons() -> None:
             key="btn_retrieval",
             use_container_width=True,
             on_click=do_retrieval,
+            disabled=not heavy_ready,
         )
 
     with b1c4:
@@ -864,6 +897,7 @@ def _render_manual_pipeline_buttons() -> None:
             key="btn_reranker",
             use_container_width=True,
             on_click=do_reranker,
+            disabled=not heavy_ready,
         )
 
     b2c1, b2c2, b2c3, b2c4 = st.columns(4, gap="small")

@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+import traceback
 import uuid
 
 from datetime import datetime, timezone
@@ -163,6 +164,7 @@ class MemoryManager:
 
         self.records: list[MemoryRecord] = []
         self.metainfo: dict[str, Any] = {}
+        self.last_capture_warning: str = ""
 
         # RAM-only buffer for topic-shift detection.
         # If Q/A is skipped as unrelated to the current ActiveBrief,
@@ -346,7 +348,7 @@ class MemoryManager:
                 expires_at_utc=self.expires_at_utc,
             )
 
-        self._update_active_retrieval_brief(record)
+        self.last_capture_warning = self._update_active_retrieval_brief(record) or ""
 
         self.records.append(record)
         self._append_record_to_ragmem(record)
@@ -573,16 +575,16 @@ class MemoryManager:
         self.save_metainfo()
         self.refresh_sqlite_index()
 
-    def _update_active_retrieval_brief(self, record: MemoryRecord) -> None:
+    def _update_active_retrieval_brief(self, record: MemoryRecord) -> str | None:
         """
         Build the ActiveRetrievalBrief for the new MemoryRecord.
 
-        This happens before the record is first written to .ragmem so that
-        active_retrieval_brief remains part of the stable body block.
-
-        The pending-topic buffer is updated here too, because it belongs to
-        the active memory history, not to Streamlit and not to the builder.
+        If generation fails, the new record is still allowed to persist, but it
+        receives no replacement ActiveBrief. The previously valid ActiveBrief
+        therefore remains authoritative.
         """
+        previous_pending_buffer = dict(self.pending_activebrief_topic_buffer or {})
+
         try:
             from ragstream.memory.compression.memory_active_retrieval_brief import (
                 MemoryActiveRetrievalBriefBuilder,
@@ -592,7 +594,7 @@ class MemoryManager:
             result = builder.build_for_record(
                 record=record,
                 previous_records=list(self.records),
-                pending_topic_buffer=dict(self.pending_activebrief_topic_buffer or {}),
+                pending_topic_buffer=dict(previous_pending_buffer),
             )
 
             active_brief_title = str(
@@ -641,14 +643,30 @@ class MemoryManager:
                 "DEBUG",
                 "CONFIDENTIAL",
             )
+            return None
 
-        except Exception as e:
-            logger_dev(
+        except Exception as error:
+            self.pending_activebrief_topic_buffer = previous_pending_buffer
+            record.update_active_retrieval_brief(
+                active_retrieval_brief="",
+                contributor_ids=[],
+                active_retrieval_brief_title="",
+            )
+
+            error_detail = f"{type(error).__name__}: {error}"
+            warning = (
+                f"ActiveBrief generation/update failed ({error_detail}). "
+                "Memory saving continues; no new ActiveBrief was written, so "
+                "the previous ActiveBrief, if any, remains unchanged."
+            )
+
+            _logger_dev(
                 "ActiveRetrievalBrief generation failed\n"
                 + json.dumps(
                     {
                         "record_id": record.record_id,
-                        "error": str(e),
+                        "error": error_detail,
+                        "traceback": traceback.format_exc(),
                     },
                     ensure_ascii=False,
                     indent=2,
@@ -657,6 +675,7 @@ class MemoryManager:
                 "ERROR",
                 "CONFIDENTIAL",
             )
+            return warning
 
     def _append_record_to_ragmem(self, record: MemoryRecord) -> None:
         if not self.filename_ragmem:

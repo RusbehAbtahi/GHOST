@@ -62,6 +62,19 @@ CLI_SERVER_INSTRUCTIONS = (
     + _ASYNC_INSTRUCTIONS.server_instruction
 )
 
+_TASK_PROPERTIES = {
+    "task_description": {
+        "type": "string",
+        "minLength": 1,
+        "description": _RUN_INSTRUCTIONS.field_descriptions["task_description"],
+    },
+    "task_scope": {
+        "type": "string",
+        "minLength": 1,
+        "description": _RUN_INSTRUCTIONS.field_descriptions["task_scope"],
+    },
+}
+
 RUN_INPUT_SCHEMA = {
     "type": "object",
     "properties": {
@@ -87,12 +100,9 @@ RUN_INPUT_SCHEMA = {
             ],
         },
     },
-    "oneOf": [
-        {"required": ["command"]},
-        {"required": ["confirmation_id", "confirmation_token"]},
-    ],
     "additionalProperties": False,
 }
+RUN_INPUT_SCHEMA["properties"].update(_TASK_PROPERTIES)
 
 ASYNC_INPUT_SCHEMA = {
     "type": "object",
@@ -139,6 +149,7 @@ ASYNC_INPUT_SCHEMA = {
     "required": ["action"],
     "additionalProperties": False,
 }
+ASYNC_INPUT_SCHEMA["properties"].update(_TASK_PROPERTIES)
 
 _OUTPUT_STATUSES = [
     "confirmation_required",
@@ -195,7 +206,8 @@ class GhostCliTool:
         error = self._validate_base_request(
             owner_sub,
             arguments,
-            {"command", "confirmation_id", "confirmation_token"},
+            {"command", "confirmation_id", "confirmation_token",
+             "task_description", "task_scope"},
             "CLI run input is required",
         )
         if error is not None:
@@ -207,6 +219,9 @@ class GhostCliTool:
         )
         if request_error is not None:
             return self._failure(request_error)
+        task_kwargs, task_error = self._task_fields(arguments, command)
+        if task_error is not None:
+            return self._failure(task_error)
 
         try:
             outcome = self._service.run_sync(
@@ -214,6 +229,7 @@ class GhostCliTool:
                 command=command,
                 confirmation_id=confirmation_id,
                 confirmation_token=confirmation_token,
+                **task_kwargs,
             )
         except ValueError as error:
             return self._failure(str(error))
@@ -246,6 +262,8 @@ class GhostCliTool:
                 "job_id",
                 "confirmation_id",
                 "confirmation_token",
+                "task_description",
+                "task_scope",
             },
             "CLI async input is required",
         )
@@ -281,6 +299,9 @@ class GhostCliTool:
         )
         if request_error is not None:
             return self._failure(request_error)
+        task_kwargs, task_error = self._task_fields(arguments, command)
+        if task_error is not None:
+            return self._failure(task_error)
 
         try:
             outcome = self._service.start_async(
@@ -288,6 +309,7 @@ class GhostCliTool:
                 command=command,
                 confirmation_id=confirmation_id,
                 confirmation_token=confirmation_token,
+                **task_kwargs,
             )
         except ValueError as error:
             return self._failure(str(error))
@@ -313,6 +335,10 @@ class GhostCliTool:
         if "command" in arguments:
             return self._failure(
                 "command is not allowed when action is 'result'"
+            )
+        if "task_description" in arguments or "task_scope" in arguments:
+            return self._failure(
+                "task authorization is not allowed when action is 'result'"
             )
         if "confirmation_token" in arguments:
             return self._failure(
@@ -414,6 +440,22 @@ class GhostCliTool:
                 "confirmation_token",
             )
         return command, confirmation_id, confirmation_token, None
+
+    @classmethod
+    def _task_fields(
+        cls, arguments: Mapping[str, Any], command: str | None
+    ) -> tuple[dict[str, str], str | None]:
+        if "task_description" not in arguments and "task_scope" not in arguments:
+            return {}, None
+        description = cls._non_empty_string(arguments.get("task_description"))
+        scope = cls._non_empty_string(arguments.get("task_scope"))
+        if description is None:
+            return {}, "task_description must be a non-empty string"
+        if "task_scope" in arguments and scope is None:
+            return {}, "task_scope must be a non-empty string"
+        if command is None:
+            return {}, "task authorization requires an initial command"
+        return {"task_description": description, "task_scope": scope or "."}, None
 
     @staticmethod
     def _non_empty_string(value: Any) -> str | None:

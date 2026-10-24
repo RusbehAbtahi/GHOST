@@ -89,16 +89,6 @@ INPUT_SCHEMA = {
         },
     },
     "required": ["skill_domain"],
-    "oneOf": [
-        {
-            "required": ["query"],
-            "not": {"required": ["skill_ids"]},
-        },
-        {
-            "required": ["skill_ids"],
-            "not": {"required": ["query"]},
-        },
-    ],
     "additionalProperties": False,
 }
 

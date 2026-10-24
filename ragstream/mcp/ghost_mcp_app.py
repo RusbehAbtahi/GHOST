@@ -31,7 +31,7 @@ from dataclasses import asdict
 from typing import Any
 
 import mcp.types as types
-from mcp.shared.exceptions import McpError
+from mcp import MCPError
 
 from ragstream.cli.command_service import CommandService
 from ragstream.mcp.ghost_cli import (
@@ -62,6 +62,20 @@ from ragstream.mcp.ghost_prompt_show import (
     TOOL_NAME as PROMPT_SHOW_TOOL_NAME,
     tool_metadata as prompt_show_tool_metadata,
 )
+from ragstream.mcp.ghost_spotify import (
+    ADD_QUEUE_TOOL_NAME as SPOTIFY_ADD_QUEUE_TOOL_NAME,
+    DEVICE_CHECK_TOOL_NAME as SPOTIFY_DEVICE_CHECK_TOOL_NAME,
+    PAUSE_TOOL_NAME as SPOTIFY_PAUSE_TOOL_NAME,
+    SERVER_INSTRUCTIONS as SPOTIFY_SERVER_INSTRUCTIONS,
+    START_TOOL_NAME as SPOTIFY_START_TOOL_NAME,
+    STOP_TOOL_NAME as SPOTIFY_STOP_TOOL_NAME,
+    GhostSpotifyTool,
+    add_queue_tool_metadata as spotify_add_queue_tool_metadata,
+    device_check_tool_metadata as spotify_device_check_tool_metadata,
+    pause_tool_metadata as spotify_pause_tool_metadata,
+    start_tool_metadata as spotify_start_tool_metadata,
+    stop_tool_metadata as spotify_stop_tool_metadata,
+)
 from ragstream.mcp.mcp_tool_contracts import GhostToolResult
 from ragstream.mcp.ghost_memory_collection_init import (
     SERVER_INSTRUCTIONS as COLLECTION_INIT_SERVER_INSTRUCTIONS,
@@ -80,6 +94,12 @@ from ragstream.mcp.ghost_memory_delete import (
     GhostMemoryDeleteTool,
     TOOL_NAME as MEMORY_DELETE_TOOL_NAME,
     tool_metadata as memory_delete_tool_metadata,
+)
+from ragstream.mcp.ghost_memory_edit import (
+    SERVER_INSTRUCTIONS as MEMORY_EDIT_SERVER_INSTRUCTIONS,
+    GhostMemoryEditEpisodeTool,
+    TOOL_NAME as MEMORY_EDIT_TOOL_NAME,
+    tool_metadata as memory_edit_tool_metadata,
 )
 from ragstream.mcp.ghost_memory_list import (
     SERVER_INSTRUCTIONS as MEMORY_LIST_SERVER_INSTRUCTIONS,
@@ -145,7 +165,9 @@ from ragstream.skills.skill_tags import SkillTagCatalog
 
 
 SERVER_INSTRUCTIONS = (
-    COLLECTION_INIT_SERVER_INSTRUCTIONS
+    "HIGHEST-PRIORITY GLOBAL MCP GOLDEN RULE: Execute only what the user explicitly asks in the immediate prompt. Do not invent, expand, infer, reinterpret, continue, prepare, save, modify, create, delete, or add any task that was not explicitly requested. Treat names, identifiers, scope, and requested actions literally. If the instruction is ambiguous or you are not fully certain what the user wants, do not act; ask for clarification. When the explicit task is complete, stop."
+    + " "
+    + COLLECTION_INIT_SERVER_INSTRUCTIONS
     + " "
     + COLLECTION_MANAGE_SERVER_INSTRUCTIONS
     + " "
@@ -156,6 +178,8 @@ SERVER_INSTRUCTIONS = (
     + MEMORY_LIST_SERVER_INSTRUCTIONS
     + " "
     + MEMORY_DELETE_SERVER_INSTRUCTIONS
+    + " "
+    + MEMORY_EDIT_SERVER_INSTRUCTIONS
     + " "
     + PERSISTENT_CHAT_SERVER_INSTRUCTIONS
     + " "
@@ -172,6 +196,8 @@ SERVER_INSTRUCTIONS = (
     + PROMPT_RUN_SERVER_INSTRUCTIONS
     + " "
     + PROMPT_SETTINGS_SERVER_INSTRUCTIONS
+    + " "
+    + SPOTIFY_SERVER_INSTRUCTIONS
 )
 
 GHOST_TOOL_NAMES = frozenset(
@@ -185,6 +211,7 @@ GHOST_TOOL_NAMES = frozenset(
         MEMORY_RECALL_TOOL_NAME,
         MEMORY_LIST_TOOL_NAME,
         MEMORY_DELETE_TOOL_NAME,
+        MEMORY_EDIT_TOOL_NAME,
         PERSISTENT_CHAT_INIT_TOOL_NAME,
         PERSISTENT_CHAT_APPEND_TOOL_NAME,
         PERSISTENT_CHAT_RESUME_TOOL_NAME,
@@ -193,6 +220,11 @@ GHOST_TOOL_NAMES = frozenset(
         SKILL_LOADER_TOOL_NAME,
         SKILL_MAKER_TOOL_NAME,
         SKILL_TAG_SETTINGS_TOOL_NAME,
+        SPOTIFY_DEVICE_CHECK_TOOL_NAME,
+        SPOTIFY_START_TOOL_NAME,
+        SPOTIFY_ADD_QUEUE_TOOL_NAME,
+        SPOTIFY_PAUSE_TOOL_NAME,
+        SPOTIFY_STOP_TOOL_NAME,
     }
 )
 
@@ -215,6 +247,7 @@ class GhostMcpApplication:
         ) = None,
         clipboard_store: McpClipboardStore | None = None,
         cli_service: CommandService | None = None,
+        spotify_tool: GhostSpotifyTool | None = None,
     ) -> None:
         """Create production tools or accept injected test dependencies."""
         if prompt_settings is None:
@@ -296,6 +329,9 @@ class GhostMcpApplication:
             memory_store,
             collection_store,
         )
+        self.memory_edit_tool = GhostMemoryEditEpisodeTool(
+            collection_store
+        )
 
         self.persistent_chat_tool = GhostPersistentChatTool(
             persistent_chat_store
@@ -304,6 +340,7 @@ class GhostMcpApplication:
         self.cli_tool = GhostCliTool(
             cli_service or CommandService()
         )
+        self.spotify_tool = spotify_tool or GhostSpotifyTool()
 
         # Each Skill tool creates its own request-scoped SkillManager. The MCP
         # application owns only the stateless adapters.
@@ -324,7 +361,7 @@ class GhostMcpApplication:
         return self.clipboard_store.cleanup_expired()
 
     def list_tools(self) -> list[types.Tool]:
-        """Return the OAuth-protected tools advertised to MCP clients."""
+        """Return the GHOST tools advertised to MCP clients."""
         definitions = (
             prompt_show_tool_metadata(self.required_scope),
             prompt_run_tool_metadata(self.required_scope),
@@ -335,25 +372,45 @@ class GhostMcpApplication:
             memory_recall_tool_metadata(self.required_scope),
             memory_list_tool_metadata(self.required_scope),
             memory_delete_tool_metadata(self.required_scope),
-            persistent_chat_init_tool_metadata(
-                self.required_scope
-            ),
-            persistent_chat_append_tool_metadata(
-                self.required_scope
-            ),
-            persistent_chat_resume_tool_metadata(
-                self.required_scope
-            ),
+            memory_edit_tool_metadata(self.required_scope),
+            persistent_chat_init_tool_metadata(self.required_scope),
+            persistent_chat_append_tool_metadata(self.required_scope),
+            persistent_chat_resume_tool_metadata(self.required_scope),
             cli_run_tool_metadata(self.required_scope),
             cli_async_tool_metadata(self.required_scope),
             skill_loader_tool_metadata(self.required_scope),
             skill_maker_tool_metadata(self.required_scope),
             skill_tag_settings_tool_metadata(self.required_scope),
+            spotify_device_check_tool_metadata(self.required_scope),
+            spotify_start_tool_metadata(self.required_scope),
+            spotify_add_queue_tool_metadata(self.required_scope),
+            spotify_pause_tool_metadata(self.required_scope),
+            spotify_stop_tool_metadata(self.required_scope),
         )
+
+        normalized_definitions = []
+
+        for definition in definitions:
+            item = dict(definition)
+
+            if self.required_scope is None:
+                item.pop("securitySchemes", None)
+
+                meta = item.get("_meta")
+                if isinstance(meta, dict):
+                    meta = dict(meta)
+                    meta.pop("securitySchemes", None)
+
+                    if meta:
+                        item["_meta"] = meta
+                    else:
+                        item.pop("_meta", None)
+
+            normalized_definitions.append(item)
 
         return [
             types.Tool.model_validate(item)
-            for item in definitions
+            for item in normalized_definitions
         ]
 
     def call_tool(
@@ -426,6 +483,13 @@ class GhostMcpApplication:
             )
             return self._to_memory_mcp_result(result)
 
+        if name == MEMORY_EDIT_TOOL_NAME:
+            result = self.memory_edit_tool.call_sanitized(
+                owner_sub or "",
+                arguments,
+            )
+            return self._to_memory_mcp_result(result)
+
         if name == PERSISTENT_CHAT_INIT_TOOL_NAME:
             result = self.persistent_chat_tool.init_sanitized(
                 owner_sub or "",
@@ -461,6 +525,26 @@ class GhostMcpApplication:
             )
             return self._to_memory_mcp_result(result)
 
+        if name == SPOTIFY_DEVICE_CHECK_TOOL_NAME:
+            result = self.spotify_tool.device_check_sanitized(arguments)
+            return self._to_memory_mcp_result(result)
+
+        if name == SPOTIFY_START_TOOL_NAME:
+            result = self.spotify_tool.start_sanitized(arguments)
+            return self._to_memory_mcp_result(result)
+
+        if name == SPOTIFY_ADD_QUEUE_TOOL_NAME:
+            result = self.spotify_tool.add_queue_sanitized(arguments)
+            return self._to_memory_mcp_result(result)
+
+        if name == SPOTIFY_PAUSE_TOOL_NAME:
+            result = self.spotify_tool.pause_sanitized(arguments)
+            return self._to_memory_mcp_result(result)
+
+        if name == SPOTIFY_STOP_TOOL_NAME:
+            result = self.spotify_tool.stop_sanitized(arguments)
+            return self._to_memory_mcp_result(result)
+
         if name == SKILL_TAG_SETTINGS_TOOL_NAME:
             result = self.skill_tag_settings_tool.call_sanitized(
                 owner_sub or "",
@@ -482,11 +566,9 @@ class GhostMcpApplication:
             )
             return self._to_memory_mcp_result(result)
 
-        raise McpError(
-            types.ErrorData(
-                code=types.INVALID_PARAMS,
-                message=f"Unknown tool: {name}",
-            )
+        raise MCPError(
+            code=types.INVALID_PARAMS,
+            message=f"Unknown tool: {name}",
         )
 
     @staticmethod

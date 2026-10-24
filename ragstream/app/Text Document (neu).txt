@@ -1,0 +1,8 @@
+/mnt/c/Windows/System32/cmd.exe /c start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\temp\ragstream-chrome" "https://chatgpt.com/g/g-p-6aac0fb5c26c81918a88ac447d4635f3-application/c/6ab58558-c064-83ed-9dce-9eacdc7cc9ba"
+
+
+It opens a CHROME PAGE.. LOGIN
+
+then
+
+/home/rusbeh_ab/venvs/ragstream/bin/python -m ragstream.hooks.Hook_ChatGTP_batch

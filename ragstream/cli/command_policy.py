@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 import shlex
 from dataclasses import dataclass
+from pathlib import Path
 
 
 _ALWAYS_READ_ONLY_COMMANDS = frozenset(
@@ -224,15 +225,8 @@ class CommandPolicy:
                 "confirmation_profile must be 'strict' or 'trusted_local'"
             )
 
-        if profile == "trusted_local":
-            dangerous_reason = self._dangerous_command_reason(clean_command)
-            if dangerous_reason is not None:
-                return CommandDecision(True, dangerous_reason)
-            return CommandDecision(
-                False,
-                "trusted_local permits commands not classified as dangerous",
-            )
-
+        # Every profile has the same read-only default. A temporary task
+        # grant is evaluated separately by CommandService.
         shell_reason = self._unsafe_shell_syntax_reason(clean_command)
         if shell_reason is not None:
             return CommandDecision(True, shell_reason)
@@ -352,6 +346,12 @@ class CommandPolicy:
         executable = tokens[0].rsplit("/", 1)[-1]
         arguments = tokens[1:]
 
+        if executable == "sort":
+            return self._classify_sort(arguments)
+        if executable == "tree":
+            return self._classify_tree(arguments)
+        if executable == "rg":
+            return self._classify_rg(arguments)
         if executable in _ALWAYS_READ_ONLY_COMMANDS:
             return None
 
@@ -410,6 +410,96 @@ class CommandPolicy:
             f"{executable!r} is not classified "
             "as a read-only command"
         )
+
+    @staticmethod
+    def _classify_sort(arguments: list[str]) -> str | None:
+        for argument in arguments:
+            if argument in {"-o", "-T", "--output", "--temporary-directory",
+                            "--compress-program"}:
+                return "sort can write files or run another program"
+            if argument.startswith(("--output=", "--temporary-directory=",
+                                    "--compress-program=")):
+                return "sort can write files or run another program"
+            if argument.startswith("-") and not argument.startswith("--"):
+                if "o" in argument[1:] or "T" in argument[1:]:
+                    return "sort can write files"
+        return None
+
+    @staticmethod
+    def _classify_tree(arguments: list[str]) -> str | None:
+        if any(argument in {"-o", "--output"} or
+               argument.startswith(("-o", "--output=")) for argument in arguments):
+            return "tree output option can write a file"
+        return None
+
+    @staticmethod
+    def _classify_rg(arguments: list[str]) -> str | None:
+        if any(argument == "--pre" or argument.startswith("--pre=")
+               for argument in arguments):
+            return "rg preprocessor can execute another program"
+        return None
+
+    def classify_task_write(
+        self, command: str, working_root: Path, task_root: Path
+    ) -> CommandDecision:
+        """Allow only simple, literal, in-scope writes under a confirmed task."""
+        clean = self._require_command(command)
+        if any(marker in clean for marker in ("\x60", "$(", "\n", ";", "&&", "||", "|", "&")):
+            return CommandDecision(True, "compound or hidden commands need confirmation")
+        try:
+            lexer = shlex.shlex(clean, posix=True, punctuation_chars="|&;<>")
+            lexer.whitespace_split = True
+            tokens = list(lexer)
+        except ValueError:
+            return CommandDecision(True, "unparseable command needs confirmation")
+        if not tokens:
+            return CommandDecision(True, "empty command needs confirmation")
+
+        def in_scope(value: str) -> bool:
+            if not value or value.startswith("-"):
+                return False
+            if any(character in value for character in "$*?[]{}~\n"):
+                return False
+            path = Path(value)
+            resolved = (path if path.is_absolute() else working_root / path).resolve()
+            protected = {
+                ".env", ".ssh", ".aws", "credentials", "secrets",
+                "secret", "auth", ".git",
+            }
+            if not resolved.is_relative_to(task_root):
+                return False
+            if any(part.lower() in protected for part in resolved.parts):
+                return False
+            if resolved.suffix.lower() in {".db", ".sqlite", ".sqlite3", ".tf", ".tfvars"}:
+                return False
+            relative = resolved.relative_to(working_root)
+            return tuple(part.lower() for part in relative.parts[:3]) not in {
+                ("data", "mcp", "memory"),
+                ("data", "mcp", "cli"),
+            }
+
+        name = tokens[0]
+        args = tokens[1:]
+        if name == "mkdir":
+            paths = [part for part in args if part not in {"-p", "--parents", "--"}]
+            if paths and all(in_scope(part) for part in paths):
+                return CommandDecision(False, "confirmed task permits in-scope mkdir")
+        if name == "touch":
+            paths = [part for part in args if part != "--"]
+            if paths and all(in_scope(part) for part in paths):
+                return CommandDecision(False, "confirmed task permits in-scope touch")
+        if name == "cp":
+            paths = [part for part in args if part in {"-n", "--no-clobber", "--"}]
+            operands = [part for part in args if part not in {"-n", "--no-clobber", "--"}]
+            if len(paths) + len(operands) == len(args) and len(operands) == 2:
+                if all(in_scope(part) for part in operands):
+                    return CommandDecision(False, "confirmed task permits in-scope copy")
+        if name in {"printf", "echo"} and len(args) >= 3:
+            if args[-2] in {">", ">>"} and all(
+                part not in {"<", "<<", ">", ">>", "|", "&", ";"} for part in args[:-2]
+            ) and in_scope(args[-1]):
+                return CommandDecision(False, "confirmed task permits in-scope output")
+        return CommandDecision(True, "write is not proven to be inside the confirmed task")
 
     @staticmethod
     def _classify_sed(arguments: list[str]) -> str | None:
@@ -577,6 +667,12 @@ class CommandPolicy:
 
         subcommand = arguments[0]
         rest = arguments[1:]
+        if any(
+            option in {"--output", "--ext-diff", "--textconv", "--exec-path"}
+            or option.startswith(("--output=", "--exec-path="))
+            for option in rest
+        ):
+            return "git option can write data or execute another program"
 
         if subcommand in _GIT_READ_ONLY_SUBCOMMANDS:
             return None

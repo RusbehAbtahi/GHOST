@@ -6,12 +6,26 @@ from ragstream.mcp.ghost_memory_tag import (
     WORKFLOW_COMPOSITION_REQUIRED,
     WORKFLOW_COMPLETE,
     GhostMemoryTagTool,
+    tool_metadata as save_tool_metadata,
 )
 from ragstream.memory.mcp_memory_collection_store import McpMemoryCollectionStore
 from ragstream.memory.mcp_memory_store import McpMemoryStore
 
 
 OWNER = "owner-1"
+
+
+def test_collection_fields_are_advertised_in_flat_save_schema() -> None:
+    schema = save_tool_metadata()["inputSchema"]
+
+    assert {
+        "collection_id",
+        "collection_name",
+        "episode_title",
+        "episode_description",
+        "active_retrieval_brief",
+    }.issubset(schema["properties"])
+    assert schema["required"] == ["input_text", "output_text"]
 
 
 def test_collection_save_exposes_description_then_accepts_empty_activebrief(

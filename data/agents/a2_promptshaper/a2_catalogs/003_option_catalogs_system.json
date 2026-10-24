@@ -19,7 +19,7 @@
       {
         "id": "data_ml_engineer",
         "label": "Data / ML engineer",
-        "description": "Data pipelines, feature pipelines, ML workflows, training, inference, and evaluation."
+        "description": "Data analysis, data pipelines, statistical and ML workflows, training, inference, evaluation, and applied modelling."
       },
       {
         "id": "generative_ai_expert",
@@ -58,8 +58,8 @@
       },
       {
         "id": "legal_advisor",
-        "label": "Legal-style advisor",
-        "description": "Legal-style structure, contractual reasoning, obligations, risks, and formal wording without formal legal advice."
+        "label": "Legal analyst / advisor",
+        "description": "Law, regulations, contracts, court and case reasoning, obligations, legal risk, and formal legal-style analysis without claiming formal legal representation."
       },
       {
         "id": "career_coach_recruiter",
@@ -89,7 +89,7 @@
       {
         "id": "financial_strategy_advisor",
         "label": "Financial strategy advisor",
-        "description": "Income, risk, compensation, financial trade-offs, and long-term financial stability."
+        "description": "Personal financial decisions, compensation, income, risk, trade-offs, and long-term financial planning."
       },
       {
         "id": "trusted_friend",
@@ -100,6 +100,56 @@
         "id": "inventive_problem_solver",
         "label": "Inventive problem solver",
         "description": "Creative solution search, alternative concepts, unconventional approaches, and new angles."
+      },
+      {
+        "id": "systems_engineer",
+        "label": "Systems engineer",
+        "description": "Multidisciplinary systems thinking, control and dynamics, interfaces, system integration, Model-Based Design, requirements flow, and engineering trade-offs."
+      },
+      {
+        "id": "engineering_researcher",
+        "label": "Engineering researcher",
+        "description": "Technical research, experiments, simulation, literature and paper analysis, evidence evaluation, hypotheses, methods, and engineering conclusions."
+      },
+      {
+        "id": "mathematics_physics_analyst",
+        "label": "Mathematics / physics analyst",
+        "description": "Mathematical reasoning, quantitative modelling, mechanics, dynamics, signals, estimation, and physics-based problem solving."
+      },
+      {
+        "id": "philosophy_scholar",
+        "label": "Philosophy scholar",
+        "description": "Philosophy, history of ideas, ethics, epistemology, metaphysics, logic, argument analysis, and comparison of philosophical positions."
+      },
+      {
+        "id": "classical_music_expert",
+        "label": "Classical music expert",
+        "description": "Classical composers, works, forms, interpretation, music history, theory, performance traditions, and recordings."
+      },
+      {
+        "id": "finance_economics_analyst",
+        "label": "Finance / economics analyst",
+        "description": "Markets, companies, valuation, macroeconomics, financial statements, investment concepts, economic incentives, and financial analysis."
+      },
+      {
+        "id": "business_strategy_marketing_expert",
+        "label": "Business strategy / marketing expert",
+        "description": "Business models, competition, customers, positioning, pricing, go-to-market, marketing, growth, and commercial strategy."
+      },
+      {
+        "id": "natural_sciences_expert",
+        "label": "Natural sciences expert",
+        "description": "General scientific reasoning across physics, chemistry, biology, earth and environmental science when no narrower specialist role fits."
+      },
+      {
+        "id": "horticulture_gardening_expert",
+        "label": "Horticulture / gardening expert",
+        "description": "Plants, gardens, soil, cultivation, pruning, propagation, plant health, seasonal care, and practical horticulture."
+      },
+      {
+        "id": "general_research_analyst",
+        "label": "General research analyst",
+        "description": "Cross-domain research, source comparison, structured synthesis, fact finding, and analysis when no specialist role cleanly covers the task."
       }
     ],
     "default": [

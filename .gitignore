@@ -234,9 +234,9 @@ data/*
 !data/agents/
 !data/agents/**
 training/*
-ragstream/app/Hook_ChatGTP.py
-ragstream/app/Hook_ChatGTP2.py
-ragstream/app/Hook_ChatGTP_TO_DO.txt
+ragstream/hooks/Hook_ChatGTP.py
+ragstream/hooks/Hook_ChatGTP2.py
+ragstream/hooks/Hook_ChatGTP_TO_DO.txt
 
 
 data/logs/**
@@ -291,3 +291,7 @@ doc/01-Requirements/strictdoc-html/
 # Local SAM and test artifacts
 .aws-sam/
 .strictdoc-test/
+
+# Local hook experiments and GUI presentation assets
+/ragstream/hooks/
+/doc/04-GUI/Presentation/

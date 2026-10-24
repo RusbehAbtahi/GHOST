@@ -129,7 +129,7 @@ class SuperPromptProjector:
         3. IRRELEVANT + STRONG       -> current prompt + ActiveBrief title
         4. SAME_TOPIC + WEAK         -> current prompt + full ActiveBrief
         5. RELATED_DOMAIN + WEAK     -> current prompt + ActiveBrief title
-        6. IRRELEVANT + WEAK         -> current prompt + full ActiveBrief
+        6. IRRELEVANT + WEAK         -> current prompt only (A3 is normally bypassed)
         """
         if sp is None:
             raise ValueError("SuperPromptProjector.build_a3_comparison_prompt_text: 'sp' must not be None")
@@ -180,7 +180,7 @@ class SuperPromptProjector:
 
         use_full_brief = (
             (materiality == "STRONG" and topic_relation in {"SAME_TOPIC", "RELATED_DOMAIN"})
-            or (materiality == "WEAK" and topic_relation in {"SAME_TOPIC", "IRRELEVANT"})
+            or (materiality == "WEAK" and topic_relation == "SAME_TOPIC")
         )
 
         use_title_only = (
@@ -385,9 +385,12 @@ class SuperPromptProjector:
             active_brief_title = ""
             active_brief_text = ""
 
+        if materiality == "WEAK" and topic_relation == "IRRELEVANT":
+            return ""
+
         use_full_brief = (
             (materiality == "STRONG" and topic_relation in {"SAME_TOPIC", "RELATED_DOMAIN"})
-            or (materiality == "WEAK" and topic_relation in {"SAME_TOPIC", "IRRELEVANT"})
+            or (materiality == "WEAK" and topic_relation == "SAME_TOPIC")
         )
 
         use_title_only = (
@@ -463,10 +466,14 @@ class SuperPromptProjector:
         return "\n".join(lines).strip()
 
     def _render_memory_context_md(self) -> str:
+        extras = getattr(self.sp, "extras", {}) or {}
+        decision = extras.get("activebrief_relation_decision", {}) or {}
+        if isinstance(decision, dict) and decision.get("allow_memory_context") is False:
+            return ""
+
         memory_context = str(getattr(self.sp, "memory_context_text", "") or "").strip()
 
         if not memory_context:
-            extras = getattr(self.sp, "extras", {}) or {}
             memory_context = str(extras.get("memory_context_text", "") or "").strip()
 
         return memory_context

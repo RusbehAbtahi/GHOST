@@ -529,6 +529,12 @@ def _save_memory_pair(
         )
 
         if result.get("success"):
+            warning = str(result.get("warning", "") or "").strip()
+            if warning:
+                st.session_state["memory_save_warning"] = warning
+            else:
+                st.session_state.pop("memory_save_warning", None)
+
             st.session_state["manual_memory_feed_text"] = ""
             st.rerun()
         else:

@@ -30,6 +30,7 @@ Main functions:
 
 from __future__ import annotations
 
+import hashlib
 import re
 import sqlite3
 import threading
@@ -54,8 +55,8 @@ DEFAULT_MEMORY_ROOT = Path("data/mcp/memory")
 
 _OWNER_SUB_PATTERN = re.compile(r"[A-Za-z0-9._-]+")
 _CLIPBOARD_KEY_PATTERN = re.compile(
-    r"M(?:[1-9]|[1-9][0-9]|100)",
-    re.IGNORECASE,
+    r"[A-Z]{1,2}(?:[1-9][0-9]{0,3}|10000)",
+    re.IGNORECASE | re.ASCII,
 )
 
 
@@ -81,6 +82,19 @@ def ensure_collection_schema(sqlite_path: str | Path) -> None:
             """
         )
         connection.commit()
+
+
+_COLLECTION_LOCKS_GUARD = threading.Lock()
+_COLLECTION_LOCKS: dict[tuple[str, str, str], threading.RLock] = {}
+
+
+def collection_operation_lock(
+    sqlite_path: str | Path, owner_sub: str, collection_id: str
+) -> threading.RLock:
+    """Share one in-process lock across Store and Manager for a Collection."""
+    key = (str(Path(sqlite_path).resolve()), owner_sub, collection_id)
+    with _COLLECTION_LOCKS_GUARD:
+        return _COLLECTION_LOCKS.setdefault(key, threading.RLock())
 
 
 class CollectionPartialWriteError(RuntimeError):
@@ -187,11 +201,15 @@ class McpMemoryCollectionStore:
     ) -> dict[str, Any]:
         """Return persisted Collection guidance needed before ActiveBrief composition."""
         owner = self._validate_owner_sub(owner_sub)
-        with self._lock:
+        resolved = self._resolve_collection(
+            owner, collection_id=collection_id, collection_name=collection_name
+        )
+        resolved_id = str(resolved["file_id"])
+        with self._lock, collection_operation_lock(
+            self.sqlite_path, owner, resolved_id
+        ):
             collection = self._resolve_collection(
-                owner,
-                collection_id=collection_id,
-                collection_name=collection_name,
+                owner, collection_id=resolved_id, collection_name=None
             )
             manager, _ = self._load_collection_manager(collection)
             latest = self._latest_record(manager.records)
@@ -242,11 +260,15 @@ class McpMemoryCollectionStore:
             raise ValueError("active_retrieval_brief must be a string.")
         active_brief = active_retrieval_brief.strip()
 
-        with self._lock:
+        resolved = self._resolve_collection(
+            owner, collection_id=collection_id, collection_name=collection_name
+        )
+        resolved_id = str(resolved["file_id"])
+        with self._lock, collection_operation_lock(
+            self.sqlite_path, owner, resolved_id
+        ):
             collection = self._resolve_collection(
-                owner,
-                collection_id=collection_id,
-                collection_name=collection_name,
+                owner, collection_id=resolved_id, collection_name=None
             )
             manager, sequence_number = self._load_collection_manager(
                 collection
@@ -328,6 +350,150 @@ class McpMemoryCollectionStore:
             "next_sequence_number": next_sequence_number,
         }
 
+    def edit_episode_output(
+        self,
+        owner_sub: str,
+        record_id: str,
+        new_output_text: str | None = None,
+        *,
+        new_episode_title: str | None = None,
+        new_episode_description: str | None = None,
+    ) -> dict[str, Any]:
+        """Edit selected mutable fields for one exact Collection episode."""
+        owner = self._validate_owner_sub(owner_sub)
+        clean_record_id = self._require_text(
+            record_id,
+            "record_id",
+            trim=True,
+        )
+
+        if (
+            new_output_text is None
+            and new_episode_title is None
+            and new_episode_description is None
+        ):
+            raise ValueError(
+                "at least one editable Collection episode field is required"
+            )
+
+        exact_output = (
+            self._require_text(
+                new_output_text,
+                "new_output_text",
+            )
+            if new_output_text is not None
+            else None
+        )
+        title = (
+            self._require_text(
+                new_episode_title,
+                "new_episode_title",
+                trim=True,
+            )
+            if new_episode_title is not None
+            else None
+        )
+        if title is not None and len(title) > MAX_EPISODE_TITLE_LENGTH:
+            raise ValueError(
+                f"new_episode_title must be at most "
+                f"{MAX_EPISODE_TITLE_LENGTH} characters."
+            )
+
+        description = (
+            self._require_text(
+                new_episode_description,
+                "new_episode_description",
+                trim=True,
+            )
+            if new_episode_description is not None
+            else None
+        )
+
+        candidate = self._lookup_collection_episode(
+            owner, recall_key=None, record_id=clean_record_id
+        )
+        if candidate is None:
+            return {"edited": False, "memory_type": COLLECTION_MEMORY_TYPE}
+
+        with self._lock, collection_operation_lock(
+            self.sqlite_path, owner, str(candidate["file_id"])
+        ):
+            match = self._lookup_collection_episode(
+                owner,
+                recall_key=None,
+                record_id=clean_record_id,
+            )
+            if match is None:
+                return {
+                    "edited": False,
+                    "memory_type": COLLECTION_MEMORY_TYPE,
+                }
+            if str(match["file_id"]) != str(candidate["file_id"]):
+                raise ValueError("Collection changed while acquiring its lock")
+
+            manager, next_sequence_number = (
+                self._load_collection_manager(match)
+            )
+            target = next(
+                (
+                    record
+                    for record in manager.records
+                    if record.record_id == clean_record_id
+                ),
+                None,
+            )
+            if target is None:
+                raise ValueError(
+                    "Collection body, metadata, and index do not match"
+                )
+
+            if exact_output is not None:
+                target.output_text = exact_output
+                target.output_hash = hashlib.sha256(
+                    exact_output.encode("utf-8")
+                ).hexdigest()
+
+            if title is not None:
+                target.episode_title = title
+
+            if description is not None:
+                target.episode_description = description
+
+            if exact_output is not None or description is not None:
+                manager.ragmem_path.write_text(
+                    "".join(
+                        f"{record.to_ragmem_block()}\n"
+                        for record in manager.records
+                    ),
+                    encoding="utf-8",
+                )
+
+            manager.metainfo["next_sequence_number"] = (
+                next_sequence_number
+            )
+
+            try:
+                manager.save_metainfo()
+                manager.refresh_sqlite_index()
+                self._write_next_sequence_number(
+                    manager.file_id,
+                    next_sequence_number,
+                )
+            except Exception as error:
+                raise CollectionPartialWriteError(
+                    "episode edit",
+                    clean_record_id,
+                ) from error
+
+        return {
+            "edited": True,
+            "memory_type": COLLECTION_MEMORY_TYPE,
+            "collection_id": manager.file_id,
+            "record_id": target.record_id,
+            "episode_number": target.sequence_number,
+            "recall_key": target.direct_recall_key,
+        }
+
     def delete_episode(
         self,
         owner_sub: str,
@@ -335,7 +501,7 @@ class McpMemoryCollectionStore:
         recall_key: str | None = None,
         record_id: str | None = None,
     ) -> dict[str, Any]:
-        """Delete one exact Collection episode while preserving all numbers."""
+        """Delete one episode, preserving middle gaps but reclaiming the tail."""
         owner = self._validate_owner_sub(owner_sub)
         clean_key = (
             self._require_text(recall_key, "recall_key", trim=True)
@@ -353,7 +519,19 @@ class McpMemoryCollectionStore:
                 "exactly one of recall_key or record_id is required."
             )
 
-        with self._lock:
+        candidate = self._lookup_collection_episode(
+            owner, recall_key=clean_key, record_id=clean_record_id
+        )
+        if candidate is None:
+            return {
+                "deleted": False,
+                "deleted_count": 0,
+                "memory_type": COLLECTION_MEMORY_TYPE,
+            }
+
+        with self._lock, collection_operation_lock(
+            self.sqlite_path, owner, str(candidate["file_id"])
+        ):
             match = self._lookup_collection_episode(
                 owner,
                 recall_key=clean_key,
@@ -365,6 +543,8 @@ class McpMemoryCollectionStore:
                     "deleted_count": 0,
                     "memory_type": COLLECTION_MEMORY_TYPE,
                 }
+            if str(match["file_id"]) != str(candidate["file_id"]):
+                raise ValueError("Collection changed while acquiring its lock")
 
             manager, next_sequence_number = (
                 self._load_collection_manager(match)
@@ -382,6 +562,9 @@ class McpMemoryCollectionStore:
                 raise ValueError(
                     "Collection body, metadata, and index do not match"
                 )
+
+            if target.sequence_number == next_sequence_number - 1:
+                next_sequence_number -= 1
 
             manager.records = [
                 record
@@ -436,7 +619,9 @@ class McpMemoryCollectionStore:
             trim=True,
         )
 
-        with self._lock:
+        with self._lock, collection_operation_lock(
+            self.sqlite_path, owner, clean_collection_id
+        ):
             collection = self._resolve_collection(
                 owner,
                 collection_id=clean_collection_id,
@@ -788,7 +973,8 @@ class McpMemoryCollectionStore:
         clean_key = value.strip()
         if _CLIPBOARD_KEY_PATTERN.fullmatch(clean_key) is not None:
             raise ValueError(
-                "recall_key M1 through M100 is reserved for "
+                "recall_key with one or two ASCII letters followed by "
+                "1-10000 is reserved for "
                 "Clipboard Memory."
             )
 

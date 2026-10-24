@@ -1,0 +1,16 @@
+{
+  "tool_description": [
+    "Edit one exact owner-scoped Collection Memory episode selected only by exact Record ID. The edit may replace the assistant answer, local Episode Title, local Episode Description, or any combination of those fields. This tool never performs semantic selection and never edits ordinary Episodic or Clipboard Memory."
+  ],
+  "server_instruction": [
+    "Use ghost_memory_edit_episode only when the user explicitly asks to correct or maintain an existing Collection episode.",
+    "Resolve the intended Collection episode first and pass its exact Record ID. Supply only the fields the user wants replaced: new_output_text, new_episode_title, and/or new_episode_description.",
+    "Do not change input_text, ActiveBrief, Recall Key, episode number, Record ID, or Collection identity. Existing output-only calls remain valid. Collection Memory retrieval is deterministic and does not use the ordinary Episodic description-vector index."
+  ],
+  "field_descriptions": {
+    "record_id": "Exact owner-scoped Record ID of the Collection episode to edit.",
+    "new_output_text": "Optional complete replacement assistant answer. Omit it when the answer must remain unchanged.",
+    "new_episode_title": "Optional replacement local Episode Title, at most 120 characters. Omit it when the title must remain unchanged.",
+    "new_episode_description": "Optional replacement local Episode Description. Omit it when the description must remain unchanged."
+  }
+}

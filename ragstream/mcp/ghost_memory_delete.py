@@ -80,36 +80,6 @@ INPUT_SCHEMA = {
             ],
         },
     },
-    "oneOf": [
-        {
-            "required": ["recall_key"],
-            "not": {
-                "anyOf": [
-                    {"required": ["record_id"]},
-                    {"required": ["collection_id"]},
-                ]
-            },
-        },
-        {
-            "required": ["record_id"],
-            "not": {
-                "anyOf": [
-                    {"required": ["recall_key"]},
-                    {"required": ["collection_id"]},
-                ]
-            },
-        },
-        {
-            "required": ["collection_id"],
-            "not": {
-                "anyOf": [
-                    {"required": ["recall_key"]},
-                    {"required": ["record_id"]},
-                    {"required": ["delete_all_matches"]},
-                ]
-            },
-        },
-    ],
     "additionalProperties": False,
 }
 

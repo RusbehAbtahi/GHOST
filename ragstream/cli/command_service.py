@@ -28,6 +28,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -92,10 +93,7 @@ class CommandConfig:
                 "'strict', or 'trusted_local'"
             )
         if self.confirmation_profile == "auto":
-            resolved_profile = (
-                "trusted_local" if self.backend == "local" else "strict"
-            )
-            object.__setattr__(self, "confirmation_profile", resolved_profile)
+            object.__setattr__(self, "confirmation_profile", "strict")
         if self.sync_wait_seconds <= 0:
             raise ValueError("sync_wait_seconds must be positive")
         if self.poll_interval_seconds <= 0:
@@ -168,6 +166,15 @@ class CommandOutcome:
     message: str = ""
 
 
+@dataclass(frozen=True)
+class TaskAuthorization:
+    """A temporary owner-scoped task grant, lost on process restart."""
+
+    description: str
+    root: Path
+    expires_at: float
+
+
 class CommandService:
     """Run confirmed commands through the configured execution backend."""
 
@@ -185,6 +192,9 @@ class CommandService:
         )
         self.policy = policy or CommandPolicy()
         self._ssm_client = ssm_client
+        self._task_lock = threading.Lock()
+        self._active_tasks: dict[str, TaskAuthorization] = {}
+        self._pending_tasks: dict[str, tuple[str, str, str, TaskAuthorization]] = {}
 
     def run_sync(
         self,
@@ -192,6 +202,8 @@ class CommandService:
         command: str | None = None,
         confirmation_id: str | None = None,
         confirmation_token: str | None = None,
+        task_description: str | None = None,
+        task_scope: str | None = None,
     ) -> CommandOutcome:
         """Run once, returning immediately or preserving an in-progress job."""
         authorized_command, confirmation = self._authorize_command(
@@ -200,6 +212,8 @@ class CommandService:
             _SYNC_MODE,
             confirmation_id,
             confirmation_token,
+            task_description,
+            task_scope,
         )
         if confirmation is not None:
             return confirmation
@@ -222,6 +236,8 @@ class CommandService:
         command: str | None = None,
         confirmation_id: str | None = None,
         confirmation_token: str | None = None,
+        task_description: str | None = None,
+        task_scope: str | None = None,
     ) -> CommandOutcome:
         """Start one command once and return its durable owner-scoped job ID."""
         authorized_command, confirmation = self._authorize_command(
@@ -230,6 +246,8 @@ class CommandService:
             _ASYNC_MODE,
             confirmation_id,
             confirmation_token,
+            task_description,
+            task_scope,
         )
         if confirmation is not None:
             return confirmation
@@ -261,8 +279,18 @@ class CommandService:
         execution_mode: str,
         confirmation_id: str | None,
         confirmation_token: str | None,
+        task_description: str | None,
+        task_scope: str | None,
     ) -> tuple[str | None, CommandOutcome | None]:
         self._require_owner(owner_sub)
+        if task_description is not None and (
+            not isinstance(task_description, str) or not task_description.strip()
+        ):
+            raise ValueError("task_description must be a non-empty string")
+        if task_scope is not None and task_description is None:
+            raise ValueError("task_scope requires task_description")
+        if command is None and task_description is not None:
+            raise ValueError("task authorization requires an initial command")
         has_confirmation_id = confirmation_id is not None
         has_confirmation_token = confirmation_token is not None
         if command is not None and (has_confirmation_id or has_confirmation_token):
@@ -287,6 +315,21 @@ class CommandService:
                     "confirmation is invalid, expired, already used, or for "
                     "a different execution mode"
                 )
+            with self._task_lock:
+                grant = self._pending_tasks.pop(confirmation_id, None)
+                if grant is not None:
+                    grant_owner, grant_mode, grant_command, authorization = grant
+                    if (
+                        grant_owner == owner_sub
+                        and grant_mode == execution_mode
+                        and grant_command == confirmed_command
+                        and authorization.expires_at > time.monotonic()
+                    ):
+                        self._active_tasks[owner_sub] = TaskAuthorization(
+                            authorization.description,
+                            authorization.root,
+                            time.monotonic() + self.config.confirmation_ttl_seconds,
+                        )
             return confirmed_command, None
 
         clean_command = self._require_command(command)
@@ -294,15 +337,49 @@ class CommandService:
             clean_command,
             confirmation_profile=self.config.confirmation_profile,
         )
-        if not decision.confirmation_required:
-            return clean_command, None
+        authorization: TaskAuthorization | None = None
+        if task_description is not None:
+            root = self.config.working_directory.resolve()
+            scope = Path(task_scope or ".")
+            task_root = (root / scope).resolve()
+            if scope.is_absolute() or not task_root.is_relative_to(root):
+                raise ValueError("task_scope must stay within the CLI working root")
+            authorization = TaskAuthorization(
+                task_description.strip(),
+                task_root,
+                time.monotonic() + self.config.confirmation_ttl_seconds,
+            )
+            decision = self.policy.classify(clean_command, "strict")
+            reason = (
+                "Confirm the exact command and temporary task authorization "
+                f"for {authorization.description!r} under {task_root}"
+            )
+        else:
+            reason = decision.reason
+            if decision.confirmation_required:
+                with self._task_lock:
+                    active = self._active_tasks.get(owner_sub)
+                    if active is not None and active.expires_at <= time.monotonic():
+                        self._active_tasks.pop(owner_sub, None)
+                        active = None
+                if active is not None:
+                    decision = self.policy.classify_task_write(
+                        clean_command,
+                        self.config.working_directory.resolve(),
+                        active.root,
+                    )
+                    reason = decision.reason
+            if not decision.confirmation_required:
+                return clean_command, None
 
         pending = self.store.issue_confirmation(
-            owner_sub,
-            clean_command,
-            execution_mode,
-            decision.reason,
+            owner_sub, clean_command, execution_mode, reason
         )
+        if authorization is not None:
+            with self._task_lock:
+                self._pending_tasks[pending.confirmation_id] = (
+                    owner_sub, execution_mode, clean_command, authorization
+                )
         return (
             None,
             CommandOutcome(
@@ -310,7 +387,7 @@ class CommandService:
                 confirmation_required=True,
                 confirmation_id=pending.confirmation_id,
                 confirmation_token=pending.confirmation_token,
-                message=decision.reason,
+                message=reason,
             ),
         )
 
