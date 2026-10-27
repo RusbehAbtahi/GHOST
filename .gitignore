@@ -295,3 +295,9 @@ doc/01-Requirements/strictdoc-html/
 # Local hook experiments and GUI presentation assets
 /ragstream/hooks/
 /doc/04-GUI/Presentation/
+
+# Local-only files kept out of GitHub
+/ghost_memory_snapshot.sh
+/spotify_owned_playlists_with_tracks.txt
+/GHOST_Architecture_Ring.pptx
+/create_ghost_architecture_ring.py
